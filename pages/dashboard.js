@@ -42,9 +42,14 @@ export default function Dashboard() {
   return (
     <div style={{ backgroundColor: '#050505', minHeight: '100vh', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* Header Profissional */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 4%', backgroundColor: '#000', borderBottom: '1px solid #222' }}>
-        <h2 style={{ letterSpacing: '1px', fontWeight: '800' }}>BPLEN <span style={{color:'#E50914'}}>HUB</span></h2>
+      {/* Header Premium com Logo SVG */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 4%', backgroundColor: '#000', borderBottom: '1px solid #222' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {/* --- NOVA LINHA PARA O LOGO VETORIAL --- */}
+          <img src="/logo.svg" alt="Logo BPlen Hub" style={{ height: '40px', width: 'auto' }} />
+          {/* --- TÍTULO TEXTUAL AO LADO --- */}
+          <h2 style={{ letterSpacing: '1px', fontWeight: '800', margin: 0 }}>BPLEN <span style={{color:'#E50914'}}>HUB</span></h2>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <span style={{ fontSize: '14px', color: '#ccc' }}>{user.displayName}</span>
           <button onClick={handleLogout} style={{ backgroundColor: 'transparent', color: '#fff', border: '1px solid #444', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px' }}>Sair</button>
@@ -56,7 +61,7 @@ export default function Dashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' }}>
           
-          {/* CURSO BASE - Só aparece se estiver na planilha */}
+          {/* CURSO BASE */}
           {products.includes('curso_base') && (
             <div className="card" style={cardStyle}>
               <div style={{height: '160px', backgroundColor: '#111', borderRadius: '8px', marginBottom: '15px', display: 'flex', alignItems:'center', justifyContent:'center', fontSize: '40px'}}>🎓</div>
@@ -66,7 +71,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* MENTORIA VIP - Só aparece se estiver na planilha */}
+          {/* MENTORIA VIP */}
           {products.includes('mentoria_vip') && (
             <div className="card" style={cardStyle}>
               <div style={{height: '160px', backgroundColor: '#1a1a1a', borderRadius: '8px', marginBottom: '15px', display: 'flex', alignItems:'center', justifyContent:'center', fontSize: '40px'}}>🚀</div>
