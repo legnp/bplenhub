@@ -1,5 +1,5 @@
 import React from 'react';
-import { auth, provider } from '../lib/firebase';
+import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -143,7 +143,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, googleProvider);
       router.push('/dashboard');
     } catch (error) {
       alert("Erro ao tentar entrar. Verifique sua conexão.");
