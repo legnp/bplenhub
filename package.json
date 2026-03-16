@@ -8,11 +8,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "firebase": "latest",
+    "google-auth-library": "^9.0.0",
+    "google-spreadsheet": "^4.1.1",
+    "googleapis": "^171.4.0",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest",
-    "firebase": "latest",
-    "google-spreadsheet": "^4.1.1",
-    "google-auth-library": "^9.0.0"
+    "react-dom": "latest"
   }
 }

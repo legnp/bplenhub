@@ -3,6 +3,7 @@ import { auth } from '../lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import Layout from '../components/Layout';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -66,42 +67,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="page-wrapper">
-      <Head>
-        <title>BPlen Hub - Dashboard</title>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-      </Head>
-      <header className="dashboard-header bplen-glass-dark">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/logo-hub.svg" alt="Logo BPlen Hub" style={{ height: '52px', width: 'auto', display: 'block' }} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <button 
-            onClick={toggleTheme} 
-            className="secondary-btn" 
-            style={{ 
-              padding: '8px', 
-              fontSize: '18px', 
-              borderRadius: '50%', 
-              width: '40px', 
-              height: '40px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{user.displayName}</span>
-          <button onClick={handleLogout} className="secondary-btn" style={{ padding: '8px 15px', fontSize: '12px' }}>
-            Sair
-          </button>
-        </div>
-      </header>
-
+    <Layout 
+      title="Dashboard"
+      user={user}
+      theme={theme}
+      toggleTheme={toggleTheme}
+      handleLogout={handleLogout}
+    >
       <main className="dashboard-main">
         <h1 style={{ marginBottom: '10px' }}>Sua jornada</h1>
         <p className="subtitle" style={{ marginBottom: '30px' }}>Visualize o progresso da sua consultoria e acesse seus materiais.</p>
@@ -122,7 +94,16 @@ export default function Dashboard() {
                                  item.status === 'Em andamento' ? 'status-andamento' : 'status-pendente';
               
               return (
-                <div key={item.id} className={`journey-item bplen-glass-dark ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                <div 
+                  key={item.id} 
+                  className={`journey-item bplen-glass-dark ${isUnlocked ? 'unlocked' : 'locked'}`}
+                  style={{ cursor: isUnlocked && item.id === 'onboarding' ? 'pointer' : 'default' }}
+                  onClick={() => {
+                    if (isUnlocked && item.id === 'onboarding') {
+                      router.push('/onboarding');
+                    }
+                  }}
+                >
                   <div className="journey-info">
                     <div className="lock-icon">
                       {isUnlocked ? '🔓' : '🔒'}
@@ -156,6 +137,6 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
-    </div>
+    </Layout>
   );
 }
