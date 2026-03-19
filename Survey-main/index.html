@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Cliente | LENS Partner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS for Excel exports -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Background elements for visual flair -->
+        <div class="bg-glow-1"></div>
+        <div class="bg-glow-2"></div>
+
+        <main class="container">
+            <!-- Welcome Screen -->
+            <section id="welcome-section" class="card active">
+                <header>
+                    <h1 class="title">Olá!</h1>
+                    <p id="welcome-text" class="subtitle"></p>
+                </header>
+                <div class="input-group">
+                    <input type="text" id="nickname" placeholder="Seu apelido ou como prefere ser chamado"
+                        aria-label="Como você gostaria de ser chamado?">
+                </div>
+                <button id="welcome-btn" class="primary-btn">Continuar</button>
+            </section>
+
+            <!-- Auth Screen -->
+            <section id="auth-section" class="card">
+                <header>
+                    <h1 class="title">Acesso Restrito</h1>
+                    <p class="subtitle">Insira seu código para acessar o formulário</p>
+                </header>
+                <div class="input-group">
+                    <input type="password" id="access-code" placeholder="Código de acesso"
+                        aria-label="Código de acesso">
+                    <div id="auth-error" class="error-msg">Código inválido, tente novamente.</div>
+                </div>
+                <button id="auth-btn" class="primary-btn">Entrar</button>
+            </section>
+
+            <!-- Form Screen -->
+            <section id="form-section" class="card">
+                <header id="form-header">
+                    <div class="progress-bar-container">
+                        <div id="progress-bar-inner"></div>
+                    </div>
+                    <h1 class="title">Cadastro de Cliente</h1>
+                </header>
+
+                <div id="question-container">
+                    <!-- Questions will be injected here via JS -->
+                </div>
+
+                <div class="navigation-btns">
+                    <button id="back-btn" class="secondary-btn hidden">Voltar</button>
+                    <button id="next-btn" class="primary-btn">Próximo</button>
+                    <button id="finish-btn" class="primary-btn hidden">Finalizar e Enviar</button>
+                </div>
+            </section>
+
+            <!-- Success Screen -->
+            <section id="success-section" class="card">
+                <div class="success-icon">✓</div>
+                <h1 class="title">Obrigado!</h1>
+                <p class="subtitle">Suas respostas foram registradas e o arquivo Excel foi gerado.</p>
+                <button onclick="window.location.reload()" class="primary-btn">Novo Cadastro</button>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

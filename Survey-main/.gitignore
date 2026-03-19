@@ -1,0 +1,15 @@
+# Dependências
+node_modules/
+
+# Banco de dados (Excel)
+database.xlsx
+*.xlsx
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ambiente
+.env
+.DS_Store

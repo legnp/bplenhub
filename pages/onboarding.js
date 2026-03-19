@@ -4,6 +4,60 @@ import Layout from '../components/Layout';
 import { useRouter } from 'next/router';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import DiagnosticSurvey from '../components/DiagnosticSurvey';
+
+const VideoBubble = ({ onHighlight }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onHighlight(true);
+    }, 3000);
+
+    const removeTimer = setTimeout(() => {
+      onHighlight(false);
+    }, 8000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(removeTimer);
+    };
+  }, [onHighlight]);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '40px',
+      right: '40px',
+      width: '130px',
+      height: '130px',
+      borderRadius: '50%',
+      overflow: 'hidden',
+      border: '3px solid var(--primary)',
+      boxShadow: '0 10px 25px rgba(138, 79, 255, 0.4)',
+      zIndex: 1000,
+      background: '#1a1a1a',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      cursor: 'pointer',
+      animation: 'float 6s ease-in-out infinite'
+    }}>
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
+      <div style={{ textAlign: 'center', fontSize: '12px', padding: '10px' }}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg><br/>
+        Vídeo<br/>Interativo
+      </div>
+    </div>
+  );
+};
 
 export default function Onboarding() {
   const [user, setUser] = useState(null);
@@ -17,6 +71,7 @@ export default function Onboarding() {
   const [isBooking, setIsBooking] = useState(false);
   const [meetingLink, setMeetingLink] = useState('');
   const [bookingError, setBookingError] = useState('');
+  const [highlightTheme, setHighlightTheme] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -118,7 +173,7 @@ export default function Onboarding() {
   // Stepper definition
   const steps = [
     { title: 'Introdução', icon: <TargetIcon /> },
-    { title: 'Diagnóstico Estratégico', icon: <DiagnosticIcon /> },
+    { title: 'Check-in', icon: <DiagnosticIcon /> },
     { title: 'Sessão de Onboarding', icon: <CalendarIcon /> }
   ];
 
@@ -142,7 +197,7 @@ export default function Onboarding() {
   if (loading) {
     return (
       <div className="page-wrapper onboarding-bg center-content">
-        <p className="loading-text" style={{ color: '#fff' }}>Carregando sua jornada...</p>
+        <p className="loading-text" style={{ color: 'var(--text-main)' }}>Carregando sua jornada...</p>
       </div>
     );
   }
@@ -155,11 +210,45 @@ export default function Onboarding() {
       toggleTheme={toggleTheme}
       handleLogout={handleLogout}
       showBackButton={true}
-      isHeaderSticky={true}
+      highlightThemeButton={highlightTheme}
     >
+      {/* Rascunho: Guia da Jornada (Protótipo de Vídeo Interativo) */}
+      {/* <VideoBubble onHighlight={setHighlightTheme} /> */}
+
+        <div style={{ maxWidth: '840px', width: '60%', margin: '0 auto', padding: '0 30px', display: 'flex', justifyContent: 'flex-start' }}>
+          <button 
+            onClick={() => router.push('/dashboard')} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-muted)',
+              padding: '0',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              marginTop: '5px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = 'var(--text-main)';
+              e.currentTarget.style.transform = 'translateX(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.transform = 'translateX(0)';
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Voltar ao Dashboard
+          </button>
+        </div>
 
         <div className="sticky-sub-nav" style={{ position: 'relative', top: '0', background: 'transparent', borderBottom: 'none' }}>
-          <div className="onboarding-header" style={{ paddingTop: '0' }}>
+          <div className="onboarding-header" style={{ paddingTop: '45px' }}>
             <div className="stepper">
               {steps.map((s, idx) => {
                 let statusClass = 'locked';
@@ -180,10 +269,13 @@ export default function Onboarding() {
             </div>
           </div>
         </div>
-        <div style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(15px)', width: '100%', height: '1px' }}></div>
+
 
       <main className="onboarding-container">
-        <div className="onboarding-card">
+        <div 
+          className="onboarding-card" 
+          style={currentStep === 1 ? { background: 'transparent', border: 'none', boxShadow: 'none' } : {}}
+        >
           {currentStep === 0 && (
             <div className="onboarding-grid">
               <h1>Bem-vindo à sua nova jornada</h1>
@@ -201,72 +293,39 @@ export default function Onboarding() {
               </div>
               <button 
                 onClick={() => setCurrentStep(1)} 
-                className="auth-btn btn-primary-white"
-                style={{ maxWidth: '300px' }}
+                className="btn-glass-subtle"
+                style={{ marginTop: '20px' }}
               >
-                Ir para Diagnóstico →
+                Ir para o Check-in →
               </button>
             </div>
           )}
 
           {currentStep === 1 && (
-            <div className="onboarding-grid">
-              <h1>Diagnóstico Estratégico</h1>
-              <p className="subtitle">Conte-nos um pouco sobre você e seus objetivos.</p>
+            <div className="onboarding-grid" style={{ maxWidth: '600px', margin: '0 auto' }}>
               
-              <div className="diagnostic-form">
-                <div>
-                  <label className="subtitle" style={{ display: 'block', marginBottom: '8px' }}>Seu Nome Completo</label>
-                  <input 
-                    type="text" 
-                    value={formData.name}
-                    disabled={isCompleted}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="João Silva"
-                  />
-                </div>
-                <div>
-                  <label className="subtitle" style={{ display: 'block', marginBottom: '8px' }}>Nome da sua Empresa</label>
-                  <input 
-                    type="text" 
-                    value={formData.company}
-                    disabled={isCompleted}
-                    onChange={(e) => setFormData({...formData, company: e.target.value})}
-                    placeholder="BPlen S.A."
-                  />
-                </div>
-                <div>
-                  <label className="subtitle" style={{ display: 'block', marginBottom: '8px' }}>Seu principal objetivo hoje</label>
-                  <input 
-                    type="text" 
-                    value={formData.goal}
-                    disabled={isCompleted}
-                    onChange={(e) => setFormData({...formData, goal: e.target.value})}
-                    placeholder="Escalar meus processos..."
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-                {!isCompleted && (
-                  <button 
-                    onClick={() => setIsCompleted(true)} 
-                    className="auth-btn btn-primary-white"
-                    style={{ maxWidth: '200px' }}
-                  >
-                    Salvar Diagnóstico
-                  </button>
-                )}
-                {isCompleted && (
+              {!isCompleted ? (
+                <DiagnosticSurvey 
+                  theme={theme}
+                  onComplete={(data) => {
+                    console.log("Respostas do check-in:", data);
+                    setIsCompleted(true);
+                  }} 
+                />
+              ) : (
+                <div style={{background: 'var(--glass-bg)', padding: '30px', borderRadius: '12px', border: '1px solid var(--glass-border)', textAlign: 'center', marginTop: '20px'}}>
+                  <div style={{color: 'var(--primary)', fontSize: '40px', marginBottom: '10px'}}>✓</div>
+                  <h2 style={{color: 'var(--text-main)'}}>Check-in Concluído!</h2>
+                  <p style={{color: 'var(--text-muted)'}}>Obrigado por compartilhar suas informações conosco.</p>
                   <button 
                     onClick={() => setCurrentStep(2)} 
-                    className="auth-btn btn-primary-white"
-                    style={{ maxWidth: '250px' }}
+                    className="btn-glass-subtle"
+                    style={{ margin: '20px auto 0' }}
                   >
                     Ir para Agendamento →
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -309,8 +368,7 @@ export default function Onboarding() {
               {selectedDate && selectedTime && !meetingLink && (
                 <div style={{ marginTop: '40px' }}>
                   <button 
-                    className="auth-btn btn-primary-white" 
-                    style={{ maxWidth: '300px' }}
+                    className="btn-glass-subtle" 
                     onClick={handleConfirmBooking}
                     disabled={isBooking}
                   >
