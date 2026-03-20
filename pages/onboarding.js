@@ -2,58 +2,103 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 import { useRouter } from 'next/router';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import DiagnosticSurvey from '../components/DiagnosticSurvey';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import CheckinSurvey from '../components/DiagnosticSurvey';
 
-const VideoBubble = ({ onHighlight }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onHighlight(true);
-    }, 3000);
+// --- Helpers ---
+const getISOWeek = (date) => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return String(weekNo).padStart(2, '0');
+};
 
-    const removeTimer = setTimeout(() => {
-      onHighlight(false);
-    }, 8000);
+// --- Components ---
+const Calendar = ({ selectedDate, onSelectDate, theme }) => {
+  const [viewDate, setViewDate] = useState(new Date());
+  const today = new Date();
 
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(removeTimer);
-    };
-  }, [onHighlight]);
+  const handlePrevMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+  const handleNextMonth = () => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+  const handleGoToday = () => setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const lastDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
+  
+  const startOffset = (firstDayOfMonth.getDay() + 6) % 7;
+  const daysInMonth = lastDayOfMonth.getDate();
+
+  const monthName = viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const weekDays = ['SI', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
+  const isSelected = (d) => selectedDate && d.toDateString() === selectedDate.toDateString();
+  const isToday = (d) => d.toDateString() === today.toDateString();
+  const isAvailable = (d) => {
+    const minDate = new Date();
+    minDate.setDate(today.getDate() + 3);
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 25);
+    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+    return d >= minDate && d <= maxDate && !isWeekend;
+  };
+
+  const rows = [];
+  let currentDay = 1 - startOffset;
+
+  while (currentDay <= daysInMonth) {
+    const week = [];
+    const firstDayOfWeek = new Date(viewDate.getFullYear(), viewDate.getMonth(), currentDay);
+    week.push({ isSI: true, value: getISOWeek(firstDayOfWeek) });
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(viewDate.getFullYear(), viewDate.getMonth(), currentDay);
+      if (currentDay > 0 && currentDay <= daysInMonth) {
+        week.push({ isSI: false, date: d, day: currentDay, available: isAvailable(d) });
+      } else {
+        week.push({ isSI: false, date: null, day: '', available: false });
+      }
+      currentDay++;
+    }
+    rows.push(week);
+  }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '40px',
-      right: '40px',
-      width: '130px',
-      height: '130px',
-      borderRadius: '50%',
-      overflow: 'hidden',
-      border: '3px solid var(--primary)',
-      boxShadow: '0 10px 25px rgba(138, 79, 255, 0.4)',
-      zIndex: 1000,
-      background: '#1a1a1a',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#fff',
-      cursor: 'pointer',
-      animation: 'float 6s ease-in-out infinite'
-    }}>
-      <style>{`
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-          100% { transform: translateY(0px); }
-        }
-      `}</style>
-      <div style={{ textAlign: 'center', fontSize: '12px', padding: '10px' }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--primary)" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg><br/>
-        Vídeo<br/>Interativo
+    <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+         <button onClick={handleGoToday} style={{ background: 'rgba(138, 79, 255, 0.1)', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>Hoje</button>
+         <h3 style={{ fontSize: '14px', textTransform: 'capitalize', margin: 0 }}>{monthName}</h3>
+         <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&lt;</button>
+            <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&gt;</button>
+         </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '4px', textAlign: 'center' }}>
+        {weekDays.map(wd => (
+          <div key={wd} style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-muted)', paddingBottom: '8px' }}>{wd}</div>
+        ))}
+        {rows.map((week, widx) => week.map((cell, cidx) => {
+          if (cell.isSI) return <div key={`si-${widx}`} style={{ fontSize: '9px', color: 'var(--primary)', opacity: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cell.value}</div>;
+          if (!cell.date) return <div key={`empty-${widx}-${cidx}`} />;
+          return (
+            <div key={cell.date.getTime()} onClick={() => cell.available && onSelectDate(cell.date)} style={{
+              aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', borderRadius: '50%',
+              cursor: cell.available ? 'pointer' : 'default', background: isSelected(cell.date) ? 'var(--primary)' : 'transparent',
+              color: isSelected(cell.date) ? '#fff' : (cell.available ? 'var(--text-main)' : 'var(--text-muted)'),
+              opacity: cell.available ? 1 : 0.4, border: isToday(cell.date) ? '1px solid var(--primary)' : 'none',
+              boxShadow: isToday(cell.date) ? '0 0 8px rgba(138, 79, 255, 0.3)' : 'none', transition: 'all 0.2s ease'
+            }}>
+              {cell.day}
+            </div>
+          );
+        }))}
+      </div>
+      <div style={{ marginTop: '10px', borderTop: '1px solid var(--glass-border)', paddingTop: '6px', textAlign: 'left' }}>
+          <span style={{ fontSize: '8px', color: 'var(--text-muted)', opacity: 0.7 }}>SI: Semana ISO (ISO 8601) - Identificador semanal global.</span>
       </div>
     </div>
   );
@@ -62,43 +107,52 @@ const VideoBubble = ({ onHighlight }) => {
 export default function Onboarding() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCheckingPersistence, setIsCheckingPersistence] = useState(true);
   const [theme, setTheme] = useState('dark');
-  const [currentStep, setCurrentStep] = useState(0); // 0: Intro, 1: Diagnostic, 2: Scheduling
+  const [currentStep, setCurrentStep] = useState(0); 
   const [isCompleted, setIsCompleted] = useState(false);
-  const [formData, setFormData] = useState({ name: '', company: '', goal: '' });
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [isBooking, setIsBooking] = useState(false);
   const [meetingLink, setMeetingLink] = useState('');
   const [bookingError, setBookingError] = useState('');
-  const [highlightTheme, setHighlightTheme] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Carregar tema preferido
     const savedTheme = localStorage.getItem('bplen-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    if (savedTheme) setTheme(savedTheme);
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setLoading(false);
-      } else {
-        router.push('/login');
-      }
+        try {
+          const docRef = doc(db, 'onboarding_surveys', currentUser.email);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists() && docSnap.data().survey_checkin_concluido) {
+            setIsCompleted(true);
+            setCurrentStep(2);
+          }
+        } catch (err) { console.error(err); }
+        finally { setIsCheckingPersistence(false); setLoading(false); }
+      } else { router.push('/login'); }
     });
     return () => unsubscribe();
   }, [router]);
 
   useEffect(() => {
-    // Aplicar tema ao corpo para efeito global
     document.body.className = `${theme}-theme theme-transition onboarding-bg`;
-    return () => {
-      document.body.className = '';
-    };
+    return () => { document.body.className = ''; };
   }, [theme]);
+
+  if (loading || isCheckingPersistence) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a1a2f', color: '#fff' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid rgba(138, 79, 255, 0.3)', borderTop: '3px solid #8a4fff', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }} />
+        <p style={{ fontFamily: '"Caladea", serif', fontSize: '18px', opacity: 0.8 }}>Carregando sua jornada...</p>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -106,300 +160,149 @@ export default function Onboarding() {
     localStorage.setItem('bplen-theme', newTheme);
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/login');
-  };
+  const handleLogout = async () => { await signOut(auth); router.push('/login'); };
 
   const handleConfirmBooking = async () => {
     setIsBooking(true);
     setBookingError('');
-    setMeetingLink('');
-
     try {
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      const response = await fetch('/api/schedule-meeting', {
+      const res = await fetch('/api/schedule-meeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: user.email,
-          name: formData.name || user.displayName,
-          date: formattedDate,
-          time: selectedTime
-        })
+        body: JSON.stringify({ email: user.email, name: user.displayName || 'Membro', date: formattedDate, time: selectedTime })
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao realizar agendamento');
-      }
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setMeetingLink(data.meetingLink);
-    } catch (err) {
-      console.error(err);
-      setBookingError(err.message);
-    } finally {
-      setIsBooking(false);
-    }
+    } catch (err) { setBookingError(err.message); }
+    finally { setIsBooking(false); }
   };
 
-  // Elegant SVG Icons (SF Symbols Style)
   const TargetIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <circle cx="12" cy="12" r="6"></circle>
-      <circle cx="12" cy="12" r="2"></circle>
+      <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
     </svg>
   );
-
   const DiagnosticIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"></line>
-      <line x1="12" y1="20" x2="12" y2="4"></line>
-      <line x1="6" y1="20" x2="6" y2="14"></line>
+      <line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line>
     </svg>
   );
-
   const CalendarIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-      <line x1="16" y1="2" x2="16" y2="6"></line>
-      <line x1="8" y1="2" x2="8" y2="6"></line>
-      <line x1="3" y1="10" x2="21" y2="10"></line>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
     </svg>
   );
 
-  // Stepper definition
-  const steps = [
-    { title: 'Introdução', icon: <TargetIcon /> },
-    { title: 'Check-in', icon: <DiagnosticIcon /> },
-    { title: 'Sessão de Onboarding', icon: <CalendarIcon /> }
-  ];
-
-  // Logic for dates (3 to 15 days from today)
-  const getAvailableDates = () => {
-    const dates = [];
-    const today = new Date();
-    for (let i = 3; i <= 15; i++) {
-      const d = new Date();
-      d.setDate(today.getDate() + i);
-      if (d.getDay() !== 0 && d.getDay() !== 6) {
-        dates.push(d);
-      }
-    }
-    return dates;
-  };
-
-  const availableDates = getAvailableDates();
+  const steps = [{ title: 'Introdução', icon: <TargetIcon /> }, { title: 'Check-In', icon: <DiagnosticIcon /> }, { title: 'Sessão de Onboarding', icon: <CalendarIcon /> }];
   const timeSlots = ['09:00', '10:00', '14:00', '15:00', '16:00'];
 
-  if (loading) {
-    return (
-      <div className="page-wrapper onboarding-bg center-content">
-        <p className="loading-text" style={{ color: 'var(--text-main)' }}>Carregando sua jornada...</p>
-      </div>
-    );
-  }
-
   return (
-    <Layout
-      title="Onboarding"
-      user={user}
-      theme={theme}
-      toggleTheme={toggleTheme}
-      handleLogout={handleLogout}
-      showBackButton={true}
-      highlightThemeButton={highlightTheme}
-    >
-      {/* Rascunho: Guia da Jornada (Protótipo de Vídeo Interativo) */}
-      {/* <VideoBubble onHighlight={setHighlightTheme} /> */}
-
+    <Layout title="Onboarding" user={user} theme={theme} toggleTheme={toggleTheme} handleLogout={handleLogout} showBackButton={true}>
+      
+      <div className="sticky-sub-nav" style={{ position: 'fixed', top: '80px', left: 0, width: '100%', background: 'var(--app-bg)', zIndex: 100, paddingTop: '5px', paddingBottom: '10px' }}>
         <div style={{ maxWidth: '840px', width: '60%', margin: '0 auto', padding: '0 30px', display: 'flex', justifyContent: 'flex-start' }}>
-          <button 
-            onClick={() => router.push('/dashboard')} 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-muted)',
-              padding: '0',
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              marginTop: '5px'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = 'var(--text-main)';
-              e.currentTarget.style.transform = 'translateX(-2px)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = 'var(--text-muted)';
-              e.currentTarget.style.transform = 'translateX(0)';
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
+          <button onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', marginTop: '5px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
             Voltar ao Dashboard
           </button>
         </div>
-
-        <div className="sticky-sub-nav" style={{ position: 'relative', top: '0', background: 'transparent', borderBottom: 'none' }}>
-          <div className="onboarding-header" style={{ paddingTop: '45px' }}>
-            <div className="stepper">
-              {steps.map((s, idx) => {
-                let statusClass = 'locked';
-                if (idx === currentStep) statusClass = 'active';
-                if (idx < currentStep) statusClass = 'completed';
-
-                return (
-                  <div 
-                    key={idx} 
-                    className={`stepper-item ${statusClass}`}
-                    onClick={() => idx <= currentStep && setCurrentStep(idx)}
-                  >
-                    <div className="stepper-icon">{statusClass === 'completed' ? '✓' : s.icon}</div>
-                    <span className="stepper-label">{s.title}</span>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="onboarding-header" style={{ paddingTop: '30px' }}>
+          <div className="stepper">
+            {steps.map((s, idx) => {
+              let statusClass = (idx === currentStep) ? 'active' : (idx < currentStep ? 'completed' : 'locked');
+              return (
+                <div key={idx} className={`stepper-item ${statusClass}`} onClick={() => idx <= currentStep && setCurrentStep(idx)}>
+                  <div className="stepper-icon">{statusClass === 'completed' ? '✓' : s.icon}</div>
+                  <span className="stepper-label">{s.title}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
+      </div>
 
+      <div style={{ height: '160px' }}></div>
 
       <main className="onboarding-container">
-        <div 
-          className="onboarding-card" 
-          style={currentStep === 1 ? { background: 'transparent', border: 'none', boxShadow: 'none' } : {}}
-        >
+        <div className="onboarding-card" style={(currentStep === 1 || currentStep === 2) ? { background: 'transparent', border: 'none', boxShadow: 'none' } : {}}>
           {currentStep === 0 && (
             <div className="onboarding-grid">
-              <h1>Bem-vindo à sua nova jornada</h1>
-              <p className="subtitle">Assista ao vídeo abaixo para entender como funciona o portal.</p>
-              <div className="video-container">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-                  title="Onboarding Video" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <button 
-                onClick={() => setCurrentStep(1)} 
-                className="btn-glass-subtle"
-                style={{ marginTop: '20px' }}
-              >
-                Ir para o Check-in →
-              </button>
+              <div className="video-container"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Onboarding Video" frameBorder="0" allowFullScreen></iframe></div>
+              <button onClick={() => setCurrentStep(1)} className="btn-glass-subtle" style={{ marginTop: '20px' }}>Ir para o Check-In →</button>
             </div>
           )}
 
           {currentStep === 1 && (
-            <div className="onboarding-grid" style={{ maxWidth: '600px', margin: '0 auto' }}>
-              
+            <div className="onboarding-grid" style={{ width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
               {!isCompleted ? (
-                <DiagnosticSurvey 
-                  theme={theme}
-                  onComplete={(data) => {
-                    console.log("Respostas do check-in:", data);
+                <CheckinSurvey theme={theme} onComplete={async (data, files) => {
                     setIsCompleted(true);
+                    try {
+                      const docRef = doc(db, 'onboarding_surveys', user.email);
+                      const docSnap = await getDoc(docRef);
+                      const finalMatricula = (docSnap.exists() ? docSnap.data().matricula_bplen : null) || `BPL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+                      let driveLinks = null;
+                      if (files && Object.keys(files).length > 0) {
+                        const formData = new FormData();
+                        formData.append('userName', user.displayName || 'Membro'); formData.append('matricula', finalMatricula); formData.append('userEmail', user.email);
+                        Object.keys(files).forEach(key => formData.append(key, files[key]));
+                        const uploadRes = await fetch('/api/upload-to-drive', { method: 'POST', body: formData });
+                        const uploadData = await uploadRes.json();
+                        if (uploadData.success) driveLinks = { folder: uploadData.folderLink, files: uploadData.files };
+                      }
+
+                      await setDoc(docRef, {
+                        uid: user.uid, matricula_bplen: finalMatricula, survey_checkin_respostas: data, survey_checkin_concluido: true, drive_links: driveLinks,
+                        perfil_profissional: { nicho: data.nicho || '', area_atuacao: data.departamento || '' },
+                        maturidade_carreira: { estagio: data.estagio || '', tempo_experiencia: data.anos_exp || '' },
+                        updatedAt: serverTimestamp()
+                      }, { merge: true });
+                    } catch (err) { console.error(err); }
                   }} 
                 />
               ) : (
-                <div style={{background: 'var(--glass-bg)', padding: '30px', borderRadius: '12px', border: '1px solid var(--glass-border)', textAlign: 'center', marginTop: '20px'}}>
-                  <div style={{color: 'var(--primary)', fontSize: '40px', marginBottom: '10px'}}>✓</div>
-                  <h2 style={{color: 'var(--text-main)'}}>Check-in Concluído!</h2>
-                  <p style={{color: 'var(--text-muted)'}}>Obrigado por compartilhar suas informações conosco.</p>
-                  <button 
-                    onClick={() => setCurrentStep(2)} 
-                    className="btn-glass-subtle"
-                    style={{ margin: '20px auto 0' }}
-                  >
-                    Ir para Agendamento →
-                  </button>
+                <div style={{ background: 'var(--glass-bg)', padding: '30px', borderRadius: '12px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
+                   <div style={{ color: 'var(--primary)', fontSize: '40px', marginBottom: '10px' }}>✓</div>
+                   <h2 style={{ color: 'var(--text-main)', fontSize: '20px' }}>Check-In Concluído!</h2>
+                   <p onClick={() => setCurrentStep(2)} className="btn-glass-subtle" style={{ margin: '20px auto 0', cursor: 'pointer' }}>Ver Calendário →</p>
                 </div>
               )}
             </div>
           )}
 
           {currentStep === 2 && (
-            <div className="onboarding-grid">
-              <h1>Agende sua Sessão</h1>
-              <p className="subtitle">Escolha uma data entre 3 e 15 dias a partir de hoje.</p>
-
-              <div className="dates-grid">
-                {availableDates.map((date, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`date-card ${selectedDate?.toDateString() === date.toDateString() ? 'selected' : ''}`}
-                    onClick={() => setSelectedDate(date)}
-                  >
-                    <div style={{ fontSize: '12px', opacity: 0.6 }}>{date.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{date.getDate()}</div>
-                    <div style={{ fontSize: '12px', opacity: 0.6 }}>{date.toLocaleDateString('pt-BR', { month: 'short' })}</div>
-                  </div>
-                ))}
-              </div>
-
+            <div className="onboarding-grid" style={{ textAlign: 'center' }}>
+              <h2 style={{ color: 'var(--text-main)', fontSize: '20px', marginBottom: '10px' }}>Agende sua Sessão</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '5px' }}>Escolha uma data disponível no calendário abaixo.</p>
+              <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} theme={theme} />
               {selectedDate && (
-                <>
-                  <p className="subtitle">Horários disponíveis:</p>
-                  <div className="time-slots">
+                <div style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '15px' }}>Horários disponíveis para {selectedDate.toLocaleDateString('pt-BR')}:</p>
+                  <div className="time-slots" style={{ justifyContent: 'center' }}>
                     {timeSlots.map(time => (
-                      <button 
-                        key={time} 
-                        className={`time-btn ${selectedTime === time ? 'selected' : ''}`}
-                        onClick={() => setSelectedTime(time)}
-                      >
-                        {time}
-                      </button>
+                      <button key={time} className={`time-btn ${selectedTime === time ? 'selected' : ''}`} onClick={() => setSelectedTime(time)} style={{ padding: '8px 16px', borderRadius: '10px' }}>{time}</button>
                     ))}
                   </div>
-                </>
-              )}
-
-              {selectedDate && selectedTime && !meetingLink && (
-                <div style={{ marginTop: '40px' }}>
-                  <button 
-                    className="btn-glass-subtle" 
-                    onClick={handleConfirmBooking}
-                    disabled={isBooking}
-                  >
-                    {isBooking ? 'Agendando...' : 'Confirmar Agendamento'}
-                  </button>
-                  {bookingError && (
-                    <p style={{ color: '#ff4444', marginTop: '15px', fontSize: '14px' }}>
-                      {bookingError}
-                    </p>
-                  )}
                 </div>
               )}
-
+              {selectedDate && selectedTime && !meetingLink && (
+                <button
+                  className="btn-glass-subtle"
+                  onClick={handleConfirmBooking}
+                  disabled={isBooking}
+                  style={{ margin: '5px auto', display: 'block' }}
+                >
+                  {isBooking ? 'Agendando...' : 'Confirmar Agendamento'}
+                </button>
+              )}
               {meetingLink && (
-                <div className="onboarding-card" style={{ marginTop: '30px', background: 'rgba(0, 255, 0, 0.05)', borderColor: 'rgba(0, 255, 0, 0.2)' }}>
-                  <h3 style={{ color: '#00ff88', marginBottom: '10px' }}>✓ Agendamento Confirmado!</h3>
-                  <p className="subtitle" style={{ marginBottom: '20px' }}>
-                    Sua sessão foi agendada para o dia <strong>{selectedDate.toLocaleDateString()}</strong> às <strong>{selectedTime}</strong>.
-                    Um convite foi enviado para o seu e-mail.
-                  </p>
-                  <div style={{ padding: '15px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px' }}>
-                    <p style={{ fontSize: '12px', opacity: 0.6, marginBottom: '5px' }}>Link da Reunião (Google Meet):</p>
-                    <a 
-                      href={meetingLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={{ color: '#fff', textDecoration: 'underline', wordBreak: 'break-all' }}
-                    >
-                      {meetingLink}
-                    </a>
-                  </div>
+                <div style={{ marginTop: '30px', background: 'rgba(0, 255, 0, 0.05)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(0, 255, 0, 0.2)' }}>
+                  <h3 style={{ color: '#00ff88', marginBottom: '10px', fontSize: '16px' }}>Agendamento Confirmado!</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sessão em <strong>{selectedDate.toLocaleDateString()}</strong> às <strong>{selectedTime}</strong>.</p>
+                  <a href={meetingLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '15px', color: 'var(--primary)', textDecoration: 'underline' }}>Abrir no Google Meet</a>
                 </div>
               )}
             </div>

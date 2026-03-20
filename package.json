@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "firebase": "latest",
+    "formidable": "^3.5.4",
     "google-auth-library": "^9.0.0",
     "google-spreadsheet": "^4.1.1",
     "googleapis": "^171.4.0",
