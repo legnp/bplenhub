@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import { useState, useEffect, useRef } from 'react';
 
 const SunIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -12,40 +13,211 @@ const MoonIcon = () => (
   </svg>
 );
 
-export default function Header({ user, theme, toggleTheme, handleLogout, highlightThemeButton = false }) {
+const MenuIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="12" x2="20" y2="12"></line>
+    <line x1="4" y1="6" x2="20" y2="6"></line>
+    <line x1="4" y1="18" x2="20" y2="18"></line>
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
+export default function Header({ user, theme, toggleTheme, handleLogout, highlightThemeButton = false, isAdmin = false }) {
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const isAdminPage = router.pathname === '/admin';
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
 
   return (
-    <header className="dashboard-header bplen-glass-dark">
+    <>
+      <style jsx global>{`
+        .dashboard-header.bplen-glass-dark {
+          overflow: visible !important;
+        }
+        .dashboard-header.bplen-glass-dark::before,
+        .dashboard-header.bplen-glass-dark::after {
+          border-radius: inherit !important;
+        }
+      `}</style>
+      <header className="dashboard-header bplen-glass-dark" style={{ position: 'relative', zIndex: 1000 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
         <img src="/logo-hub.svg" alt="Logo BPlen Hub" style={{ height: '38px', width: 'auto', display: 'block' }} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <button 
-          onClick={toggleTheme} 
-          className={`secondary-btn ${highlightThemeButton ? 'btn-highlight' : ''}`} 
-          style={{ 
-            padding: '0', 
-            borderRadius: '50%', 
-            width: '32px', 
-            height: '32px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            background: 'var(--glass-bg)',
-            border: '1px solid var(--glass-border)',
-            color: 'var(--text-main)',
-            cursor: 'pointer'
-          }}
-          title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{user?.displayName}</span>
-        <button onClick={handleLogout} className="secondary-btn" style={{ padding: '6px 12px', fontSize: '11px' }}>
-          Sair
-        </button>
+        
+        <div ref={menuRef} style={{ position: 'relative' }}>
+          <button 
+            onClick={() => {
+              console.log('Menu button clicked. Current state:', isMenuOpen);
+              setIsMenuOpen((prev) => !prev);
+            }}
+            className={`secondary-btn ${highlightThemeButton && !isMenuOpen ? 'btn-highlight' : ''}`}
+            style={{ 
+              padding: '0', 
+              borderRadius: '8px', 
+              width: '36px', 
+              height: '36px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-main)',
+              cursor: 'pointer'
+            }}
+            title="Menu"
+          >
+            <MenuIcon />
+          </button>
+
+          {isMenuOpen && (
+            <div 
+              className="bplen-glass-dark"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 10px)',
+                right: '0',
+                minWidth: '200px',
+                padding: '8px',
+                borderRadius: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                zIndex: 100,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                background: 'var(--glass-bg)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid var(--glass-border)'
+              }}
+            >
+              {isAdmin && !isAdminPage && (
+                <button 
+                  onClick={() => { router.push('/admin'); setIsMenuOpen(false); }} 
+                  className="secondary-btn dropdown-item" 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '12px',
+                    justifyContent: 'flex-start',
+                    width: '100%',
+                    padding: '10px 14px',
+                    background: 'transparent',
+                    border: 'none',
+                    textAlign: 'left',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    color: 'var(--text-main)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  </svg>
+                  <span style={{ fontSize: '14px' }}>Área Admin</span>
+                </button>
+              )}
+
+              {isAdminPage && (
+                <button 
+                  onClick={() => { router.push('/dashboard'); setIsMenuOpen(false); }} 
+                  className="secondary-btn dropdown-item" 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '12px',
+                    justifyContent: 'flex-start',
+                    width: '100%',
+                    padding: '10px 14px',
+                    background: 'transparent',
+                    border: 'none',
+                    textAlign: 'left',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    color: 'var(--text-main)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                  <span style={{ fontSize: '14px' }}>Dashboard</span>
+                </button>
+              )}
+
+              {(isAdmin || isAdminPage) && <div style={{ height: '1px', background: 'var(--glass-border)', margin: '4px 8px' }} />}
+
+              <button 
+                onClick={() => { toggleTheme(); setIsMenuOpen(false); }} 
+                className="secondary-btn dropdown-item" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px',
+                  justifyContent: 'flex-start',
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'transparent',
+                  border: 'none',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  color: 'var(--text-main)'
+                }}
+              >
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                <span style={{ fontSize: '14px' }}>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
+              </button>
+              
+              <div style={{ height: '1px', background: 'var(--glass-border)', margin: '4px 8px' }} />
+              
+              <button 
+                onClick={() => { handleLogout(); setIsMenuOpen(false); }} 
+                className="secondary-btn dropdown-item" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px',
+                  justifyContent: 'flex-start',
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ff4d4f',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                <LogoutIcon />
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>Sair</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
+    </>
   );
 }

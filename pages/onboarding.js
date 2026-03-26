@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import { useRouter } from 'next/router';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, collection, query, where, getDocs, runTransaction, Timestamp } from 'firebase/firestore';
 import CheckinSurvey from '../components/DiagnosticSurvey';
 
 // --- Helpers ---
@@ -17,8 +17,23 @@ const getISOWeek = (date) => {
   return String(weekNo).padStart(2, '0');
 };
 
+const getMinBusinessDate = () => {
+  let d = new Date();
+  d.setDate(d.getDate() + 3); // Mínimo de 3 dias a contar de hoje
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const getMaxDate = () => {
+  let d = new Date();
+  d.setDate(d.getDate() + 15); // Máximo de 15 dias a contar de hoje
+  d.setHours(23, 59, 59, 999);
+  return d;
+};
+
+
 // --- Components ---
-const Calendar = ({ selectedDate, onSelectDate, theme }) => {
+const Calendar = ({ selectedDate, onSelectDate, theme, availableSessions }) => {
   const [viewDate, setViewDate] = useState(new Date());
   const today = new Date();
 
@@ -28,7 +43,7 @@ const Calendar = ({ selectedDate, onSelectDate, theme }) => {
 
   const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
   const lastDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
-  
+
   const startOffset = (firstDayOfMonth.getDay() + 6) % 7;
   const daysInMonth = lastDayOfMonth.getDate();
 
@@ -37,13 +52,15 @@ const Calendar = ({ selectedDate, onSelectDate, theme }) => {
 
   const isSelected = (d) => selectedDate && d.toDateString() === selectedDate.toDateString();
   const isToday = (d) => d.toDateString() === today.toDateString();
+
+  const minDate = getMinBusinessDate();
+  const maxDate = getMaxDate();
+
   const isAvailable = (d) => {
-    const minDate = new Date();
-    minDate.setDate(today.getDate() + 3);
-    const maxDate = new Date();
-    maxDate.setDate(today.getDate() + 25);
     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-    return d >= minDate && d <= maxDate && !isWeekend;
+    if (d < minDate || d > maxDate || isWeekend) return false;
+    // Check if there is at least one session on this day with vagas < totais
+    return availableSessions.some(s => s.dateObj.toDateString() === d.toDateString() && (s.vagas_ocupadas || 0) < (s.vagas_totais || 10));
   };
 
   const rows = [];
@@ -67,14 +84,14 @@ const Calendar = ({ selectedDate, onSelectDate, theme }) => {
   }
 
   return (
-    <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto', fontFamily: "'Inter', sans-serif", background: 'var(--glass-bg)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', padding: '20px', borderRadius: '16px', border: '1px solid var(--glass-border)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-         <button onClick={handleGoToday} style={{ background: 'rgba(138, 79, 255, 0.1)', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>Hoje</button>
-         <h3 style={{ fontSize: '14px', textTransform: 'capitalize', margin: 0 }}>{monthName}</h3>
-         <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&lt;</button>
-            <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&gt;</button>
-         </div>
+        <button onClick={handleGoToday} style={{ background: 'rgba(138, 79, 255, 0.1)', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>Hoje</button>
+        <h3 style={{ fontSize: '14px', textTransform: 'capitalize', margin: 0 }}>{monthName}</h3>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={handlePrevMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&lt;</button>
+          <button onClick={handleNextMonth} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '18px' }}>&gt;</button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '4px', textAlign: 'center' }}>
@@ -98,7 +115,7 @@ const Calendar = ({ selectedDate, onSelectDate, theme }) => {
         }))}
       </div>
       <div style={{ marginTop: '10px', borderTop: '1px solid var(--glass-border)', paddingTop: '6px', textAlign: 'left' }}>
-          <span style={{ fontSize: '8px', color: 'var(--text-muted)', opacity: 0.7 }}>SI: Semana ISO (ISO 8601) - Identificador semanal global.</span>
+        <span style={{ fontSize: '8px', color: 'var(--text-muted)', opacity: 0.7 }}>SI: Semana ISO (ISO 8601) - Identificador semanal global.</span>
       </div>
     </div>
   );
@@ -109,15 +126,20 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(true);
   const [isCheckingPersistence, setIsCheckingPersistence] = useState(true);
   const [theme, setTheme] = useState('dark');
-  const [currentStep, setCurrentStep] = useState(0); 
+  const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  const [availableSessions, setAvailableSessions] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedSessionId, setSelectedSessionId] = useState(null);
+  const [scheduledSession, setScheduledSession] = useState(null); // The final booked session data from/for DB
+  const [oldSessionId, setOldSessionId] = useState(null); // tracking for reagendamento
+
   const [isBooking, setIsBooking] = useState(false);
-  const [meetingLink, setMeetingLink] = useState('');
   const [bookingError, setBookingError] = useState('');
   const router = useRouter();
 
+  // Load User Data
   useEffect(() => {
     const savedTheme = localStorage.getItem('bplen-theme');
     if (savedTheme) setTheme(savedTheme);
@@ -126,10 +148,36 @@ export default function Onboarding() {
       if (currentUser) {
         setUser(currentUser);
         try {
-          const docRef = doc(db, 'onboarding_surveys', currentUser.email);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().survey_checkin_concluido) {
+          const userDocRef = doc(db, 'usuarios', currentUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          let checkinDone = false;
+          let scheduled = null;
+
+          if (userDocSnap.exists()) {
+            const data = userDocSnap.data();
+            if (data.survey_checkin_concluido) checkinDone = true;
+            if (data.agendamento_onboarding) scheduled = data.agendamento_onboarding;
+          }
+
+          // Fallback automático de migração: se não achou no UID, busca na coleção antiga pelo e-mail
+          if (!checkinDone) {
+            const oldSurveyRef = doc(db, 'onboarding_surveys', currentUser.email);
+            const oldSurveySnap = await getDoc(oldSurveyRef);
+            if (oldSurveySnap.exists() && oldSurveySnap.data().survey_checkin_concluido) {
+              checkinDone = true;
+              // Copia os dados legados para a nova coleção usuarios/{uid}
+              await setDoc(userDocRef, oldSurveySnap.data(), { merge: true });
+            }
+          }
+
+          if (checkinDone) {
             setIsCompleted(true);
+            setCurrentStep(prev => prev < 2 ? 2 : prev);
+          }
+          if (scheduled) {
+            setScheduledSession(scheduled);
+            setOldSessionId(scheduled.id_sessao);
             setCurrentStep(2);
           }
         } catch (err) { console.error(err); }
@@ -138,6 +186,30 @@ export default function Onboarding() {
     });
     return () => unsubscribe();
   }, [router]);
+
+  // Load Sessions from Firestore
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const start = new Date();
+        const end = new Date();
+        end.setDate(end.getDate() + 90); // Sync window
+        const q = query(
+          collection(db, 'sessoes_onboarding'),
+          where('data_hora', '>=', Timestamp.fromDate(start)),
+          where('data_hora', '<=', Timestamp.fromDate(end))
+        );
+        const snapshot = await getDocs(q);
+        const sessions = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { id: doc.id, ...data, dateObj: data.data_hora.toDate() };
+        });
+        console.log('Sessões carregadas no Onboarding:', sessions.length);
+        setAvailableSessions(sessions);
+      } catch (e) { console.error("Error fetching sessions:", e); }
+    };
+    if (user) fetchSessions();
+  }, [user]);
 
   useEffect(() => {
     document.body.className = `${theme}-theme theme-transition onboarding-bg`;
@@ -162,21 +234,102 @@ export default function Onboarding() {
 
   const handleLogout = async () => { await signOut(auth); router.push('/login'); };
 
+  const handleModifyBooking = () => {
+    if (!scheduledSession) return;
+    // Checar se falta menos de 3 horas
+    const msLeft = scheduledSession.timestamp - Date.now();
+    if (msLeft < 3 * 60 * 60 * 1000 && msLeft > 0) {
+      alert('Não é possível modificar o agendamento quando faltam menos de 3 horas para a sessão.');
+      return;
+    }
+    // Permite o reset do flow para reagendamento. oldSessionId is already saved in state.
+    setScheduledSession(null);
+    setSelectedDate(null);
+    setSelectedSessionId(null);
+  };
+
+
+
   const handleConfirmBooking = async () => {
+    if (!selectedSessionId) return;
     setIsBooking(true);
     setBookingError('');
     try {
-      const formattedDate = selectedDate.toISOString().split('T')[0];
-      const res = await fetch('/api/schedule-meeting', {
+      let finalSessionDataForUI = null;
+
+      await runTransaction(db, async (transaction) => {
+        // Lendo a Sessao Alvo
+        const sessionRef = doc(db, 'sessoes_onboarding', selectedSessionId);
+        const sessionDoc = await transaction.get(sessionRef);
+        if (!sessionDoc.exists()) throw new Error("A sessão escolhida não foi encontrada.");
+
+        const sData = sessionDoc.data();
+        const ocupadas = sData.vagas_ocupadas || 0;
+        const totais = sData.vagas_totais || 10;
+
+        if (ocupadas >= totais) {
+          throw new Error("Desculpe, esta sessão esgotou as vagas enquanto você agendava.");
+        }
+
+        // Se estiver reagendando, processa a remocao da sessao atual
+        if (oldSessionId && oldSessionId !== selectedSessionId) {
+          const oldSessionRef = doc(db, 'sessoes_onboarding', oldSessionId);
+          const oldSessionDoc = await transaction.get(oldSessionRef);
+          if (oldSessionDoc.exists()) {
+            const oldData = oldSessionDoc.data();
+            const removedParticipantes = (oldData.participantes || []).filter(p => p.uid !== user.uid);
+            transaction.update(oldSessionRef, {
+              vagas_ocupadas: Math.max(0, (oldData.vagas_ocupadas || 1) - 1),
+              participantes: removedParticipantes
+            });
+          }
+        }
+
+        // Processa a inscricao na sessao atual
+        const participantInfo = { uid: user.uid, nome: user.displayName || 'Membro BPlen', email: user.email };
+        const updatedParticipantes = [...(sData.participantes || []), participantInfo];
+        transaction.update(sessionRef, {
+          vagas_ocupadas: ocupadas + 1,
+          participantes: updatedParticipantes
+        });
+
+        // Grava no perfil do usuario
+        const userRef = doc(db, 'usuarios', user.uid);
+        const sessionDateObj = sData.data_hora.toDate();
+
+        finalSessionDataForUI = {
+          id_sessao: selectedSessionId,
+          data: sessionDateObj.toLocaleDateString('pt-BR'),
+          hora: sessionDateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          link_meet: sData.link_meet || '',
+          timestamp: sessionDateObj.getTime()
+        };
+
+        transaction.set(userRef, { agendamento_onboarding: finalSessionDataForUI }, { merge: true });
+      });
+
+      // Update UI state
+      setScheduledSession(finalSessionDataForUI);
+      setOldSessionId(finalSessionDataForUI.id_sessao); // Current valid one
+
+      // Dispatch Email Confirmation via Resend API
+      fetch('/api/send-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, name: user.displayName || 'Membro', date: formattedDate, time: selectedTime })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMeetingLink(data.meetingLink);
-    } catch (err) { setBookingError(err.message); }
-    finally { setIsBooking(false); }
+        body: JSON.stringify({
+          nome: user.displayName,
+          email: user.email,
+          data: finalSessionDataForUI.data,
+          hora: finalSessionDataForUI.hora,
+          link_meet: finalSessionDataForUI.link_meet,
+          timestamp: finalSessionDataForUI.timestamp
+        })
+      }).catch(err => console.error("Erro no envio do email:", err));
+    } catch (err) {
+      setBookingError(err.message || 'Erro inesperado.');
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const TargetIcon = () => (
@@ -196,11 +349,14 @@ export default function Onboarding() {
   );
 
   const steps = [{ title: 'Introdução', icon: <TargetIcon /> }, { title: 'Check-In', icon: <DiagnosticIcon /> }, { title: 'Sessão de Onboarding', icon: <CalendarIcon /> }];
-  const timeSlots = ['09:00', '10:00', '14:00', '15:00', '16:00'];
+
+  // Derivando horarios disponiveis com base na data do calendario
+  const timeSlotsForSelectedDate = selectedDate ? availableSessions.filter(s => s.dateObj.toDateString() === selectedDate.toDateString() && (s.vagas_ocupadas || 0) < (s.vagas_totais || 10)) : [];
+  timeSlotsForSelectedDate.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
 
   return (
     <Layout title="Onboarding" user={user} theme={theme} toggleTheme={toggleTheme} handleLogout={handleLogout} showBackButton={true}>
-      
+
       <div className="sticky-sub-nav" style={{ position: 'fixed', top: '80px', left: 0, width: '100%', background: 'var(--app-bg)', zIndex: 100, paddingTop: '5px', paddingBottom: '10px' }}>
         <div style={{ maxWidth: '840px', width: '60%', margin: '0 auto', padding: '0 30px', display: 'flex', justifyContent: 'flex-start' }}>
           <button onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', marginTop: '5px' }}>
@@ -212,8 +368,12 @@ export default function Onboarding() {
           <div className="stepper">
             {steps.map((s, idx) => {
               let statusClass = (idx === currentStep) ? 'active' : (idx < currentStep ? 'completed' : 'locked');
+              // Se tiver um agendamento, todo o stepper exibe completo
+              if (scheduledSession && idx <= 2) statusClass = 'completed';
               return (
-                <div key={idx} className={`stepper-item ${statusClass}`} onClick={() => idx <= currentStep && setCurrentStep(idx)}>
+                <div key={idx} className={`stepper-item ${statusClass}`} onClick={() => {
+                  if (idx <= currentStep || (idx === 2 && isCompleted)) setCurrentStep(idx);
+                }}>
                   <div className="stepper-icon">{statusClass === 'completed' ? '✓' : s.icon}</div>
                   <span className="stepper-label">{s.title}</span>
                 </div>
@@ -238,72 +398,115 @@ export default function Onboarding() {
             <div className="onboarding-grid" style={{ width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
               {!isCompleted ? (
                 <CheckinSurvey theme={theme} onComplete={async (data, files) => {
-                    setIsCompleted(true);
-                    try {
-                      const docRef = doc(db, 'onboarding_surveys', user.email);
-                      const docSnap = await getDoc(docRef);
-                      const finalMatricula = (docSnap.exists() ? docSnap.data().matricula_bplen : null) || `BPL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+                  setIsCompleted(true);
+                  try {
+                    // Salvando no usuarios/{uid} para ficar robusto
+                    const userDocRef = doc(db, 'usuarios', user.uid);
+                    const finalMatricula = `BPL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
-                      let driveLinks = null;
-                      if (files && Object.keys(files).length > 0) {
-                        const formData = new FormData();
-                        formData.append('userName', user.displayName || 'Membro'); formData.append('matricula', finalMatricula); formData.append('userEmail', user.email);
-                        Object.keys(files).forEach(key => formData.append(key, files[key]));
-                        const uploadRes = await fetch('/api/upload-to-drive', { method: 'POST', body: formData });
-                        const uploadData = await uploadRes.json();
-                        if (uploadData.success) driveLinks = { folder: uploadData.folderLink, files: uploadData.files };
-                      }
+                    let driveLinks = null;
+                    if (files && Object.keys(files).length > 0) {
+                      const formData = new FormData();
+                      formData.append('userName', user.displayName || 'Membro'); formData.append('matricula', finalMatricula); formData.append('userEmail', user.email);
+                      Object.keys(files).forEach(key => formData.append(key, files[key]));
+                      const uploadRes = await fetch('/api/upload-to-drive', { method: 'POST', body: formData });
+                      const uploadData = await uploadRes.json();
+                      if (uploadData.success) driveLinks = { folder: uploadData.folderLink, files: uploadData.files };
+                    }
 
-                      await setDoc(docRef, {
-                        uid: user.uid, matricula_bplen: finalMatricula, survey_checkin_respostas: data, survey_checkin_concluido: true, drive_links: driveLinks,
-                        perfil_profissional: { nicho: data.nicho || '', area_atuacao: data.departamento || '' },
-                        maturidade_carreira: { estagio: data.estagio || '', tempo_experiencia: data.anos_exp || '' },
-                        updatedAt: serverTimestamp()
-                      }, { merge: true });
-                    } catch (err) { console.error(err); }
-                  }} 
+                    await setDoc(userDocRef, {
+                      matricula_bplen: finalMatricula,
+                      survey_checkin_respostas: data,
+                      survey_checkin_concluido: true,
+                      drive_links: driveLinks,
+                      perfil_profissional: { nicho: data.nicho || '', area_atuacao: data.departamento || '' },
+                      maturidade_carreira: { estagio: data.estagio || '', tempo_experiencia: data.anos_exp || '' },
+                      updatedAt: serverTimestamp()
+                    }, { merge: true });
+                  } catch (err) { console.error(err); }
+                }}
                 />
               ) : (
                 <div style={{ background: 'var(--glass-bg)', padding: '30px', borderRadius: '12px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
-                   <div style={{ color: 'var(--primary)', fontSize: '40px', marginBottom: '10px' }}>✓</div>
-                   <h2 style={{ color: 'var(--text-main)', fontSize: '20px' }}>Check-In Concluído!</h2>
-                   <p onClick={() => setCurrentStep(2)} className="btn-glass-subtle" style={{ margin: '20px auto 0', cursor: 'pointer' }}>Ver Calendário →</p>
+                  <div style={{ color: 'var(--primary)', fontSize: '40px', marginBottom: '10px' }}>✓</div>
+                  <h2 style={{ color: 'var(--text-main)', fontSize: '20px' }}>Check-In Concluído!</h2>
+                  <p onClick={() => setCurrentStep(2)} className="btn-glass-subtle" style={{ margin: '20px auto 0', cursor: 'pointer' }}>Ir para Agendamento →</p>
                 </div>
               )}
             </div>
           )}
 
           {currentStep === 2 && (
-            <div className="onboarding-grid" style={{ textAlign: 'center' }}>
-              <h2 style={{ color: 'var(--text-main)', fontSize: '20px', marginBottom: '10px' }}>Agende sua Sessão</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '5px' }}>Escolha uma data disponível no calendário abaixo.</p>
-              <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} theme={theme} />
-              {selectedDate && (
-                <div style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
-                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '15px' }}>Horários disponíveis para {selectedDate.toLocaleDateString('pt-BR')}:</p>
-                  <div className="time-slots" style={{ justifyContent: 'center' }}>
-                    {timeSlots.map(time => (
-                      <button key={time} className={`time-btn ${selectedTime === time ? 'selected' : ''}`} onClick={() => setSelectedTime(time)} style={{ padding: '8px 16px', borderRadius: '10px' }}>{time}</button>
-                    ))}
+            <div className="onboarding-grid" style={{ textAlign: 'center', gap: '5px' }}>
+
+              {scheduledSession ? (
+                <div style={{ background: 'var(--glass-bg)', padding: '40px', borderRadius: '16px', border: '1px solid var(--glass-border)', maxWidth: '600px', margin: '0 auto', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
+                  <div style={{ color: '#00ff88', fontSize: '48px', marginBottom: '15px' }}>✓</div>
+                  <h2 style={{ color: 'var(--text-main)', fontSize: '22px', marginBottom: '15px', fontFamily: "'Outfit', sans-serif" }}>Agendamento Confirmado!</h2>
+
+                  <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.6', marginBottom: '25px' }}>
+                    {user?.displayName?.split(' ')[0] || 'Cliente'}, seu Onboarding foi agendado com sucesso para <strong>{scheduledSession.data}</strong> às <strong>{scheduledSession.hora}</strong>, com Lisandra Lencina.
+                  </p>
+
+                  <div style={{ marginBottom: '30px' }}>
+                    <a href={scheduledSession.link_meet} target="_blank" rel="noreferrer" className="btn-glass-subtle" style={{ padding: '12px 20px', background: 'rgba(138, 79, 255, 0.1)', color: 'var(--primary)', borderColor: 'var(--primary)' }}>
+                      Acessar Sala do Google Meet
+                    </a>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
+
+                    <button onClick={handleModifyBooking} className="btn-glass-subtle" style={{ fontSize: '13px', background: 'transparent', color: 'var(--text-muted)' }}>
+                      Modificar Agendamento
+                    </button>
                   </div>
                 </div>
-              )}
-              {selectedDate && selectedTime && !meetingLink && (
-                <button
-                  className="btn-glass-subtle"
-                  onClick={handleConfirmBooking}
-                  disabled={isBooking}
-                  style={{ margin: '5px auto', display: 'block' }}
-                >
-                  {isBooking ? 'Agendando...' : 'Confirmar Agendamento'}
-                </button>
-              )}
-              {meetingLink && (
-                <div style={{ marginTop: '30px', background: 'rgba(0, 255, 0, 0.05)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(0, 255, 0, 0.2)' }}>
-                  <h3 style={{ color: '#00ff88', marginBottom: '10px', fontSize: '16px' }}>Agendamento Confirmado!</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sessão em <strong>{selectedDate.toLocaleDateString()}</strong> às <strong>{selectedTime}</strong>.</p>
-                  <a href={meetingLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '15px', color: 'var(--primary)', textDecoration: 'underline' }}>Abrir no Google Meet</a>
-                </div>
+              ) : (
+                <>
+                  <h2 style={{ color: 'var(--text-main)', fontSize: '20px', marginBottom: '10px' }}>Agende sua Sessão de Grupo</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '5px' }}>Selecione uma turma disponível na sua janela de agendamento (entre 3 a 15 dias).</p>
+
+                  <Calendar selectedDate={selectedDate} onSelectDate={(date) => { setSelectedDate(date); setSelectedSessionId(null); }} theme={theme} availableSessions={availableSessions} />
+
+                  {selectedDate && (
+                    <div style={{ marginTop: '15px', animation: 'fadeIn 0.5s ease' }}>
+                      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '15px' }}>Vagas da Turma em {selectedDate.toLocaleDateString('pt-BR')}:</p>
+
+                      {timeSlotsForSelectedDate.length > 0 ? (
+                        <div className="time-slots" style={{ justifyContent: 'center' }}>
+                          {timeSlotsForSelectedDate.map(session => {
+                            const t = session.dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            const isSelected = selectedSessionId === session.id;
+                            const vagasRestantes = typeof session.vagas_restantes !== 'undefined' 
+                              ? session.vagas_restantes 
+                              : (session.vagas_totais || 10) - (session.vagas_ocupadas || 0);
+
+                            return (
+                              <button key={session.id} className={`time-btn ${isSelected ? 'selected' : ''}`} onClick={() => setSelectedSessionId(session.id)} style={{ padding: '8px 16px', borderRadius: '10px' }}>
+                                {t} <span style={{ fontSize: '10px', opacity: 0.7 }}>({vagasRestantes} vagas)</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: '12px', color: '#ff4f4f' }}>Nenhuma vaga restante neste dia.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {bookingError && <p style={{ color: '#ff4f4f', marginTop: '15px', fontSize: '13px' }}>{bookingError}</p>}
+
+                  {selectedDate && selectedSessionId && (
+                    <button
+                      className="btn-glass-subtle"
+                      onClick={handleConfirmBooking}
+                      disabled={isBooking}
+                      style={{ margin: '15px auto', display: 'block', border: '1px solid var(--primary)', color: 'var(--primary)', background: 'rgba(138, 79, 255, 0.05)' }}
+                    >
+                      {isBooking ? 'Finalizando Inscrição...' : 'Confirmar Vaga'}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}

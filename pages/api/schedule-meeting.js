@@ -1,5 +1,19 @@
 import { google } from 'googleapis';
 import { JWT } from 'google-auth-library';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+
+// Initialize Firebase Admin (Server-side)
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+const db = getFirestore();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
@@ -15,17 +29,16 @@ export default async function handler(req, res) {
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
       scopes: ['https://www.googleapis.com/auth/calendar'],
-      subject: 'lisandra.lencina@bplen.com' // Tenta agir em nome da Lisandra se o domínio permitir, ou apenas acessa a agenda
+      subject: 'lisandra.lencina@bplen.com'
     });
 
     const calendar = google.calendar({ version: 'v3', auth });
-    const calendarId = 'lisandra.lencina@bplen.com';
+    const calendarId = process.env.GOOGLE_CALENDAR_ID || 'c_8065a455c764d31b19be4cadf973b33fc8f567cf577ba4d3fff87c8608e050fc@group.calendar.google.com';
 
-    // 1. Definir janela de tempo (ex: 1 hora de duração)
     const startDateTime = new Date(`${date}T${time}:00`);
     const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
 
-    // 2. Buscar eventos existentes nesse horário para checar grupo
+    // 1. Buscar evento no Calendar
     const existingEvents = await calendar.events.list({
       calendarId,
       timeMin: startDateTime.toISOString(),
@@ -33,38 +46,36 @@ export default async function handler(req, res) {
       singleEvents: true,
     });
 
-    // Procura por um evento de "Onboarding" no horário
     let event = existingEvents.data.items?.find(e => e.summary && e.summary.toLowerCase().includes('onboarding'));
 
     if (event) {
-      // 3. Checar capacidade (Limite 10)
-      const attendeeCount = event.attendees ? event.attendees.length : 0;
-      
-      // Lisandra conta como 1, então permitimos até 11 total (10 clientes + Lisandra)
-      if (attendeeCount >= 11) {
-        return res.status(409).json({ error: 'Desculpe, este horário já atingiu o limite de 10 participantes.' });
-      }
-
-      // Adicionar novo participante ao evento existente
+      // 2. Adicionar ao evento existente no Calendar
       const updatedAttendees = [...(event.attendees || []), { email, displayName: name }];
       
       const updatedEvent = await calendar.events.patch({
         calendarId,
         eventId: event.id,
-        requestBody: {
-          attendees: updatedAttendees
-        },
+        requestBody: { attendees: updatedAttendees },
         sendUpdates: 'all'
       });
 
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Adicionado ao grupo existente', 
-        meetingLink: updatedEvent.data.hangoutLink 
+      // 3. Atualizar Firestore (Vagas)
+      const sessionRef = db.collection('sessoes_onboarding').doc(event.id);
+      await sessionRef.set({
+        vagas_ocupadas: FieldValue.increment(1),
+        vagas_restantes: FieldValue.increment(-1),
+        participantes: FieldValue.arrayUnion({ email, name, data_agendamento: new Date() }),
+        lastUpdate: FieldValue.serverTimestamp()
+      }, { merge: true });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Adicionado ao grupo existente',
+        meetingLink: updatedEvent.data.hangoutLink
       });
 
     } else {
-      // 4. Criar novo evento se não existir
+      // 4. Criar NOVO evento no Calendar
       const newEvent = await calendar.events.insert({
         calendarId,
         conferenceDataVersion: 1,
@@ -87,22 +98,30 @@ export default async function handler(req, res) {
         sendUpdates: 'all'
       });
 
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Agendamento criado com sucesso', 
-        meetingLink: newEvent.data.hangoutLink 
+      // 5. Criar no Firestore
+      const eventId = newEvent.data.id;
+      const sessionRef = db.collection('sessoes_onboarding').doc(eventId);
+      await sessionRef.set({
+        id: eventId,
+        data_hora: Timestamp.fromDate(startDateTime),
+        vagas_totais: 10,
+        vagas_ocupadas: 1,
+        vagas_restantes: 9,
+        participantes: [{ email, name, data_agendamento: new Date() }],
+        status: 'proxima',
+        link_meet: newEvent.data.hangoutLink || '',
+        lastSync: FieldValue.serverTimestamp()
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Agendamento criado com sucesso',
+        meetingLink: newEvent.data.hangoutLink
       });
     }
 
   } catch (error) {
     console.error('Calendar API Error:', error);
-    // Erro amigável para o usuário se as permissões não estiverem prontas
-    if (error.message.includes('not enabled') || error.message.includes('permission')) {
-      return res.status(500).json({ 
-        error: 'Erro de permissão no Google Calendar. Por favor, verifique se a API está ativa e a agenda compartilhada com a Service Account.',
-        details: error.message 
-      });
-    }
-    return res.status(500).json({ error: 'Erro ao processar agendamento' });
+    return res.status(500).json({ error: 'Erro ao processar agendamento', details: error.message });
   }
 }
