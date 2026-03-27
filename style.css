@@ -475,14 +475,14 @@ select option {
     justify-content: space-between;
     align-items: center;
     padding: 6px 30px;
-    margin: 20px auto;
+    margin: 10px auto 20px;
     border-radius: 24px !important; /* Bordas menos arredondadas */
     max-width: 840px;
     width: 60%;
     margin-left: auto;
     margin-right: auto;
     position: sticky;
-    top: 20px;
+    top: 10px;
     z-index: 1000;
 }
 

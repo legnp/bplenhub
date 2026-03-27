@@ -134,6 +134,8 @@ export default function Onboarding() {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [scheduledSession, setScheduledSession] = useState(null); // The final booked session data from/for DB
   const [oldSessionId, setOldSessionId] = useState(null); // tracking for reagendamento
+  const [adminConfirmed, setAdminConfirmed] = useState(false);
+  const [ataOnboardingUrl, setAtaOnboardingUrl] = useState(null);
 
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState('');
@@ -158,6 +160,8 @@ export default function Onboarding() {
             const data = userDocSnap.data();
             if (data.survey_checkin_concluido) checkinDone = true;
             if (data.agendamento_onboarding) scheduled = data.agendamento_onboarding;
+            if (data.presenca_confirmada) setAdminConfirmed(true);
+            if (data.ata_onboarding_url) setAtaOnboardingUrl(data.ata_onboarding_url);
           }
 
           // Fallback automático de migração: se não achou no UID, busca na coleção antiga pelo e-mail
@@ -442,23 +446,37 @@ export default function Onboarding() {
               {scheduledSession ? (
                 <div style={{ background: 'var(--glass-bg)', padding: '40px', borderRadius: '16px', border: '1px solid var(--glass-border)', maxWidth: '600px', margin: '0 auto', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }}>
                   <div style={{ color: '#00ff88', fontSize: '48px', marginBottom: '15px' }}>✓</div>
-                  <h2 style={{ color: 'var(--text-main)', fontSize: '22px', marginBottom: '15px', fontFamily: "'Outfit', sans-serif" }}>Agendamento Confirmado!</h2>
+                  <h2 style={{ color: 'var(--text-main)', fontSize: '22px', marginBottom: '15px', fontFamily: "'Outfit', sans-serif" }}>
+                    {adminConfirmed ? '🎉 Onboarding Concluído!' : 'Agendamento Confirmado!'}
+                  </h2>
 
                   <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.6', marginBottom: '25px' }}>
-                    {user?.displayName?.split(' ')[0] || 'Cliente'}, seu Onboarding foi agendado com sucesso para <strong>{scheduledSession.data}</strong> às <strong>{scheduledSession.hora}</strong>, com Lisandra Lencina.
+                    {adminConfirmed 
+                      ? `${user?.displayName?.split(' ')[0] || 'Cliente'}, parabéns por concluir seu onboarding! Sua jornada bplen continua.`
+                      : `${user?.displayName?.split(' ')[0] || 'Cliente'}, seu Onboarding foi agendado com sucesso para <strong>${scheduledSession.data}</strong> às <strong>${scheduledSession.hora}</strong>, com Lisandra Lencina.`
+                    }
                   </p>
 
-                  <div style={{ marginBottom: '30px' }}>
-                    <a href={scheduledSession.link_meet} target="_blank" rel="noreferrer" className="btn-glass-subtle" style={{ padding: '12px 20px', background: 'rgba(138, 79, 255, 0.1)', color: 'var(--primary)', borderColor: 'var(--primary)' }}>
-                      Acessar Sala do Google Meet
-                    </a>
+                  <div style={{ marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                    {!adminConfirmed && (
+                      <a href={scheduledSession.link_meet} target="_blank" rel="noreferrer" className="btn-glass-subtle" style={{ padding: '12px 20px', background: 'rgba(138, 79, 255, 0.1)', color: 'var(--primary)', borderColor: 'var(--primary)', width: 'fit-content' }}>
+                        Acessar Sala do Google Meet
+                      </a>
+                    )}
+                    
+                    {ataOnboardingUrl && (
+                      <a href={ataOnboardingUrl} target="_blank" rel="noreferrer" className="btn-glass-subtle" style={{ padding: '12px 20px', background: 'rgba(0, 255, 136, 0.1)', color: '#00ff88', borderColor: '#00ff88', width: 'fit-content' }}>
+                        📥 Baixar Ata da Sessão (PDF)
+                      </a>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
-
-                    <button onClick={handleModifyBooking} className="btn-glass-subtle" style={{ fontSize: '13px', background: 'transparent', color: 'var(--text-muted)' }}>
-                      Modificar Agendamento
-                    </button>
+                    {!adminConfirmed && (
+                      <button onClick={handleModifyBooking} className="btn-glass-subtle" style={{ fontSize: '13px', background: 'transparent', color: 'var(--text-muted)' }}>
+                        Modificar Agendamento
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
