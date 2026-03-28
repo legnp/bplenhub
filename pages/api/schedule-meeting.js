@@ -58,15 +58,8 @@ export default async function handler(req, res) {
     let event = existingEvents.data.items?.find(e => e.summary && e.summary.toLowerCase().includes('onboarding'));
 
     if (event) {
-      // 2. Adicionar ao evento existente no Calendar
-      const updatedAttendees = [...(event.attendees || []), { email, displayName: name }];
-      
-      const updatedEvent = await calendar.events.patch({
-        calendarId,
-        eventId: event.id,
-        requestBody: { attendees: updatedAttendees },
-        sendUpdates: 'all'
-      });
+      console.log(`Event found: ${event.id}. Recording in Firestore...`);
+      const linkMeet = event.hangoutLink || '';
 
       // 3. Atualizar Firestore (Vagas)
       const sessionRef = db.collection('sessoes_onboarding').doc(event.id);
@@ -79,55 +72,18 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         success: true,
-        message: 'Adicionado ao grupo existente',
-        meetingLink: updatedEvent.data.hangoutLink
+        message: 'Adicionado ao grupo de onboarding',
+        meetingLink: linkMeet
       });
 
     } else {
-      // 4. Criar NOVO evento no Calendar
-      const newEvent = await calendar.events.insert({
-        calendarId,
-        conferenceDataVersion: 1,
-        requestBody: {
-          summary: `Onboarding BPlen Hub - Grupo`,
-          description: `Sessão de Onboarding estratégica para novos membros.`,
-          start: { dateTime: startDateTime.toISOString() },
-          end: { dateTime: endDateTime.toISOString() },
-          attendees: [
-            { email: 'lisandra.lencina@bplen.com' },
-            { email, displayName: name }
-          ],
-          conferenceData: {
-            createRequest: {
-              requestId: `onboarding-${Date.now()}`,
-              conferenceSolutionKey: { type: 'hangoutsMeet' }
-            }
-          }
-        },
-        sendUpdates: 'all'
-      });
-
-      // 5. Criar no Firestore
-      const eventId = newEvent.data.id;
-      const sessionRef = db.collection('sessoes_onboarding').doc(eventId);
-      await sessionRef.set({
-        id: eventId,
-        data_hora: Timestamp.fromDate(startDateTime),
-        vagas_totais: 10,
-        vagas_ocupadas: 1,
-        vagas_restantes: 9,
-        participantes: [{ email, name, data_agendamento: new Date() }],
-        status: 'proxima',
-        link_meet: newEvent.data.hangoutLink || '',
-        lastSync: FieldValue.serverTimestamp()
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Agendamento criado com sucesso',
-        meetingLink: newEvent.data.hangoutLink
+      console.log('No onboarding event found in Calendar for this time.');
+      return res.status(404).json({ 
+        error: 'Sessão não encontrada no calendário', 
+        details: 'Por favor, aguarde a sincronização da agenda ou verifique se o horário está correto.' 
       });
     }
+
 
   } catch (error) {
     console.error('Calendar API Error:', error);

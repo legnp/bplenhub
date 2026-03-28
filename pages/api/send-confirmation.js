@@ -42,7 +42,7 @@ export default async function handler(req, res) {
             `DTSTART:${formatICSDate(sDateObj)}`,
             `DTEND:${formatICSDate(eDateObj)}`,
             `SUMMARY:${summary}`,
-            `ORGANIZER;CN=BPlen HUB:MAILTO:onboarding@bplen.com`,
+            `ORGANIZER;CN=BPlen HUB:MAILTO:hub@bplen.com`,
             `DESCRIPTION:${description}\\nLink de acesso: ${link_meet}`,
             `LOCATION:${link_meet}`,
             `UID:${sDateObj.getTime()}@bplen.com`,
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     }
 
     const { data: emailData, error } = await resend.emails.send({
-      from: 'BPlen Hub <onboarding@bplen.com>',
+      from: 'BPlen Hub <hub@bplen.com>',
       to: [email],
       subject: `${firstName}, ${subjectPrefix} foi confirmada`,
       attachments: attachments,

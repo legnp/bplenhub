@@ -77,25 +77,8 @@ export default async function handler(req, res) {
     }
 
     if (event) {
-      console.log(`Patching event: ${event.id}`);
-      const updatedAttendees = [...(event.attendees || []), { email, displayName: name }];
-      
-      const patchUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(event.id)}?sendUpdates=all`;
-      const patchRes = await fetch(patchUrl, {
-        method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ attendees: updatedAttendees })
-      });
-
-      if (!patchRes.ok) {
-        const errData = await patchRes.json();
-        throw new Error(`Google Patch Error: ${JSON.stringify(errData)}`);
-      }
-
-      const updatedEventData = await patchRes.json();
+      console.log(`Event found: ${event.id}. Recording in Firestore...`);
+      const linkMeet = event.hangoutLink || '';
 
       // Gravar no Firestore
       const sessionRef = db.collection('sessoes_orientacao_grupo').doc(event.id);
@@ -109,67 +92,17 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         message: 'Adicionado ao grupo de orientação',
-        meetingLink: updatedEventData.hangoutLink
+        meetingLink: linkMeet
       });
 
     } else {
-      console.log('No event found. Creating new one...');
-      const startDT = new Date(`${date}T${time}:00`);
-      const endDT = new Date(startDT.getTime() + 60 * 60 * 1000);
-
-      const insertUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?conferenceDataVersion=1&sendUpdates=all`;
-      const insertRes = await fetch(insertUrl, {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          summary: `Orientação em Grupo - BPlen Hub`,
-          description: `Sessão de Orientação em Grupo.`,
-          start: { dateTime: startDT.toISOString() },
-          end: { dateTime: endDT.toISOString() },
-          attendees: [
-            { email: 'lisandra.lencina@bplen.com' },
-            { email, displayName: name }
-          ],
-          conferenceData: {
-            createRequest: {
-              requestId: `orientacao-${Date.now()}`,
-              conferenceSolutionKey: { type: 'hangoutsMeet' }
-            }
-          }
-        })
-      });
-
-      if (!insertRes.ok) {
-        const errData = await insertRes.json();
-        throw new Error(`Google Insert Error: ${JSON.stringify(errData)}`);
-      }
-
-      const newEventData = await insertRes.json();
-      const newEventId = newEventData.id;
-
-      const sessionRef = db.collection('sessoes_orientacao_grupo').doc(newEventId);
-      await sessionRef.set({
-        id: newEventId,
-        data_hora: Timestamp.fromDate(startDT),
-        vagas_totais: 10,
-        vagas_ocupadas: 1,
-        vagas_restantes: 9,
-        participantes: [{ email, name, data_agendamento: new Date() }],
-        status: 'proxima',
-        tema: 'A definir',
-        link_meet: newEventData.hangoutLink || '',
-        lastSync: FieldValue.serverTimestamp()
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'Orientação agendada com sucesso',
-        meetingLink: newEventData.hangoutLink
+      console.log('No event found in Calendar.');
+      return res.status(404).json({ 
+        error: 'Sessão não encontrada no calendário', 
+        details: 'Por favor, aguarde a sincronização da agenda ou verifique se o horário está correto.' 
       });
     }
+
 
   } catch (error) {
     console.error('Booking Fatal Error:', error);
