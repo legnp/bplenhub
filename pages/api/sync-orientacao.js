@@ -29,7 +29,6 @@ export default async function handler(req, res) {
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       key: pk,
       scopes: ['https://www.googleapis.com/auth/calendar'],
-      subject: 'lisandra.lencina@bplen.com'
     });
 
     const tokenRes = await auth.getAccessToken();
@@ -38,9 +37,12 @@ export default async function handler(req, res) {
 
     const calId = process.env.GOOGLE_CALENDAR_ID || 'c_8065a455c764d31b19be4cadf973b33fc8f567cf577ba4d3fff87c8608e050fc@group.calendar.google.com';
     
+    console.log(`[SYNC ORIENTACAO] Fetching from calendar: ${calId}`);
+
     const tMinDate = new Date();
     tMinDate.setHours(0, 0, 0, 0); // Começar do início do dia de hoje
     const tMin = tMinDate.toISOString();
+
     
     const fut = new Date();
     fut.setDate(fut.getDate() + 150); 

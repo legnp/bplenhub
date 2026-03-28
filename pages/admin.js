@@ -7,7 +7,8 @@ import {
 } from 'firebase/firestore';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { RefreshCw, Users, Target, FileText, CheckCircle, ExternalLink, Calendar, UploadCloud, MessageSquare } from 'lucide-react';
+import AdminPortfolio from '../components/AdminPortfolio';
+import { RefreshCw, Users, Target, FileText, CheckCircle, ExternalLink, Calendar, UploadCloud, MessageSquare, Briefcase } from 'lucide-react';
 
 const ORIENTADORES = ["Selecione...", "Carolina", "Felipe", "Mariana", "Ricardo"];
 
@@ -320,6 +321,17 @@ export default function AdminArea() {
                 <div className="tab-subtitle">Gestão de presença e atas</div>
               </div>
             </button>
+
+            <button 
+              onClick={() => setActiveTab('portfolio')}
+              className={`refined-tab-btn ${activeTab === 'portfolio' ? 'active' : ''}`}
+            >
+              <Briefcase className="tab-icon" size={20} strokeWidth={1.5} />
+              <div className="tab-text">
+                <div className="tab-title">Gestão de Portfólio</div>
+                <div className="tab-subtitle">Serviços e fichas técnicas</div>
+              </div>
+            </button>
           </aside>
 
           {/* MAIN CONTENT AREA */}
@@ -599,6 +611,10 @@ export default function AdminArea() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'portfolio' && (
+              <AdminPortfolio />
             )}
           </section>
         </div>

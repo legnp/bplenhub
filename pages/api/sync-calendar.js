@@ -47,8 +47,10 @@ export default async function handler(req, res) {
     futureDate.setDate(futureDate.getDate() + 90);
     const timeMax = futureDate.toISOString();
 
-    const query = encodeURIComponent('Onboarding');
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&q=${query}`;
+    console.log(`[SYNC ONBOARDING] Fetching from calendar: ${calendarId}`);
+
+    // Removendo o filtro 'q' da URL para fazer filtro manual mais robusto
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=2500`;
 
     const calendarRes = await fetch(url, {
       headers: {
@@ -58,13 +60,19 @@ export default async function handler(req, res) {
 
     if (!calendarRes.ok) {
       const errorData = await calendarRes.json();
+      console.error(`[SYNC ONBOARDING ERROR] Google API returned ${calendarRes.status}:`, errorData);
       throw new Error(`Google API Error: ${calendarRes.status} - ${JSON.stringify(errorData)}`);
     }
 
     const data = await calendarRes.json();
-    const items = data.items || [];
+    const allItems = data.items || [];
+    console.log(`[SYNC ONBOARDING] Total events found in Google: ${allItems.length}`);
+    
+    // Filtro manual insensível a maiúsculas
+    const items = allItems.filter(e => (e.summary || '').toLowerCase().includes('onboarding'));
     let syncedCount = 0;
     const syncedEvents = [];
+
 
     for (const event of items) {
       // Filtro extra redundante por segurança
