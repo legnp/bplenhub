@@ -29,8 +29,8 @@ export default async function handler(req, res) {
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       key: pk,
       scopes: ['https://www.googleapis.com/auth/calendar'],
-      subject: 'lisandra.lencina@bplen.com'
     });
+
 
     const tokenRes = await auth.getAccessToken();
     const token = tokenRes.token;
