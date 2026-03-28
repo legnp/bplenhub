@@ -5,11 +5,15 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin (Server-side)
 if (!getApps().length) {
+  const pk = process.env.GOOGLE_PRIVATE_KEY
+    ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '')
+    : null;
+
   initializeApp({
     credential: cert({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey: pk,
     }),
   });
 }
@@ -25,11 +29,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    const pk = process.env.GOOGLE_PRIVATE_KEY
+      ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '')
+      : null;
+
     const auth = new JWT({
       email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      key: pk,
       scopes: ['https://www.googleapis.com/auth/calendar'],
     });
+
 
 
     const calendar = google.calendar({ version: 'v3', auth });

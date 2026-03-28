@@ -3,14 +3,19 @@ import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 if (!getApps().length) {
+  const pk = process.env.GOOGLE_PRIVATE_KEY
+    ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '')
+    : null;
+
   initializeApp({
     credential: cert({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey: pk,
     }),
   });
 }
+
 const db = getFirestore();
 
 export default async function handler(req, res) {

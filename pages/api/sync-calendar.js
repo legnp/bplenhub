@@ -3,13 +3,20 @@ import { JWT } from 'google-auth-library';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
+// Helper para normalizar texto (remover acentos)
+const normalize = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+
 // Initialize Firebase Admin (Server-side)
 if (!getApps().length) {
+  const pk = process.env.GOOGLE_PRIVATE_KEY
+    ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '')
+    : null;
+  
   initializeApp({
     credential: cert({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      privateKey: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      privateKey: pk,
     }),
   });
 }
@@ -68,8 +75,18 @@ export default async function handler(req, res) {
     const allItems = data.items || [];
     console.log(`[SYNC ONBOARDING] Total events found in Google: ${allItems.length}`);
     
-    // Filtro manual insensível a maiúsculas
-    const items = allItems.filter(e => (e.summary || '').toLowerCase().includes('onboarding'));
+    // Filtro manual insensível a maiúsculas e ACENTOS
+    const items = allItems.filter(e => {
+      const summary = e.summary || "";
+      const isMatch = normalize(summary).includes('onboarding');
+      if (isMatch) {
+        console.log(`[SYNC ONBOARDING] MATCH FOUND: ${summary} em ${e.start.dateTime || e.start.date}`);
+      }
+      return isMatch;
+    });
+    console.log(`[SYNC ONBOARDING] Matching events: ${items.length}`);
+
+
     let syncedCount = 0;
     const syncedEvents = [];
 
