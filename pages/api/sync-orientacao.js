@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     console.log(`[SYNC ORIENTACAO] Fetching from calendar: ${calId}`);
 
     const tMinDate = new Date();
-    tMinDate.setHours(0, 0, 0, 0); // Começar do início do dia de hoje
+    tMinDate.setDate(tMinDate.getDate() - 1); // Busca retroativa (ontem)
     const tMin = tMinDate.toISOString();
     
     const fut = new Date();
@@ -72,14 +72,12 @@ export default async function handler(req, res) {
         if (isMatch) {
             console.log(`[MATCH] ${summary} | ${e.start.dateTime || e.start.date}`);
         } else if (allItems.length < 50) {
-            // Logar os não-matches se a lista for pequena para ajudar a depurar
             console.log(`[REJECTED] ${summary}`);
         }
         return isMatch;
     });
 
     console.log(`Matching orientation events: ${items.length}`);
-
 
     let syncedCount = 0;
     const syncedEvents = [];
@@ -95,7 +93,6 @@ export default async function handler(req, res) {
 
         const sessionRef = db.collection('sessoes_orientacao_grupo').doc(event.id);
         
-        // Operação atômica ou merge seguro
         await sessionRef.set({
           data_hora: Timestamp.fromDate(new Date(start)),
           link_meet: event.hangoutLink || '',
@@ -104,7 +101,6 @@ export default async function handler(req, res) {
           tema: tema
         }, { merge: true });
 
-        // Garantir campos de vagas (vagas_ocupadas e vagas_restantes)
         const snap = await sessionRef.get();
         const docData = snap.data() || {};
         
@@ -114,7 +110,6 @@ export default async function handler(req, res) {
           updateData.participantes = [];
         }
         
-        // Recalcular vagas_restantes sempre para garantir integridade no sync
         const ocupadas = docData.vagas_ocupadas || 0;
         updateData.vagas_restantes = 10 - ocupadas;
         updateData.lastSync = FieldValue.serverTimestamp();
@@ -138,8 +133,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ 
       success: true, 
       count: syncedCount,
+      calendarId: calId,
       events: syncedEvents
     });
+
 
   } catch (err) {
     console.error('SYNC FATAL ERROR:', err);

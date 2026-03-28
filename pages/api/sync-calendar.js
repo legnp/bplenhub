@@ -49,14 +49,19 @@ export default async function handler(req, res) {
 
     // Buscar eventos via fetch manual
     const calendarId = process.env.GOOGLE_CALENDAR_ID || 'c_8065a455c764d31b19be4cadf973b33fc8f567cf577ba4d3fff87c8608e050fc@group.calendar.google.com';
-    const timeMin = new Date().toISOString();
+    
+    // Busca retroativa (desde ontem) para evitar problemas de fuso horário
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const timeMin = yesterday.toISOString();
+    
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 90);
     const timeMax = futureDate.toISOString();
 
     console.log(`[SYNC ONBOARDING] Fetching from calendar: ${calendarId}`);
 
-    // Removendo o filtro 'q' da URL para fazer filtro manual mais robusto
+    // URL de busca
     const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime&maxResults=2500`;
 
     const calendarRes = await fetch(url, {
@@ -86,77 +91,75 @@ export default async function handler(req, res) {
     });
     console.log(`[SYNC ONBOARDING] Matching events: ${items.length}`);
 
-
     let syncedCount = 0;
     const syncedEvents = [];
 
-
     for (const event of items) {
-      // Filtro extra redundante por segurança
-      if (event.summary && event.summary.toLowerCase().includes('onboarding')) {
-        const startDateTime = event.start.dateTime || event.start.date;
-        const eventId = event.id;
-        const linkMeet = event.hangoutLink || '';
+      // Loop direto nos itens filtrados (sem re-checar string rígida)
+      const startDateTime = event.start.dateTime || event.start.date;
+      const eventId = event.id;
+      const linkMeet = event.hangoutLink || '';
 
-        if (!startDateTime) continue;
+      if (!startDateTime) continue;
 
-        const sessionRef = db.collection('sessoes_onboarding').doc(eventId);
+      const sessionRef = db.collection('sessoes_onboarding').doc(eventId);
 
-        await sessionRef.set({
-          data_hora: new Date(startDateTime),
-          link_meet: linkMeet,
-          vagas_totais: 10,
-          titulo: event.summary,
-        }, { merge: true });
+      await sessionRef.set({
+        data_hora: new Date(startDateTime),
+        link_meet: linkMeet,
+        vagas_totais: 10,
+        titulo: event.summary,
+      }, { merge: true });
 
-        // Garantir campos padrão e cálculo de vagas_restantes
-        const snap = await sessionRef.get();
-        if (snap.exists) {
-          const docData = snap.data();
-          const updateObj = {};
-          let needsUpdate = false;
+      // Garantir campos padrão e cálculo de vagas_restantes
+      const snap = await sessionRef.get();
+      if (snap.exists) {
+        const docData = snap.data();
+        const updateObj = {};
+        let needsUpdate = false;
 
-          if (typeof docData.vagas_ocupadas === 'undefined') {
-            updateObj.vagas_ocupadas = 0;
-            updateObj.participantes = [];
-            needsUpdate = true;
-          }
-
-          if (typeof docData.vagas_restantes === 'undefined') {
-            const currentTotais = docData.vagas_totais || 10;
-            const currentOcupadas = updateObj.vagas_ocupadas !== undefined ? updateObj.vagas_ocupadas : (docData.vagas_ocupadas || 0);
-            updateObj.vagas_restantes = currentTotais - currentOcupadas;
-            needsUpdate = true;
-          }
-
-          if (needsUpdate) {
-            await sessionRef.update(updateObj);
-          }
+        if (typeof docData.vagas_ocupadas === 'undefined') {
+          updateObj.vagas_ocupadas = 0;
+          updateObj.participantes = [];
+          needsUpdate = true;
         }
 
-        const finalSnap = await sessionRef.get();
-        const finalData = finalSnap.data() || {};
+        if (typeof docData.vagas_restantes === 'undefined') {
+          const currentTotais = docData.vagas_totais || 10;
+          const currentOcupadas = updateObj.vagas_ocupadas !== undefined ? updateObj.vagas_ocupadas : (docData.vagas_ocupadas || 0);
+          updateObj.vagas_restantes = currentTotais - currentOcupadas;
+          needsUpdate = true;
+        }
 
-        syncedEvents.push({
-          id: eventId,
-          titulo: finalData.titulo || event.summary,
-          data_hora: startDateTime,
-          link_meet: finalData.link_meet || linkMeet,
-          vagas_totais: finalData.vagas_totais || 10,
-          vagas_ocupadas: finalData.vagas_ocupadas || 0,
-          vagas_restantes: typeof finalData.vagas_restantes !== 'undefined' ? finalData.vagas_restantes : (finalData.vagas_totais || 10) - (finalData.vagas_ocupadas || 0)
-        });
-
-        syncedCount++;
+        if (needsUpdate) {
+          await sessionRef.update(updateObj);
+        }
       }
+
+      const finalSnap = await sessionRef.get();
+      const finalData = finalSnap.data() || {};
+
+      syncedEvents.push({
+        id: eventId,
+        titulo: finalData.titulo || event.summary,
+        data_hora: startDateTime,
+        link_meet: finalData.link_meet || linkMeet,
+        vagas_totais: finalData.vagas_totais || 10,
+        vagas_ocupadas: finalData.vagas_ocupadas || 0,
+        vagas_restantes: typeof finalData.vagas_restantes !== 'undefined' ? finalData.vagas_restantes : (finalData.vagas_totais || 10) - (finalData.vagas_ocupadas || 0)
+      });
+
+      syncedCount++;
     }
 
     return res.status(200).json({
       success: true,
       message: `Foram sincronizadas ${syncedCount} sessões de onboarding.`,
       count: syncedCount,
+      calendarId: calendarId,
       events: syncedEvents,
     });
+
 
   } catch (error) {
     console.error('API Sync Error:', error);
