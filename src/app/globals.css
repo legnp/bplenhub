@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ============================================
+   BPlen HUB — Design System Glassmorphism v3.1
+   Apple IOS Pro · Escala -10%
+   ============================================ */
+
+:root {
+  /* Paleta Apple IOS */
+  --bg-primary: #F5F7FA;
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+  --accent-start: #667eea;
+  --accent-end: #764ba2;
+
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-blur: 12px;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.05);
+
+  /* Escala */
+  --radius: 20px;
+  --font-size-base: 15px;
+}
+
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-accent-start: var(--accent-start);
+  --color-accent-end: var(--accent-end);
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: var(--font-size-base);
+  min-height: 100vh;
+}
+
+/* Glassmorphism Card */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Gradient Accent */
+.gradient-accent {
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+}
+
+/* Animações suaves */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in-up-delay {
+  animation: fadeInUp 0.6s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+/* Hover minimalista */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
