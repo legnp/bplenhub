@@ -1,5 +1,6 @@
 "use server";
 
+import { Resend } from "resend";
 import { 
   getCalendarClient, 
   getDriveClient, 
@@ -160,5 +161,57 @@ export async function testUpload() {
   } catch (error: any) {
     console.error("Erro no Teste de Upload:", error);
     return { success: false, message: error.message };
+  }
+}
+
+// ──────────────────────────────
+// 5. Teste de E-mail (Resend)
+// ──────────────────────────────
+
+const ALIAS_DISPLAY_NAMES: Record<string, string> = {
+  it: "BPlen IT",
+  atendimento: "BPlen Atendimento",
+  hub: "BPlen HUB",
+  financeiro: "BPlen Financeiro",
+  "lisandra.lencina": "Lisandra Lencina (BPlen)",
+};
+
+export async function testEmail(alias: string) {
+  try {
+    const resend = new Resend(serverEnv.RESEND_API_KEY);
+    
+    const displayName = ALIAS_DISPLAY_NAMES[alias] || "BPlen HUB";
+    const from = `${displayName} <${alias}@bplen.com>`;
+    
+    const { data, error } = await resend.emails.send({
+      from: from,
+      to: "legnp@bplen.com", // Destinatário fixo para o teste do usuário
+      subject: `📧 Laboratório BPlen: Teste de Alias [${displayName}]`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #1D1D1F; background: #F5F7FA;">
+          <h2 style="color: #764ba2;">Teste de Comunicação BPlen HUB</h2>
+          <p>Este é um e-mail de validação técnica enviado via <strong>Resend</strong>.</p>
+          <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;" />
+          <p><strong>Configurações do Teste:</strong></p>
+          <ul>
+            <li><strong>Alias Selecionado:</strong> ${alias}@bplen.com</li>
+            <li><strong>Nome de Exibição:</strong> ${displayName}</li>
+            <li><strong>Timestamp:</strong> ${new Date().toLocaleString('pt-BR')}</li>
+          </ul>
+          <p style="font-size: 12px; color: #888;">ID de Rastreamento: ${new Date().getTime()}</p>
+        </div>
+      `,
+    });
+
+    if (error) throw error;
+
+    return { 
+      success: true, 
+      id: data?.id,
+      from: from
+    };
+  } catch (error: any) {
+    console.error("Erro no Teste de E-mail:", error);
+    throw new Error(error.message || "Falha ao enviar e-mail de teste.");
   }
 }
