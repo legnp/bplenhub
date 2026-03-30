@@ -69,6 +69,7 @@ export async function testDriveFolders() {
     for (const domain of domains) {
       const folderName = `TESTE_LAB_${domain.name}_${new Date().getTime()}`;
       const res = await drive.files.create({
+        supportsAllDrives: true,
         requestBody: {
           name: folderName,
           mimeType: "application/vnd.google-apps.folder",
@@ -97,6 +98,7 @@ export async function testSheets() {
 
     // Criar uma planilha nova na pasta de Portfólio
     const sheetFile = await drive.files.create({
+      supportsAllDrives: true,
       requestBody: {
         name: `TESTE_LAB_SHEETS_${new Date().getTime()}`,
         mimeType: "application/vnd.google-apps.spreadsheet",
@@ -142,6 +144,7 @@ export async function testUpload() {
     
     // Simular upload de arquivo de texto
     const res = await drive.files.create({
+      supportsAllDrives: true,
       requestBody: {
         name: fileName,
         parents: [serverEnv.GOOGLE_DRIVE_ATAS_ID],
