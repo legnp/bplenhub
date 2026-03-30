@@ -20,30 +20,42 @@ const clientSchema = z.object({
 });
 
 // ──────────────────────────────
-// Normalização Robusta de PEM (Private Key)
+// Normalização Canônica de PEM (Hard Fix 🛡️)
 // ──────────────────────────────
 function normalizePrivateKey(key: string | undefined): string {
   if (!key) return "";
   
+  // 1. Limpeza Bruta: Remove aspas, espaços laterais e trata \n literal
   let cleaned = key.trim();
-
-  // 1. Remove aspas extras que podem ter vindo da colagem no Vercel
   if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
     cleaned = cleaned.substring(1, cleaned.length - 1);
   }
-
-  // 2. Converte \n literais (escapados) em quebras de linha reais
-  // e unifica quebras de linha existentes
   cleaned = cleaned.replace(/\\n/g, "\n");
-  
-  // 3. Garante que o cabeçalho e rodapé estejam corretos e sem espaços bizarros
-  // Alguns parsers de PEM não gostam de espaços no início ou fim do arquivo
-  if (!cleaned.includes("-----BEGIN PRIVATE KEY-----")) {
-    // Caso a chave tenha sido colada de forma fragmentada, tentamos reconstruir ou alertamos
-    // (Mas aqui o Zod vai pegar se estiver vazio ou malformado)
+
+  // 2. Extração de Base64 Pura
+  // Remove os cabeçalhos PEM para tratar apenas o conteúdo criptográfico
+  let body = cleaned
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s/g, ""); // ATENÇÃO: Remove todos os espaços, quebras de linha e \r
+
+  // 3. Re-wrap Canônico (RFC 7468)
+  // O formato PEM exige quebras de linha a cada 64 caracteres para compatibilidade total com OpenSSL
+  const chunks = [];
+  for (let i = 0; i < body.length; i += 64) {
+    chunks.push(body.substring(i, i + 64));
   }
 
-  return cleaned;
+  // 4. Reconstrução Final
+  // Remonta com cabeçalhos padrão e quebras de linha simples (\n)
+  const canonicalPEM = [
+    "-----BEGIN PRIVATE KEY-----",
+    ...chunks,
+    "-----END PRIVATE KEY-----",
+    "" // Final newline amigável para o parser
+  ].join("\n");
+
+  return canonicalPEM;
 }
 
 // ──────────────────────────────
@@ -55,7 +67,7 @@ const serverSchema = z.object({
   FIREBASE_PRIVATE_KEY: z
     .string()
     .min(1, "Firebase Private Key é obrigatória")
-    .transform(normalizePrivateKey), // Limpeza profunda aplicada aqui
+    .transform(normalizePrivateKey), // Blindagem Canônica ativada
   RESEND_API_KEY: z.string().min(1, "Resend API Key é obrigatória"),
   GOOGLE_DRIVE_ROOT_ID: z.string().min(1, "Google Drive Root ID é obrigatório"),
   GOOGLE_DRIVE_PORTFOLIO_ID: z.string().min(1, "Google Drive Portfolio ID é obrigatório"),
