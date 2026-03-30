@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { TypedText } from "@/components/ui/TypedText";
+import { UserType, WelcomeSurveyData, SurveyStep } from "@/types/survey";
+import { NavButton } from "@/components/ui/NavButton";
 import { submitWelcomeSurvey } from "@/actions/welcome-survey";
 
 interface WelcomeSurveyProps {
@@ -20,7 +22,7 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
 
   // Form State
   const [nickname, setNickname] = useState("");
-  const [userType, setUserType] = useState<"PF" | "PJ" | "">("");
+  const [userType, setUserType] = useState<UserType | "">("");
   const [topics, setTopics] = useState<string[]>([]);
   const [demand, setDemand] = useState("");
   const [origin, setOrigin] = useState("");
@@ -44,26 +46,27 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await submitWelcomeSurvey({
+      const surveyData: WelcomeSurveyData = {
         uid: userUid,
         email: userEmail,
         Authentication_Name: userName,
         User_Nickname: nickname,
-        User_Type: userType as "PF" | "PJ",
+        User_Type: userType as UserType,
         Customer_FirstTopics: topics,
         Customer_FirstDemand: demand,
         Customer_Origin: origin,
-      });
+      };
+      await submitWelcomeSurvey(surveyData);
       onComplete();
     } catch (error: any) {
       console.error("Falha ao concluir pesquisa de boas-vindas:", error);
       alert(`Erro: ${error.message || "Houve um erro ao processar. Tente novamente."}`);
     } finally {
-      setIsSubmitting(true);
+      setIsSubmitting(false);
     }
   };
 
-  const steps = [
+  const steps: SurveyStep[] = [
     {
       id: "nickname",
       question: `Olá ${firstName}!!!\nFicamos muito felizes com a sua chegada a BPlen HUB!\n\nComo devemos te chamar?`,
@@ -192,8 +195,8 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       ),
       canProgress: origin !== "",
     },
-    // End
     {
+      id: "end",
       question: `${displayName}, agradecemos a sua confiança em nós, e esperamos que aproveite ao máximo a BPlen HUB!`,
       content: (
         <button
@@ -221,7 +224,6 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
           transition={{ duration: 0.4 }}
           className="h-[600px] flex flex-col justify-start relative pt-4"
         >
-          {/* Enunciado */}
           <div className="mb-6 text-[#1D1D1F] text-[20px] font-medium leading-relaxed">
             <TypedText
               text={currentStep.question}
@@ -229,7 +231,6 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
             />
           </div>
 
-          {/* Conteúdo Dinâmico (Aparece imediatamente após a digitação) */}
           <AnimatePresence>
             {typedComplete && currentStep.content && (
               <motion.div
@@ -242,25 +243,13 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
             )}
           </AnimatePresence>
 
-          {/* Botão de Avançar (Redondo Pequeno) -> Com delay de 3 segundos */}
-          <AnimatePresence>
-            {showNextButton && step < steps.length - 1 && currentStep.canProgress && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="mt-8 flex justify-end"
-              >
-                <button
-                  onClick={handleNext}
-                  className="w-10 h-10 rounded-full bg-accent-start flex items-center justify-center text-white hover:scale-105 hover:shadow-md transition-all"
-                  aria-label="Próximo"
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="mt-8">
+            <AnimatePresence>
+              {showNextButton && step < steps.length - 1 && currentStep.canProgress && (
+                <NavButton onClick={handleNext} />
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>

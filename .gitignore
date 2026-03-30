@@ -33,9 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# === SEGURANÇA BPlen HUB (Premissa #11) ===
-# NUNCA subir instruções do projeto ou credenciais
+# === BLINDAGEM BPlen HUB (Premissa #11) ===
+# NUNCA subir instruções do projeto, envs ou credenciais
 Instruções do Projeto/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.json.bak
 *-adminsdk-*.json
 

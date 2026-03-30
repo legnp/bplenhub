@@ -4,17 +4,7 @@ import { collection, getCountFromServer, doc, setDoc, serverTimestamp } from "fi
 import { db } from "@/lib/firebase";
 import { getDriveClient, getSheetsClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
-
-interface WelcomeSurveyData {
-  uid: string;
-  email: string;
-  Authentication_Name: string;
-  User_Nickname: string;
-  User_Type: "PF" | "PJ";
-  Customer_FirstTopics: string[];
-  Customer_FirstDemand: string;
-  Customer_Origin: string;
-}
+import { WelcomeSurveyData } from "@/types/survey";
 
 export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
   try {
