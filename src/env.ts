@@ -25,15 +25,18 @@ const clientSchema = z.object({
 function normalizePrivateKey(key: string | undefined): string {
   if (!key) return "";
   
-  // 1. Remove aspas que o Vercel pode ter envolvido automaticamente
+  // 1. Limpeza Radical: Remove aspas (duplas ou simples) e espaços e quebras de linha das extremidades
   let cleaned = key.trim().replace(/^["']|["']$/g, "");
 
-  // 2. Converte \n (texto do JSON) em quebras de linha reais
-  // e resolve casos onde a string veio com literal \\n
+  // 2. Normaliza quebras de linha: 
+  // Converte a sequência literal '\n' (caractere barra + caractere n) em quebras de linha reais
+  // e remove quebras de linha reais que podem estar no meio (para reconstruir o PEM limpo)
   cleaned = cleaned.replace(/\\n/g, "\n");
+  
+  // 3. Remove eventuais aspas residuais que o dotenv pode ter deixado no meio da string
+  cleaned = cleaned.replace(/['"]/g, "");
 
-  // 3. Garante que os cabeçalhos PEM estejam presentes
-  // (Caso o usuário tenha esquecido na cópia, mas o JSON padrão já traz)
+  // 4. Garante que os cabeçalhos PEM estejam presentes
   if (!cleaned.includes("-----BEGIN PRIVATE KEY-----")) {
     cleaned = `-----BEGIN PRIVATE KEY-----\n${cleaned}\n-----END PRIVATE KEY-----`;
   }
