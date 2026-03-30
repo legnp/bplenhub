@@ -8,6 +8,12 @@ import { UserType, WelcomeSurveyData, SurveyStep } from "@/types/survey";
 import { NavButton } from "@/components/ui/NavButton";
 import { submitWelcomeSurvey } from "@/actions/welcome-survey";
 
+import { InputGlass } from "@/components/ui/InputGlass";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { CheckboxItem } from "@/components/ui/CheckboxItem";
+import { TextareaGlass } from "@/components/ui/TextareaGlass";
+import { SelectGlass } from "@/components/ui/SelectGlass";
+
 interface WelcomeSurveyProps {
   userUid: string;
   userName: string;
@@ -71,15 +77,14 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       id: "nickname",
       question: `Olá ${firstName}!!!\nFicamos muito felizes com a sua chegada a BPlen HUB!\n\nComo devemos te chamar?`,
       content: (
-        <input
-          type="text"
+        <InputGlass
           value={nickname}
           onChange={(e) => {
             setNickname(e.target.value);
             handleInteraction();
           }}
           placeholder="Ex: João, Lisa, Eng. Maria..."
-          className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+          autoFocus
         />
       ),
       canProgress: nickname.length > 0,
@@ -89,30 +94,24 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       question: "Para o que você busca a BPlen?",
       content: (
         <div className="flex flex-col gap-3">
-          <button
+          <ChoiceButton
+            active={userType === "PF"}
             onClick={() => {
               setUserType("PF");
               handleInteraction();
             }}
-            className={`px-4 py-3 rounded-xl border text-sm text-left transition-all ${userType === "PF"
-                ? "border-accent-start bg-accent-start/10 shadow-sm"
-                : "border-gray-200/60 bg-white/60 hover:bg-white/80 shadow-sm active:scale-[0.98]"
-              }`}
           >
             Para minha Carreira Profissional
-          </button>
-          <button
+          </ChoiceButton>
+          <ChoiceButton
+            active={userType === "PJ"}
             onClick={() => {
               setUserType("PJ");
               handleInteraction();
             }}
-            className={`px-4 py-3 rounded-xl border text-sm text-left transition-all ${userType === "PJ"
-                ? "border-accent-start bg-accent-start/10 shadow-sm"
-                : "border-gray-200/60 bg-white/60 hover:bg-white/80 shadow-sm active:scale-[0.98]"
-              }`}
           >
             Para o DHO da minha empresa
-          </button>
+          </ChoiceButton>
         </div>
       ),
       canProgress: userType !== "",
@@ -130,25 +129,16 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
             "Soft Skills",
             "Desenvolvimento de talentos (DHO)",
           ].map((topic) => (
-            <label 
+            <CheckboxItem
               key={topic}
-              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-white/80 transition-all shadow-sm active:scale-[0.99] ${topics.includes(topic) ? "border-accent-start bg-accent-start/10" : "border-gray-200/60 bg-white/60"}`}
-            >
-              <div className={`w-5 h-5 rounded flex items-center justify-center border ${topics.includes(topic) ? "bg-accent-start border-accent-start" : "border-gray-400"}`}>
-                {topics.includes(topic) && <Check size={14} color="white" />}
-              </div>
-              <input
-                type="checkbox"
-                className="hidden"
-                checked={topics.includes(topic)}
-                onChange={() => {
-                  if (topics.includes(topic)) setTopics(topics.filter((t) => t !== topic));
-                  else setTopics([...topics, topic]);
-                  handleInteraction();
-                }}
-              />
-              <span className="text-sm">{topic}</span>
-            </label>
+              label={topic}
+              checked={topics.includes(topic)}
+              onChange={() => {
+                if (topics.includes(topic)) setTopics(topics.filter((t) => t !== topic));
+                else setTopics([...topics, topic]);
+                handleInteraction();
+              }}
+            />
           ))}
         </div>
       ),
@@ -158,7 +148,7 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       id: "demand",
       question: "Porque você acredita que podemos te ajudar com os temas selecionados?",
       content: (
-        <textarea
+        <TextareaGlass
           value={demand}
           onChange={(e) => {
             setDemand(e.target.value);
@@ -166,7 +156,6 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
           }}
           placeholder="Descreva brevemente o que espera..."
           rows={4}
-          className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start resize-none transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
         />
       ),
       canProgress: demand.length > 3,
@@ -175,23 +164,20 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       id: "origin",
       question: "Como você nos conheceu?",
       content: (
-        <div className="flex flex-col gap-1">
-          <span className="text-[10px] text-gray-500 mb-1 ml-1">Selecione a origem</span>
-          <select
-            value={origin}
-            onChange={(e) => {
-              setOrigin(e.target.value);
-              handleInteraction();
-            }}
-            className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start transition-all text-gray-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
-          >
-            <option value="" disabled>Selecione uma opção</option>
-            <option value="Instagram">Instagram</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Indicação">Indicação</option>
-            <option value="Outro">Outro</option>
-          </select>
-        </div>
+        <SelectGlass
+          label="Selecione a origem"
+          value={origin}
+          onChange={(e) => {
+            setOrigin(e.target.value);
+            handleInteraction();
+          }}
+        >
+          <option value="" disabled>Selecione uma opção</option>
+          <option value="Instagram">Instagram</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Indicação">Indicação</option>
+          <option value="Outro">Outro</option>
+        </SelectGlass>
       ),
       canProgress: origin !== "",
     },
