@@ -6,7 +6,8 @@ import {
   testDriveFolders, 
   testSheets, 
   testUpload,
-  testEmail
+  testEmail,
+  testFirestore
 } from "./actions";
 import { 
   Calendar, 
@@ -19,7 +20,8 @@ import {
   ArrowLeft,
   Zap,
   Mail,
-  ChevronDown
+  ChevronDown,
+  Database
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -136,10 +138,8 @@ export default function GoogleTestLab() {
                 Service Account Connected
              </span>
           </div>
-        </div>
-
-        {/* Grid de Testes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 items-stretch">
+        </div>        {/* Grid de Testes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           
           <TestCard 
             id="calendar"
@@ -198,6 +198,14 @@ export default function GoogleTestLab() {
               </div>
             </div>
           </TestCard>
+
+          <TestCard 
+            id="database"
+            title="Banco de Dados"
+            description="Escrita e Leitura (Firestore)"
+            icon={Database}
+            testFn={testFirestore}
+          />
 
         </div>
 

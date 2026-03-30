@@ -2,10 +2,18 @@
 
 import { Resend } from "resend";
 import { 
+  collection, 
+  addDoc, 
+  getDoc, 
+  serverTimestamp,
+  deleteDoc
+} from "firebase/firestore";
+import { 
   getCalendarClient, 
   getDriveClient, 
   getSheetsClient 
 } from "@/lib/google-auth";
+import { db } from "@/lib/firebase";
 import { serverEnv } from "@/env";
 
 /**
@@ -212,6 +220,52 @@ export async function testEmail(alias: string) {
     };
   } catch (error: any) {
     console.error("Erro no Teste de E-mail:", error);
-    throw new Error(error.message || "Falha ao enviar e-mail de teste.");
+    return { success: false, message: error.message };
+  }
+}
+
+// ──────────────────────────────
+// 6. Teste de Banco de Dados (Firestore)
+// ──────────────────────────────
+
+export async function testFirestore() {
+  try {
+    const testData = {
+      timestamp: new Date().toISOString(),
+      status: "validating_infrastructure",
+      agent: "Antigravity 🧪",
+      message: "Ciclo de escrita/leitura ok!"
+    };
+
+    // 1. Gravação (Escrita)
+    const docRef = await addDoc(collection(db, "_laboratorio_testes"), {
+      ...testData,
+      createdAt: serverTimestamp() // Usa o tempo do servidor do Google
+    });
+
+    // 2. Leitura (Verificação)
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      throw new Error("Documento gravado no Firestore não foi encontrado na leitura.");
+    }
+
+    const data = docSnap.data();
+
+    // 3. Limpeza (Opcional, mas mantém o banco limpo)
+    // await deleteDoc(docRef); 
+
+    return { 
+      success: true, 
+      id: docRef.id,
+      message: "Escrita e Leitura concluídas com sucesso!",
+      data: {
+        id: docRef.id,
+        persistedAt: data.timestamp
+      }
+    };
+  } catch (error: any) {
+    console.error("Erro no Teste do Firestore:", error);
+    throw new Error(error.message || "Falha ao conectar com o Cloud Firestore.");
   }
 }
