@@ -8,15 +8,29 @@ import {
 import { serverEnv } from "@/env";
 
 /**
- * BPlen HUB — Google Test Actions (Server Side) 🧪
- * Coleção de funções para validar permissões e fluxos de API.
+ * Utilitário de Diagnóstico Silencioso 🛡️
+ * Verifica se a chave privada está íntegra após a normalização do Zod.
  */
+function checkKeySignature() {
+  const key = serverEnv.FIREBASE_PRIVATE_KEY;
+  const length = key.length;
+  const hasStart = key.includes("-----BEGIN PRIVATE KEY-----");
+  const hasEnd = key.includes("-----END PRIVATE KEY-----");
+  const hasLiteralN = key.includes("\\n");
+
+  console.log(`[Google API Auth] Key Signature: Length=${length}, Header=${hasStart}, Footer=${hasEnd}, LiteralN=${hasLiteralN}`);
+  
+  if (!hasStart || !hasEnd) {
+    throw new Error("Chave Privada Malformada: Cabeçalhos PEM ausentes.");
+  }
+}
 
 // ──────────────────────────────
 // 1. Teste de Agenda
 // ──────────────────────────────
 export async function testCalendar() {
   try {
+    checkKeySignature();
     const calendar = await getCalendarClient();
     const res = await calendar.events.list({
       calendarId: serverEnv.GOOGLE_CALENDAR_ID,
@@ -43,6 +57,7 @@ export async function testCalendar() {
 // ──────────────────────────────
 export async function testDriveFolders() {
   try {
+    checkKeySignature();
     const drive = await getDriveClient();
     const domains = [
       { name: "ATA", id: serverEnv.GOOGLE_DRIVE_ATAS_ID },
@@ -76,6 +91,7 @@ export async function testDriveFolders() {
 // ──────────────────────────────
 export async function testSheets() {
   try {
+    checkKeySignature();
     const sheets = await getSheetsClient();
     const drive = await getDriveClient();
 
@@ -120,6 +136,7 @@ export async function testSheets() {
 // ──────────────────────────────
 export async function testUpload() {
   try {
+    checkKeySignature();
     const drive = await getDriveClient();
     const fileName = `TESTE_UPLOAD_${new Date().getTime()}.txt`;
     

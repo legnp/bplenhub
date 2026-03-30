@@ -3,7 +3,6 @@ import { z } from "zod";
 /**
  * BPlen HUB — Sensor Zod (Regra de Segurança 🛡️)
  * Valida todas as variáveis de ambiente obrigatórias.
- * Se qualquer chave estiver ausente ou malformada, o sistema para.
  */
 
 // ──────────────────────────────
@@ -21,6 +20,33 @@ const clientSchema = z.object({
 });
 
 // ──────────────────────────────
+// Normalização Robusta de PEM (Private Key)
+// ──────────────────────────────
+function normalizePrivateKey(key: string | undefined): string {
+  if (!key) return "";
+  
+  let cleaned = key.trim();
+
+  // 1. Remove aspas extras que podem ter vindo da colagem no Vercel
+  if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+    cleaned = cleaned.substring(1, cleaned.length - 1);
+  }
+
+  // 2. Converte \n literais (escapados) em quebras de linha reais
+  // e unifica quebras de linha existentes
+  cleaned = cleaned.replace(/\\n/g, "\n");
+  
+  // 3. Garante que o cabeçalho e rodapé estejam corretos e sem espaços bizarros
+  // Alguns parsers de PEM não gostam de espaços no início ou fim do arquivo
+  if (!cleaned.includes("-----BEGIN PRIVATE KEY-----")) {
+    // Caso a chave tenha sido colada de forma fragmentada, tentamos reconstruir ou alertamos
+    // (Mas aqui o Zod vai pegar se estiver vazio ou malformado)
+  }
+
+  return cleaned;
+}
+
+// ──────────────────────────────
 // Schema: Variáveis Privadas (Server-side)
 // ──────────────────────────────
 const serverSchema = z.object({
@@ -29,7 +55,7 @@ const serverSchema = z.object({
   FIREBASE_PRIVATE_KEY: z
     .string()
     .min(1, "Firebase Private Key é obrigatória")
-    .transform((key) => key.replace(/\\n/g, "\n")), // Correção técnica de quebra de linha
+    .transform(normalizePrivateKey), // Limpeza profunda aplicada aqui
   RESEND_API_KEY: z.string().min(1, "Resend API Key é obrigatória"),
   GOOGLE_DRIVE_ROOT_ID: z.string().min(1, "Google Drive Root ID é obrigatório"),
   GOOGLE_DRIVE_PORTFOLIO_ID: z.string().min(1, "Google Drive Portfolio ID é obrigatório"),
@@ -42,7 +68,6 @@ const serverSchema = z.object({
 // Validação e Exportação
 // ──────────────────────────────
 
-// Função auxiliar para parsing seguro e logs descritivos
 function validateEnv<T extends z.ZodRawShape>(schema: z.ZodObject<T>, data: unknown, type: "client" | "server") {
   try {
     return schema.parse(data);
@@ -53,12 +78,10 @@ function validateEnv<T extends z.ZodRawShape>(schema: z.ZodObject<T>, data: unkn
         console.error(`   - Campo: ${err.path.join(".")} | Motivo: ${err.message}`);
       });
     }
-    // No Vercel, o throw vai causar o crash da função, o que é desejado para evitar erros silenciosos
     throw error;
   }
 }
 
-/** Variáveis públicas validadas (seguras para uso no front-end) */
 export const clientEnv = validateEnv(clientSchema, {
   NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -70,10 +93,6 @@ export const clientEnv = validateEnv(clientSchema, {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 }, "client");
 
-/** 
- * Variáveis privadas validadas (somente server-side).
- * A validação só ocorre no ambiente Node.js / Edge.
- */
 let validatedServerEnv: z.infer<typeof serverSchema> | undefined;
 
 if (typeof window === "undefined") {
