@@ -35,16 +35,9 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
     setShowNextButton(false);
   }, [step]);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (typedComplete) {
-      // O botão 'Próximo' aparece com delay de 3 segundos após o término da digitação
-      timer = setTimeout(() => {
-        setShowNextButton(true);
-      }, 3000);
-    }
-    return () => clearTimeout(timer);
-  }, [typedComplete]);
+  const handleInteraction = () => {
+    if (!showNextButton) setShowNextButton(true);
+  };
 
   const handleNext = () => setStep((s) => s + 1);
 
@@ -56,7 +49,7 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
         email: userEmail,
         Authentication_Name: userName,
         User_Nickname: nickname,
-        User_Type: userType as "PF" | "PJ", // CPF/CNPJ inferido
+        User_Type: userType as "PF" | "PJ",
         Customer_FirstTopics: topics,
         Customer_FirstDemand: demand,
         Customer_Origin: origin,
@@ -66,32 +59,38 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       console.error("Falha ao concluir pesquisa de boas-vindas:", error);
       alert(`Erro: ${error.message || "Houve um erro ao processar. Tente novamente."}`);
     } finally {
-      setIsSubmitting(true); // Manter true para evitar clique repetido
+      setIsSubmitting(true);
     }
   };
 
   const steps = [
-    // Step 1
     {
+      id: "nickname",
       question: `Olá ${firstName}!!!\nFicamos muito felizes com a sua chegada a BPlen HUB!\n\nComo devemos te chamar?`,
       content: (
         <input
           type="text"
           value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
+          onChange={(e) => {
+            setNickname(e.target.value);
+            handleInteraction();
+          }}
           placeholder="Ex: João, Lisa, Eng. Maria..."
           className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
         />
       ),
       canProgress: nickname.length > 0,
     },
-    // Step 2
     {
+      id: "userType",
       question: "Para o que você busca a BPlen?",
       content: (
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => setUserType("PF")}
+            onClick={() => {
+              setUserType("PF");
+              handleInteraction();
+            }}
             className={`px-4 py-3 rounded-xl border text-sm text-left transition-all ${userType === "PF"
                 ? "border-accent-start bg-accent-start/10 shadow-sm"
                 : "border-gray-200/60 bg-white/60 hover:bg-white/80 shadow-sm active:scale-[0.98]"
@@ -100,7 +99,10 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
             Para minha Carreira Profissional
           </button>
           <button
-            onClick={() => setUserType("PJ")}
+            onClick={() => {
+              setUserType("PJ");
+              handleInteraction();
+            }}
             className={`px-4 py-3 rounded-xl border text-sm text-left transition-all ${userType === "PJ"
                 ? "border-accent-start bg-accent-start/10 shadow-sm"
                 : "border-gray-200/60 bg-white/60 hover:bg-white/80 shadow-sm active:scale-[0.98]"
@@ -112,38 +114,53 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       ),
       canProgress: userType !== "",
     },
-    // Step 3
     {
+      id: "topics",
       question: `${displayName}, quais temas podemos te oferecer aqui na BPlen HUB?`,
       content: (
         <div className="flex flex-col gap-2 relative">
           <span className="text-[10px] text-gray-500 mb-1">Selecione uma ou mais opções</span>
-          <label className="flex items-center gap-3 p-3 rounded-xl border border-gray-200/60 bg-white/60 cursor-pointer hover:bg-white/80 transition-all shadow-sm active:scale-[0.99]">
-            <div className={`w-5 h-5 rounded flex items-center justify-center border ${topics.includes("Melhorar meu currículo") ? "bg-accent-start border-accent-start" : "border-gray-400"}`}>
-              {topics.includes("Melhorar meu currículo") && <Check size={14} color="white" />}
-            </div>
-            <input
-              type="checkbox"
-              className="hidden"
-              checked={topics.includes("Melhorar meu currículo")}
-              onChange={(e) => {
-                if (e.target.checked) setTopics([...topics, "Melhorar meu currículo"]);
-                else setTopics(topics.filter((t) => t !== "Melhorar meu currículo"));
-              }}
-            />
-            <span className="text-sm">Melhorar meu currículo</span>
-          </label>
+          {[
+            "Melhorar meu currículo",
+            "Transição de carreira",
+            "Liderança e gestão",
+            "Soft Skills",
+            "Desenvolvimento de talentos (DHO)",
+          ].map((topic) => (
+            <label 
+              key={topic}
+              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-white/80 transition-all shadow-sm active:scale-[0.99] ${topics.includes(topic) ? "border-accent-start bg-accent-start/10" : "border-gray-200/60 bg-white/60"}`}
+            >
+              <div className={`w-5 h-5 rounded flex items-center justify-center border ${topics.includes(topic) ? "bg-accent-start border-accent-start" : "border-gray-400"}`}>
+                {topics.includes(topic) && <Check size={14} color="white" />}
+              </div>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={topics.includes(topic)}
+                onChange={() => {
+                  if (topics.includes(topic)) setTopics(topics.filter((t) => t !== topic));
+                  else setTopics([...topics, topic]);
+                  handleInteraction();
+                }}
+              />
+              <span className="text-sm">{topic}</span>
+            </label>
+          ))}
         </div>
       ),
       canProgress: topics.length > 0,
     },
-    // Step 4
     {
+      id: "demand",
       question: "Porque você acredita que podemos te ajudar com os temas selecionados?",
       content: (
         <textarea
           value={demand}
-          onChange={(e) => setDemand(e.target.value)}
+          onChange={(e) => {
+            setDemand(e.target.value);
+            handleInteraction();
+          }}
           placeholder="Descreva brevemente o que espera..."
           rows={4}
           className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start resize-none transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
@@ -151,19 +168,25 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       ),
       canProgress: demand.length > 3,
     },
-    // Step 5
     {
+      id: "origin",
       question: "Como você nos conheceu?",
       content: (
         <div className="flex flex-col gap-1">
           <span className="text-[10px] text-gray-500 mb-1 ml-1">Selecione a origem</span>
           <select
             value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
+            onChange={(e) => {
+              setOrigin(e.target.value);
+              handleInteraction();
+            }}
             className="w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent-start transition-all text-gray-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
           >
             <option value="" disabled>Selecione uma opção</option>
             <option value="Instagram">Instagram</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Indicação">Indicação</option>
+            <option value="Outro">Outro</option>
           </select>
         </div>
       ),
