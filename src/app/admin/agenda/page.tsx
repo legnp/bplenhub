@@ -411,22 +411,26 @@ export default function AgendaManagementPage() {
         </div>
       </div>
       {/* Modal de Configuração 1-to-1 */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isConfigModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto outline-none focus:outline-none"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+          >
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
               onClick={() => setIsConfigModalOpen(false)} 
             />
             
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl z-[101]"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[10000] border border-white/20"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-6">
                 <div>
@@ -447,9 +451,9 @@ export default function AgendaManagementPage() {
                     type="text" 
                     value={newType}
                     onChange={(e) => setNewType(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addType()}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addType())}
                     placeholder="Novo tipo (ex: Carreira)..."
-                    className="flex-1 bg-black/[0.02] border border-black/[0.05] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/20"
+                    className="flex-1 bg-black/[0.02] border border-black/[0.05] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 text-[#1D1D1F]"
                   />
                   <button 
                     onClick={addType}
@@ -459,9 +463,9 @@ export default function AgendaManagementPage() {
                   </button>
                 </div>
 
-                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                <div className="max-h-[250px] overflow-y-auto space-y-2 pr-2 custom-scrollbar bg-black/[0.01] rounded-2xl p-2 border border-black/[0.02]">
                   {oneToOneTypes.map((type, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-black/[0.02] border border-black/[0.02] rounded-xl group transition-all hover:bg-black/[0.04]">
+                    <div key={index} className="flex items-center justify-between p-3 bg-white border border-black/[0.03] rounded-xl group transition-all hover:border-[#667eea]/30">
                       <span className="text-sm font-bold text-[#1D1D1F]/80">{type}</span>
                       <button 
                         onClick={() => removeType(index)}
@@ -476,13 +480,15 @@ export default function AgendaManagementPage() {
                   )}
                 </div>
 
-                <button 
-                  onClick={handleSaveConfig}
-                  disabled={isSavingConfig}
-                  className="w-full py-4 bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#667eea]/20 hover:scale-[1.02] transition-all disabled:opacity-50"
-                >
-                  {isSavingConfig ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
-                </button>
+                <div className="pt-2">
+                  <button 
+                    onClick={handleSaveConfig}
+                    disabled={isSavingConfig}
+                    className="w-full py-4 bg-[#1D1D1F] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-black/90 transition-all disabled:opacity-50"
+                  >
+                    {isSavingConfig ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
