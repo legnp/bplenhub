@@ -100,10 +100,12 @@ export default function AgendaManagementPage() {
   const processedEvents = useMemo(() => {
     let result = [...syncedEvents];
 
-    // 1. Filtro de Busca (Título)
+    // 1. Filtro de Busca (Título + Descrição)
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       result = result.filter(ev => 
-        ev.summary.toLowerCase().includes(searchTerm.toLowerCase())
+        ev.summary?.toLowerCase().includes(term) || 
+        ev.description?.toLowerCase().includes(term)
       );
     }
 
