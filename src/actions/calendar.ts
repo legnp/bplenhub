@@ -17,6 +17,7 @@ const resend = new Resend(serverEnv.RESEND_API_KEY);
  */
 
 import { GoogleCalendarEvent, UserBooking } from "@/types/calendar";
+export type { GoogleCalendarEvent, UserBooking };
 
 /**
  * Busca eventos do Google Calendar para visualização rápida no Front.
