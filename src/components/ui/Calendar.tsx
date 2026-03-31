@@ -112,7 +112,7 @@ export default function Calendar({
     setIsBooking(eventId);
     setBookingStatus(null);
     try {
-      const result = await bookEventAction(eventId, user.uid, user.email || "");
+      const result = (await bookEventAction(eventId, user.uid, user.email || "")) as { success: boolean; message: string };
       if (result.success) {
         setBookingStatus({ id: eventId, message: "Agendamento realizado com sucesso!", type: 'success' });
         onBookingSuccess?.();

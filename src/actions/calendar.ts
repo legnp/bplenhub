@@ -146,7 +146,7 @@ export async function syncCalendarToFirestore() {
 /**
  * Agendamento de Evento (Workflow de Governança 🔐)
  */
-export async function bookEventAction(eventId: string, userId: string, userEmail: string) {
+export async function bookEventAction(eventId: string, userId: string, userEmail: string): Promise<{ success: boolean; message: string }> {
   try {
     const eventRef = doc(db, "Calendar_Events", eventId);
     
@@ -213,7 +213,7 @@ export async function bookEventAction(eventId: string, userId: string, userEmail
         timestamp: serverTimestamp()
       });
 
-      return { success: true };
+      return { success: true, message: "Sucesso" };
     });
   } catch (error: any) {
     console.error("Erro no booking:", error);
