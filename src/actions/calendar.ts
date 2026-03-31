@@ -2,9 +2,13 @@
 
 import { getCalendarClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
-import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay } from "date-fns";
+import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { doc, setDoc, serverTimestamp, getDocs, collection, query, runTransaction, where, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { Resend } from "resend";
+
+const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 /**
  * BPlen HUB — Google Calendar Actions
@@ -146,25 +150,45 @@ export async function syncCalendarToFirestore() {
 /**
  * Agendamento de Evento (Workflow de Governança 🔐)
  */
-export async function bookEventAction(eventId: string, userId: string, userEmail: string): Promise<{ success: boolean; message: string }> {
+export async function bookEventAction(
+  eventId: string, 
+  userId: string, 
+  userEmail: string,
+  oneToOneData?: { type: string; expectations: string }
+): Promise<{ success: boolean; message: string }> {
   try {
     const eventRef = doc(db, "Calendar_Events", eventId);
     
+    // 1. Buscar Matrícula e Nickname
+    const uidMapRef = doc(db, "_AuthMap", userId);
+    const uidMapSnap = await getDoc(uidMapRef);
+    
+    let matricula = "N/A";
+    let nickname = "Membro BPlen";
+
+    if (uidMapSnap.exists()) {
+      matricula = uidMapSnap.data().matricula || "N/A";
+      const userRef = doc(db, "User", matricula);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        nickname = userSnap.data().User_Nickname || userSnap.data().User_Name || "Membro BPlen";
+      }
+    }
+
     return await runTransaction(db, async (transaction) => {
       const eventSnap = await transaction.get(eventRef);
       if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
 
-      const eventData = eventSnap.data();
+      const eventData = eventSnap.data() as GoogleCalendarEvent;
       const startTime = parseISO(eventData.start);
       const now = new Date();
 
-      // REGRA 1: Lead-Time de 3 Dias
+      // [REGRAS DE GOVERNANÇA MANTIDAS...]
       const minLeadTime = addDays(startOfDay(now), 3);
       if (isBefore(startTime, minLeadTime)) {
         throw new Error("Agendamentos permitidos apenas com 3 dias de antecedência.");
       }
 
-      // REGRA 2: Janela Onboarding (Max 20 dias)
       if (eventData.summary.toLowerCase().includes("onboarding")) {
         const maxOnboardingWindow = addDays(startOfDay(now), 20);
         if (!isBefore(startTime, maxOnboardingWindow)) {
@@ -172,7 +196,6 @@ export async function bookEventAction(eventId: string, userId: string, userEmail
         }
       }
 
-      // REGRA 3: 1 Evento por Semana ISO
       const week = getISOWeek(startTime);
       const year = getYear(startTime);
       const weekBookingId = `${userId}_week_${week}_${year}`;
@@ -183,7 +206,6 @@ export async function bookEventAction(eventId: string, userId: string, userEmail
         throw new Error(`Você já possui um agendamento para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 por semana.`);
       }
 
-      // REGRA 4: Capacidade
       const capacity = eventData.totalCapacity || 0;
       const registered = eventData.registeredCount || 0;
       if (registered >= capacity) {
@@ -191,12 +213,15 @@ export async function bookEventAction(eventId: string, userId: string, userEmail
       }
 
       // EXECUÇÃO:
-      // 1. Criar registro de participação
+      // 1. Criar registro de participação detalhado
       const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
       transaction.set(attendeeRef, {
         userId,
+        matricula,
+        nickname,
         email: userEmail,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        ...oneToOneData
       });
 
       // 2. Incrementar contador
@@ -210,8 +235,70 @@ export async function bookEventAction(eventId: string, userId: string, userEmail
         eventId,
         week,
         year,
+        oneToOneData: oneToOneData || null,
         timestamp: serverTimestamp()
       });
+
+      // 4. Enviar E-mail (Workflow Resend)
+      try {
+        const dateStr = format(startTime, "dd 'de' MMMM", { locale: ptBR });
+        const timeStr = format(startTime, "HH:mm");
+        const cancelLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hub.bplen.com'}/admin/gestao-agenda`;
+
+        let oneToOneInfo = "";
+        if (oneToOneData) {
+          oneToOneInfo = `
+            <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #667eea;">
+              <p style="margin: 0; font-size: 12px; color: #666;"><b>TIPO DE 1 TO 1:</b> ${oneToOneData.type}</p>
+              <p style="margin: 10px 0 0 0; font-size: 13px; color: #1d1d1f;"><b>EXPECTATIVAS:</b><br/>${oneToOneData.expectations}</p>
+            </div>
+          `;
+        }
+
+        await resend.emails.send({
+          from: "BPlen HUB <hub@bplen.com>",
+          to: userEmail,
+          subject: `${nickname}, seu ${eventData.summary} foi confirmado na BPlen HUB!`,
+          html: `
+            <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 20px;">
+              <h2 style="color: #667eea; margin-bottom: 5px;">📍 Agendamento Confirmado!</h2>
+              <p style="font-size: 16px; margin-top: 0;">Olá, <b>${nickname}</b>!</p>
+              
+              <div style="background: #fdfdfd; padding: 20px; border-radius: 16px; border: 1px solid #f0f0f0; margin: 20px 0;">
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;"><b>EVENTO</b></p>
+                <p style="margin: 5px 0 15px 0; font-size: 18px; color: #1d1d1f;"><b>${eventData.summary}</b></p>
+                
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>DATA E HORA</b></p>
+                <p style="margin: 5px 0 15px 0; font-size: 14px;">${dateStr} às ${timeStr}h</p>
+                
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>ORIENTADOR</b></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">${eventData.mentor || "BPlen"}</p>
+                
+                ${eventData.theme ? `
+                  <p style="margin: 15px 0 0 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>TEMA</b></p>
+                  <p style="margin: 5px 0 0 0; font-size: 14px;">${eventData.theme}</p>
+                ` : ""}
+
+                ${oneToOneInfo}
+              </div>
+
+              <div style="margin: 25px 0; text-align: center;">
+                <a href="${eventData.htmlLink}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">ACESSAR REUNIÃO</a>
+              </div>
+
+              <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+              
+              <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
+                Deseja reagendar ou cancelar? <br/>
+                <a href="${cancelLink}" style="color: #667eea; font-weight: bold;">Gerenciar minha agenda no HUB</a>
+              </p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        console.error("Erro ao enviar e-mail de confirmação:", emailError);
+        // Não falhamos o agendamento se apenas o e-mail falhar, mas logamos.
+      }
 
       return { success: true, message: "Sucesso" };
     });

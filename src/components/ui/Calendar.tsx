@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   format, 
   addMonths, 
@@ -31,10 +31,16 @@ import {
   AlertCircle,
   Users,
   User,
-  Tag
+  Tag,
+  X,
+  Target,
+  MessageSquare,
+  BadgeCheck
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/context/AuthContext";
 import { bookEventAction } from "@/actions/calendar";
+import { getOneToOneTypes } from "@/actions/OneToOneActions";
 
 /**
  * BPlen HUB — Calendar UI (Booking Edition)
@@ -72,7 +78,23 @@ export default function Calendar({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filterType, setFilterType] = useState("Todos");
   const [bookingStatus, setBookingStatus] = useState<{ id: string, message: string, type: 'success' | 'error' } | null>(null);
+
+  // Estados do Modal de Confirmação
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [eventToConfirm, setEventToConfirm] = useState<CalendarEvent | null>(null);
+  const [oneToOneTypes, setOneToOneTypes] = useState<string[]>([]);
+  const [selectedType, setSelectedType] = useState("");
+  const [expectations, setExpectations] = useState("");
   const [isBooking, setIsBooking] = useState<string | null>(null);
+
+  // Carregar tipos 1-to-1
+  useEffect(() => {
+    async function load() {
+      const types = await getOneToOneTypes();
+      setOneToOneTypes(types);
+    }
+    load();
+  }, []);
 
   // --- LÓGICA DE DADOS ---
 
@@ -107,15 +129,18 @@ export default function Calendar({
 
   // --- AÇÕES ---
 
-  const handleBooking = async (eventId: string) => {
+  const handleBooking = async (eventId: string, oneToOneData?: { type: string; expectations: string }) => {
     if (!user) return;
     setIsBooking(eventId);
     setBookingStatus(null);
     try {
-      const result = (await bookEventAction(eventId, user.uid, user.email || "")) as { success: boolean; message: string };
+      const result = (await bookEventAction(eventId, user.uid, user.email || "", oneToOneData)) as { success: boolean; message: string };
       if (result.success) {
         setBookingStatus({ id: eventId, message: "Agendamento realizado com sucesso!", type: 'success' });
         onBookingSuccess?.();
+        setIsConfirmModalOpen(false);
+        setExpectations("");
+        setSelectedType("");
       } else {
         setBookingStatus({ id: eventId, message: result.message || "Erro ao agendar.", type: 'error' });
       }
@@ -124,6 +149,12 @@ export default function Calendar({
     } finally {
       setIsBooking(null);
     }
+  };
+
+  const openConfirmModal = (event: CalendarEvent) => {
+    setEventToConfirm(event);
+    setIsConfirmModalOpen(true);
+    setBookingStatus(null);
   };
   
   const nextMonth = () => {
@@ -270,7 +301,7 @@ export default function Calendar({
             </div>
           </div>
 
-          {/* Legenda SI: Totalmente transparente */}
+          {/* Legenda SI */}
           <div className="px-4 py-2 bg-transparent border-none animate-in fade-in slide-in-from-top-2 duration-700">
             <div className="flex items-start gap-3 group text-left">
               <div className="shrink-0 w-6 h-6 flex items-center justify-center bg-[#764ba2]/5 rounded-lg border border-[#764ba2]/10 transition-all group-hover:bg-[#764ba2]/10">
@@ -358,7 +389,7 @@ export default function Calendar({
                            </div>
 
                            <button 
-                              onClick={() => handleBooking(ev.id)}
+                              onClick={() => openConfirmModal(ev)}
                               disabled={isBooking === ev.id || isFull}
                               className={`px-5 py-2.5 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest shrink-0 shadow-lg ${
                                 isFull 
