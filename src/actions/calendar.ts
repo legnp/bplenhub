@@ -16,20 +16,7 @@ const resend = new Resend(serverEnv.RESEND_API_KEY);
  * Busca, Sincronização e Leitura de Eventos do Workspace BPlen.
  */
 
-export interface GoogleCalendarEvent {
-  id: string;
-  summary: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  htmlLink: string;
-  totalCapacity?: number;
-  registeredCount?: number;
-  mentor?: string;
-  theme?: string;
-  status?: string;
-}
+import { GoogleCalendarEvent, UserBooking } from "@/types/calendar";
 
 /**
  * Busca eventos do Google Calendar para visualização rápida no Front.
@@ -342,9 +329,10 @@ export async function bookEventAction(
 
       return { success: true, message: "Sucesso" };
     });
-  } catch (error: any) {
-    console.error("Erro no booking:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Erro no booking:", err);
+    return { success: false, message: err.message };
   }
 }
 
@@ -365,7 +353,7 @@ export async function getSyncedEvents() {
 /**
  * Busca agendamentos do usuário e enriquece com detalhes do evento.
  */
-export async function getUserBookingsAction(userId: string) {
+export async function getUserBookingsAction(userId: string): Promise<UserBooking[]> {
   try {
     const q = query(collection(db, "User_Bookings"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
@@ -521,8 +509,9 @@ export async function cancelBookingAction(
     }
 
     return { success: true };
-  } catch (error: any) {
-    console.error("Erro ao cancelar agendamento:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Erro ao cancelar agendamento:", err);
+    return { success: false, message: err.message };
   }
 }

@@ -26,15 +26,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<BPlenTheme>("light");
 
-  // Recuperar tema salvo ou preferência do sistema
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("bplen_theme") as BPlenTheme;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
-
   const applyTheme = (newTheme: BPlenTheme) => {
     // Remover todas as classes de tema antigas
     const themes: BPlenTheme[] = ["dark", "rosa-pitaya", "lavanda-azulado", "amarelo-sol", "cinza-nublado", "daltonico"];
@@ -45,6 +36,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.body.classList.add(`theme-${newTheme}`);
     }
   };
+
+  // Recuperar tema salvo ou preferência do sistema
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("bplen_theme") as BPlenTheme;
+    if (savedTheme) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setThemeState(savedTheme);
+      applyTheme(savedTheme);
+    }
+  }, []);
 
   const setTheme = (newTheme: BPlenTheme) => {
     setThemeState(newTheme);

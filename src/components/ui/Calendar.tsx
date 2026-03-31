@@ -33,13 +33,10 @@ import {
   Users,
   User,
   Tag,
-  X,
-  Target,
-  MessageSquare,
   BadgeCheck
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuthContext } from "@/context/AuthContext";
+import { UserBooking } from "@/types/calendar";
 import { bookEventAction, getUserBookingsAction } from "@/actions/calendar";
 import { getOneToOneTypes } from "@/actions/OneToOneActions";
 import GlassModal from "@/components/ui/GlassModal";
@@ -90,7 +87,7 @@ export default function Calendar({
   const [expectations, setExpectations] = useState("");
   const [isBooking, setIsBooking] = useState<string | null>(null);
 
-  const [userBookings, setUserBookings] = useState<any[]>([]);
+  const [userBookings, setUserBookings] = useState<UserBooking[]>([]);
 
   // Carregar tipos 1-to-1 e agendamentos do usuário
   useEffect(() => {
@@ -418,7 +415,7 @@ export default function Calendar({
                         </div>
                         {ev.description && (
                           <p className="text-[10px] text-[#1D1D1F]/50 line-clamp-2 italic leading-relaxed bg-black/[0.02] p-3 rounded-xl mt-3 text-left">
-                            "{ev.description}"
+                            &quot;{ev.description}&quot;
                           </p>
                         )}
                       </div>

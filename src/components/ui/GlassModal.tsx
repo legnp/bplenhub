@@ -33,6 +33,7 @@ export default function GlassModal({
 
   // Client-side hydration check for Portal
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

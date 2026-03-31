@@ -25,7 +25,7 @@ export interface FormFieldConfig {
   required?: boolean;
   autoFocus?: boolean;
   description?: string; // Para campos informativos (type="info")
-  metadata?: Record<string, any>; // Para expansões futuras (campos calculados, etc)
+  metadata?: Record<string, unknown>; // Para expansões futuras (campos calculados, etc)
 }
 
 export interface FormStepConfig {
@@ -46,5 +46,5 @@ export interface FormConfig {
 }
 
 export interface FormResponse {
-  [fieldId: string]: any;
+  [fieldId: string]: string | string[] | boolean | number | null | undefined;
 }

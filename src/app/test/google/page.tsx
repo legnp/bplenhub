@@ -40,23 +40,23 @@ const ALIASES = [
 ];
 
 export default function GoogleTestLab() {
-  const [results, setResults] = useState<Record<string, { success: boolean, message?: string, data?: any, id?: string, from?: string }>>({});
+  const [results, setResults] = useState<Record<string, { success: boolean, message?: string, data?: unknown, id?: string, from?: string }>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [selectedAlias, setSelectedAlias] = useState(ALIASES[0].id);
 
-  const runTest = async (testId: string, testFn: (arg?: any) => Promise<any>, arg?: any) => {
+  const runTest = async (testId: string, testFn: (arg?: unknown) => Promise<{ success: boolean, message?: string }>, arg?: unknown) => {
     setLoading(prev => ({ ...prev, [testId]: true }));
     try {
       const res = await (arg !== undefined ? testFn(arg) : testFn());
       setResults(prev => ({ ...prev, [testId]: res }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setResults(prev => ({ ...prev, [testId]: { success: false, message: err.message } }));
     } finally {
       setLoading(prev => ({ ...prev, [testId]: false }));
     }
   };
 
-  const TestCard = ({ id, title, description, icon: Icon, testFn, children }: any) => {
+  const TestCard = ({ id, title, description, icon: React.ElementType, testFn, children }: { id: string, title: string, description: string, icon: React.ElementType, testFn: (arg?: any) => Promise<any>, children?: React.ReactNode }) => {
     const res = results[id];
     const isLoading = loading[id];
 

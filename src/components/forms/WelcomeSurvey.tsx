@@ -64,7 +64,8 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       };
       await submitWelcomeSurvey(surveyData);
       onComplete();
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error("Falha ao concluir pesquisa de boas-vindas:", error);
       alert(`Erro: ${error.message || "Houve um erro ao processar. Tente novamente."}`);
     } finally {

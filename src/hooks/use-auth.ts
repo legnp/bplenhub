@@ -39,10 +39,11 @@ export function useAuth() {
       await syncUserPermissionsOnLogin(result.user.uid, result.user.email);
       
       return result.user;
-    } catch (err: any) {
-      console.error("Erro no Login Google:", err);
-      setError(err.message || "Erro inesperado no login.");
-      throw err;
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Erro no Login Google:", error);
+      setError(error.message || "Erro inesperado no login.");
+      throw error;
     } finally {
       setIsLoggingIn(false);
     }
@@ -55,10 +56,11 @@ export function useAuth() {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
-    } catch (err: any) {
-      console.error("Erro no Logout:", err);
-      setError(err.message || "Erro inesperado ao sair.");
-      throw err;
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Erro no Logout:", error);
+      setError(error.message || "Erro inesperado ao sair.");
+      throw error;
     }
   };
 

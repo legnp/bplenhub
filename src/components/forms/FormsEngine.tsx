@@ -55,7 +55,8 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
     try {
       const res = await submitGenericForm(config, responses, userUid);
       if (onComplete) onComplete(res.matricula);
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error("Erro na submissão do FormsEngine:", error);
       alert(error.message || "Falha ao enviar formulário.");
     } finally {
@@ -63,7 +64,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
     }
   };
 
-  const updateResponse = (fieldId: string, value: any) => {
+  const updateResponse = (fieldId: string, value: string | string[] | boolean | number | null | undefined) => {
     setResponses(prev => ({ ...prev, [fieldId]: value }));
     handleInteraction();
   };
@@ -78,14 +79,14 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
           <InputGlass
             autoFocus={field.autoFocus}
             placeholder={field.placeholder}
-            value={value}
             onChange={(e) => updateResponse(field.id, e.target.value)}
+            value={value as any}
           />
         );
       case "choice":
         return (
           <div className="flex flex-col gap-3">
-            {field.options?.map((opt: any) => {
+            {field.options?.map((opt: string | { label: string, value: string }) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               return (
@@ -104,7 +105,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
         const currentVals = Array.isArray(value) ? value : [];
         return (
           <div className="flex flex-col gap-2">
-            {field.options?.map((opt: any) => {
+            {field.options?.map((opt: string | { label: string, value: string }) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               const isChecked = currentVals.includes(val);
@@ -115,7 +116,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
                   checked={isChecked}
                   onChange={() => {
                     const newVals = isChecked 
-                      ? currentVals.filter((v: any) => v !== val)
+                      ? currentVals.filter((v: string) => v !== val)
                       : [...currentVals, val];
                     updateResponse(field.id, newVals);
                   }}
@@ -127,7 +128,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
       case "textarea":
         return (
           <TextareaGlass
-            value={value}
+            value={value as any}
             onChange={(e) => updateResponse(field.id, e.target.value)}
             placeholder={field.placeholder}
             rows={4}
@@ -136,11 +137,11 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
       case "select":
         return (
           <SelectGlass
-            value={value}
+            value={value as any}
             onChange={(e) => updateResponse(field.id, e.target.value)}
           >
             <option value="" disabled>{field.placeholder || "Selecione uma opção"}</option>
-            {field.options?.map((opt: any) => {
+            {field.options?.map((opt: string | { label: string, value: string }) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               return <option key={val} value={val}>{label}</option>;

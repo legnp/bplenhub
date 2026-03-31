@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   format, 
   parseISO, 
@@ -21,25 +21,31 @@ import {
 } from "lucide-react";
 import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } from "@/actions/calendar";
 import { useAuthContext } from "@/context/AuthContext";
+import { UserBooking, GoogleCalendarEvent } from "@/types/calendar";
 
-export default function UserBookings({ refreshCounter = 0 }: { refreshCounter?: number }) {
+export default function UserBookings({ refreshCounter = 0, onRefresh }: { refreshCounter?: number; onRefresh: () => void }) {
   const { user } = useAuthContext();
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const loadBookings = useCallback(async () => {
+    if (!user?.uid) return;
+    setIsLoading(true);
+    try {
+      const data = await getUserBookingsAction(user.uid);
+      setBookings(data as UserBooking[]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.uid]);
 
   useEffect(() => {
-    if (user?.uid) {
-      loadBookings();
-    }
-  }, [user, refreshCounter]);
-
-  async function loadBookings() {
-    setIsLoading(true);
-    const data = await getUserBookingsAction(user!.uid);
-    setBookings(data);
-    setIsLoading(false);
-  }
+    loadBookings();
+  }, [loadBookings, refreshCounter]);
 
   const handleEvaluation = async (bookingId: string, rating: number, feedback: string) => {
     setIsSubmitting(bookingId);
@@ -98,8 +104,8 @@ function BookingCard({
   isSubmitting,
   onRefresh 
 }: { 
-  booking: any, 
-  onEvaluate: any, 
+  booking: UserBooking, 
+  onEvaluate: (id: string, r: number, f: string) => Promise<void>, 
   isSubmitting: boolean,
   onRefresh: () => void 
 }) {
@@ -164,10 +170,11 @@ function BookingCard({
                   if (confirm("Tem certeza que deseja cancelar este agendamento? A vaga será liberada no HUB.")) {
                     setIsDeleting(true);
                     const res = await cancelBookingAction(booking.id, event.id, booking.userId, booking.week, booking.year);
-                    if (res.success) {
+                    if (res?.success) {
                       onRefresh();
                     } else {
-                      alert("Erro ao cancelar: " + ((res as any).message || "Falha na transação"));
+                      const msg = (res as { message?: string })?.message || "Falha na transação";
+                      alert("Erro ao cancelar: " + msg);
                       setIsDeleting(false);
                     }
                   }

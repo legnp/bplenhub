@@ -1,5 +1,4 @@
-import { drive_v3, google, sheets_v4 } from "googleapis";
-import { getDriveClient, getSheetsClient } from "./google-auth";
+import { drive_v3, sheets_v4 } from "googleapis";
 import { serverEnv } from "@/env";
 
 /**
@@ -85,7 +84,7 @@ export async function syncDataToSheet(
   sheets: sheets_v4.Sheets,
   spreadsheetId: string,
   headers: string[],
-  rowData: any[]
+  rowData: (string | number | boolean | null)[]
 ) {
   // Identificar o nome da aba (Sheet1, Página1, etc)
   const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });

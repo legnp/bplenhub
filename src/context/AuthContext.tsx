@@ -66,8 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
-      } catch (e) {
-        console.error("Erro extraindo permissões do banco:", e);
+      } catch (err: unknown) {
+        const error = err as Error;
+        console.error("Erro extraindo permissões do banco:", error);
       }
       
       setLoading(false);

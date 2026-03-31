@@ -3,57 +3,60 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+const socials = [
+  {
+    name: "LinkedIn",
+    icon: (
+      <img src="/linkedin.webp" alt="LinkedIn" className="w-5 h-5 object-contain" />
+    ),
+    url: "https://www.linkedin.com/in/lisandralencina/",
+    appUrl: "linkedin://profile/lisandralencina",
+    color: "#0077B5",
+  },
+  {
+    name: "Instagram",
+    icon: (
+      <img src="/insta.png" alt="Instagram" className="w-5 h-5 object-contain" />
+    ),
+    url: "https://www.instagram.com/lis_lencina",
+    appUrl: "instagram://user?username=lis_lencina",
+    color: "#E1306C",
+  },
+  {
+    name: "WhatsApp",
+    icon: (
+      <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5 object-contain" />
+    ),
+    url: "https://wa.me/5511945152088",
+    appUrl: "whatsapp://send?phone=5511945152088",
+    color: "#25D366",
+  },
+  {
+    name: "TikTok",
+    icon: (
+      <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
+    ),
+    url: "https://www.tiktok.com/@lis.lencina",
+    appUrl: "tiktok://user?screen_name=lis.lencina",
+    color: "#00f2ea",
+  },
+];
+
 /**
  * SocialSidebar — Barra de redes sociais vertical (Ghost Left Sidebar)
  * Design minimalista com Glassmorphism e interação premium.
  */
 export function SocialSidebar() {
-  const socials = [
-    {
-      name: "LinkedIn",
-      icon: (
-        <img src="/linkedin.webp" alt="LinkedIn" className="w-5 h-5 object-contain" />
-      ),
-      url: "https://www.linkedin.com/in/lisandralencina/",
-      appUrl: "linkedin://profile/lisandralencina",
-      color: "#0077B5",
-    },
-    {
-      name: "Instagram",
-      icon: (
-        <img src="/insta.png" alt="Instagram" className="w-5 h-5 object-contain" />
-      ),
-      url: "https://www.instagram.com/lis_lencina",
-      appUrl: "instagram://user?username=lis_lencina",
-      color: "#E1306C",
-    },
-    {
-      name: "WhatsApp",
-      icon: (
-        <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5 object-contain" />
-      ),
-      url: "https://wa.me/5511945152088",
-      appUrl: "whatsapp://send?phone=5511945152088",
-      color: "#25D366",
-    },
-    {
-      name: "TikTok",
-      icon: (
-        <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
-      ),
-      url: "https://www.tiktok.com/@lis.lencina",
-      appUrl: "tiktok://user?screen_name=lis.lencina",
-      color: "#00f2ea",
-    },
-  ];
-
   const handleSocialClick = (url: string, appUrl: string) => {
     // Tenta abrir o App
+    // eslint-disable-next-line react-hooks/purity
     const start = Date.now();
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = appUrl;
 
     // Fallback: Se em 500ms não mudar de página (app não abriu), abre o navegador
     setTimeout(() => {
+       
       if (Date.now() - start < 1000) {
         window.open(url, "_blank");
       }
