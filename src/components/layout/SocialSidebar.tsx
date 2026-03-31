@@ -65,10 +65,10 @@ export function SocialSidebar() {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 1.2, delay: 1.5 }}
-      className="fixed left-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-8 z-[100] hidden lg:flex"
+      className="fixed bottom-6 left-6 md:top-1/2 md:left-8 md:-translate-y-1/2 md:bottom-auto flex flex-col items-center gap-6 md:gap-8 z-[100]"
     >
-      {/* Rótulo Vertical Sutil */}
-      <div className="flex flex-col items-center gap-4">
+      {/* Rótulo Vertical Sutil - Escondido no Mobile para ganhar espaço */}
+      <div className="flex-col items-center gap-4 hidden md:flex">
         <span 
           className="text-[10px] text-gray-500 font-medium tracking-[0.3em] uppercase [writing-mode:vertical-lr] rotate-180 mb-2"
         >
@@ -78,7 +78,7 @@ export function SocialSidebar() {
       </div>
 
       {/* Ícones sociais */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5 md:gap-6">
         {socials.map((social) => (
           <motion.div
             key={social.name}
