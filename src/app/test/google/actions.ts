@@ -91,9 +91,7 @@ export async function testDriveFolders() {
     }
 
     return { success: true, message: "Pastas criadas nos 3 domínios.", data: results };
-  } catch (error: unknown) {
-    console.error("Erro no Teste de Pastas:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) { const err = error as Error; console.error(); return { success: false, message: err.message };
   }
 }
 
@@ -137,9 +135,7 @@ export async function testSheets() {
       message: "Planilha criada e dados escritos.",
       data: { url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}` },
     };
-  } catch (error: unknown) {
-    console.error("Erro no Teste de Sheets:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) { const err = error as Error; console.error(); return { success: false, message: err.message };
   }
 }
 
@@ -167,9 +163,7 @@ export async function testUpload() {
     });
 
     return { success: true, message: `Upload concluído: ${fileName}`, data: { id: res.data.id } };
-  } catch (error: unknown) {
-    console.error("Erro no Teste de Upload:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) { const err = error as Error; console.error(); return { success: false, message: err.message };
   }
 }
 
@@ -219,9 +213,7 @@ export async function testEmail(alias: string) {
       id: data?.id,
       from: from
     };
-  } catch (error: unknown) {
-    console.error("Erro no Teste de E-mail:", error);
-    return { success: false, message: error.message };
+  } catch (error: unknown) { const err = error as Error; console.error(); return { success: false, message: err.message };
   }
 }
 
@@ -266,7 +258,8 @@ export async function testFirestore() {
       }
     };
   } catch (error: unknown) {
-    console.error("Erro no Teste do Firestore:", error);
-    throw new Error(error.message || "Falha ao conectar com o Cloud Firestore.");
+    const err = error as Error;
+    console.error("Erro no Teste do Firestore:", err);
+    throw new Error(err.message || "Falha ao conectar com o Cloud Firestore.");
   }
 }

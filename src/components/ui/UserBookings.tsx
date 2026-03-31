@@ -23,7 +23,7 @@ import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } fr
 import { useAuthContext } from "@/context/AuthContext";
 import { UserBooking, GoogleCalendarEvent } from "@/types/calendar";
 
-export default function UserBookings({ refreshCounter = 0, onRefresh }: { refreshCounter?: number; onRefresh: () => void }) {
+export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} }: { refreshCounter?: number; onRefresh?: () => void }) {
   const { user } = useAuthContext();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
