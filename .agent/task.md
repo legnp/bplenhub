@@ -1,8 +1,7 @@
-# Task: Plataforma de Formulários BPlen (V1.0) 🏗️🧱
+# Task: Blindagem de Matrículas (Firestore Transactions) 🛡️💎
 
-- `[x]` Criar `src/types/forms.ts` (Esquema Universal)
-- `[x]` Criar `src/actions/generic-form.ts` (Submissão Universal)
-- `[x]` Criar `src/components/forms/FormsEngine.tsx` (O Motor)
-- `[x]` Criar Formulário Beta (Ex: Pesquisa Showroom) via Config
-- `[ ]` Integrar com `drive-utils.ts` e Validar Fluxo
+- `[x]` Criar `src/lib/transaction-utils.ts` (Gerador de Sequência)
+- `[x]` Criar Documento de Contador no Firestore (_internal/counters/user)
+- `[x]` Refatorar `welcome-survey.ts` para usar a Transação
+- `[ ]` Validar Geração Sequencial Única
 - `[ ]` Push para o GitHub e Validação no Vercel

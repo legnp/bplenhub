@@ -1,10 +1,11 @@
 "use server";
 
-import { collection, getCountFromServer, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getDriveClient, getSheetsClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { WelcomeSurveyData } from "@/types/survey";
+import { getNextUserSequence } from "@/lib/transaction-utils";
 import { 
   checkKeySignature, 
   ensureFolder, 
@@ -19,10 +20,8 @@ import {
 
 export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
   try {
-    // 1. Gerar Matrícula BPlen
-    const usersCol = collection(db, "User");
-    const snapshot = await getCountFromServer(usersCol);
-    const count = snapshot.data().count + 1;
+    // 1. Gerar Matrícula BPlen (Blindagem por Transação 🛡️)
+    const count = await getNextUserSequence();
 
     const seq = count.toString().padStart(3, "0");
     const type = data.User_Type;
