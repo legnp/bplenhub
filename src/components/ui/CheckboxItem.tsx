@@ -23,15 +23,15 @@ export const CheckboxItem = ({
   return (
     <label 
       className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer 
-                 hover:bg-white/80 transition-all shadow-sm active:scale-[0.99]
+                 hover:bg-white/10 transition-all shadow-sm backdrop-blur-sm active:scale-[0.99]
                  ${checked 
-                   ? "border-accent-start bg-accent-start/10" 
-                   : "border-gray-200/60 bg-white/60"
+                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)]" 
+                   : "border-gray-200/20 bg-[var(--glass-bg)]"
                  } ${className}`}
     >
       <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all
                       ${checked 
-                        ? "bg-accent-start border-accent-start" 
+                        ? "bg-[var(--accent-start)] border-[var(--accent-start)]" 
                         : "border-gray-400"
                       }`}>
         {checked && <Check size={14} color="white" />}
@@ -42,7 +42,7 @@ export const CheckboxItem = ({
         checked={checked}
         onChange={onChange}
       />
-      <span className="text-sm font-light text-gray-800">{label}</span>
+      <span className="text-sm font-light text-[var(--text-primary)]">{label}</span>
     </label>
   );
 };

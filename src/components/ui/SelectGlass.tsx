@@ -21,9 +21,9 @@ export const SelectGlass = ({ label, children, className = "", ...props }: Selec
       )}
       <select
         {...props}
-        className={`w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 
-                   text-sm focus:outline-none focus:ring-1 focus:ring-accent-start 
-                   transition-all text-gray-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] 
+        className={`w-full bg-[var(--glass-bg)] border border-gray-200/20 backdrop-blur-md rounded-xl px-4 py-3 
+                   text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] 
+                   transition-all text-[var(--text-primary)] shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] 
                    cursor-pointer ${className}`}
       >
         {children}

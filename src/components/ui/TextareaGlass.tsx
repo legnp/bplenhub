@@ -20,9 +20,9 @@ export const TextareaGlass = ({ label, className = "", ...props }: TextareaGlass
       )}
       <textarea
         {...props}
-        className={`w-full bg-white/40 border border-gray-200/60 rounded-xl px-4 py-3 
+        className={`w-full bg-[var(--glass-bg)] border border-gray-200/20 backdrop-blur-md rounded-xl px-4 py-3 
                    text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 
-                   focus:ring-accent-start resize-none transition-all 
+                   focus:ring-[var(--accent-start)] text-[var(--text-primary)] resize-none transition-all 
                    shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] ${className}`}
       />
     </div>

@@ -6,22 +6,86 @@
    ============================================ */
 
 :root {
-  /* Paleta Apple IOS */
+  /* [Modo BPlen Claro] - Paleta Apple IOS */
   --bg-primary: #F5F7FA;
   --text-primary: #1D1D1F;
   --text-secondary: #6E6E73;
   --accent-start: #667eea;
   --accent-end: #764ba2;
-
-  /* Glassmorphism Tokens */
+  --accent-soft: rgba(102, 126, 234, 0.1);
   --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-blur: 12px;
   --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+  --glass-blur: 12px;
   --glass-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.05);
 
-  /* Escala */
+  /* Dimensões Globais */
   --radius: 20px;
   --font-size-base: 15px;
+}
+
+/* [Modo BPlen Escuro] */
+.theme-dark {
+  --bg-primary: #000000;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8E8E93;
+  --accent-start: #30D5C8; /* Turquesa Dark */
+  --accent-end: #007AFF;   /* Azul Apple */
+  --accent-soft: rgba(48, 213, 200, 0.15);
+  --glass-bg: rgba(28, 28, 30, 0.6);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* [Modo Rosa Pitaya] */
+.theme-rosa-pitaya {
+  --accent-start: #ff0080;
+  --accent-end: #7928ca;
+  --accent-soft: rgba(255, 0, 128, 0.1);
+  --bg-primary: #FFF0F6;
+  --glass-bg: rgba(255, 192, 203, 0.3);
+  --glass-border: 1px solid rgba(255, 0, 128, 0.2);
+}
+
+/* [Modo Lavanda Azulado] */
+.theme-lavanda-azulado {
+  --accent-start: #a78bfa;
+  --accent-end: #4f46e5;
+  --accent-soft: rgba(167, 139, 250, 0.1);
+  --bg-primary: #F5F3FF;
+  --glass-bg: rgba(237, 233, 254, 0.4);
+  --glass-border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* [Modo Amarelo Sol] */
+.theme-amarelo-sol {
+  --accent-start: #fde047;
+  --accent-end: #f97316;
+  --accent-soft: rgba(253, 224, 71, 0.15);
+  --bg-primary: #FFFBEB;
+  --text-primary: #451a03;
+  --glass-bg: rgba(254, 243, 199, 0.5);
+  --glass-border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* [Modo Cinza Nublado] */
+.theme-cinza-nublado {
+  --accent-start: #94a3b8;
+  --accent-end: #475569;
+  --accent-soft: rgba(148, 163, 184, 0.1);
+  --bg-primary: #F1F5F9;
+  --glass-bg: rgba(226, 232, 240, 0.4);
+  --glass-border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* [Modo Inclusivo / Daltonismo] */
+.theme-daltonico {
+  --accent-start: #005AB5; /* Azul Contraste */
+  --accent-end: #DC3220;   /* Vermelho Contraste */
+  --bg-primary: #FFFFFF;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: 2px solid #000000;
 }
 
 @theme inline {

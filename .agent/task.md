@@ -1,7 +1,8 @@
-# Task: Blindagem de Matrículas (Firestore Transactions) 🛡️💎
+# Task: BPlen Theme Engine (Centralização Visual) 🎨✨
 
-- `[x]` Criar `src/lib/transaction-utils.ts` (Gerador de Sequência)
-- `[x]` Criar Documento de Contador no Firestore (_internal/counters/user)
-- `[x]` Refatorar `welcome-survey.ts` para usar a Transação
-- `[ ]` Validar Geração Sequencial Única
+- `[x]` Definir Variáveis CSS Globais (Luz, Vidro, Acentuação)
+- `[x]` Criar Paletas de Temas (Rosa Pitaya, Lavanda, Sol, Nublado, Daltonismo)
+- `[x]` Implementar `ThemeContext.tsx` para Troca Instantânea
+- `[x]` Atualizar Átomos (Input, Select, Buttons) para Variáveis
+- `[ ]` Criar Seletor de Temas Beta (UI de Teste)
 - `[ ]` Push para o GitHub e Validação no Vercel

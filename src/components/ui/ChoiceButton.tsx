@@ -21,10 +21,10 @@ export const ChoiceButton = ({
     <button
       {...props}
       className={`px-4 py-3 rounded-xl border text-sm text-left transition-all 
-                 hover:bg-white/80 active:scale-[0.98] shadow-sm
+                 hover:bg-white/10 active:scale-[0.98] shadow-sm backdrop-blur-sm
                  ${active 
-                   ? "border-accent-start bg-accent-start/10 text-accent-start font-medium" 
-                   : "border-gray-200/60 bg-white/60 text-gray-700"
+                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)] text-[var(--accent-start)] font-medium" 
+                   : "border-gray-200/20 bg-[var(--glass-bg)] text-[var(--text-primary)]"
                  } ${className}`}
     >
       {children}

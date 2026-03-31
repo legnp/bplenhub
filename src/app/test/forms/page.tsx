@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import { FormsEngine } from "@/components/forms/FormsEngine";
 import { showroomFormConfig } from "@/config/forms/showroom";
+import { ThemeSelector } from "@/components/ui/ThemeSelector";
 
 /**
  * Laboratório de Formulários Dinâmicos 🧪
- * Valida a renderização da FormsEngine V1.0.
+ * Valida a renderização da FormsEngine V1.0 + Theme Engine 🎨.
  */
 export default function FormsTestPage() {
   const [complete, setComplete] = useState(false);
@@ -18,7 +19,8 @@ export default function FormsTestPage() {
   };
 
   return (
-    <main className="min-h-screen bg-transparent flex items-center justify-center p-4">
+    <main className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-4 transition-colors duration-500">
+      <ThemeSelector />
       {!complete ? (
         <div className="w-full max-w-[800px] bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl p-4">
           <header className="mb-8 text-center pt-8">

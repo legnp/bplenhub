@@ -33,7 +33,7 @@ export const NavButton = ({
         disabled={disabled}
         className={`w-10 h-10 rounded-full flex items-center justify-center text-white 
                    hover:scale-110 hover:shadow-lg transition-all active:scale-95
-                   ${variant === "primary" ? "bg-accent-start hover:bg-accent-end shadow-md" : "bg-gray-400"}
+                   ${variant === "primary" ? "bg-[var(--accent-start)] hover:bg-[var(--accent-end)] shadow-md" : "bg-gray-400"}
                    ${disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
         aria-label="Avançar"
       >

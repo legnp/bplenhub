@@ -174,7 +174,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
           className="h-[600px] flex flex-col justify-start relative pt-4"
         >
           {/* Enunciado Dinâmico */}
-          <div className="mb-6 text-[#1D1D1F] text-[20px] font-medium leading-relaxed">
+          <div className="mb-6 text-[var(--text-primary)] text-[20px] font-medium leading-relaxed">
             <TypedText
               text={currentStep.question}
               onComplete={() => setTypedComplete(true)}
