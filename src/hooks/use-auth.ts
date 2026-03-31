@@ -8,6 +8,10 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
+// Server Action call (somos use client, então o Next cuidará com RPC fetch)
+// Porém, como não temos a importação correta da Action porque não foi feita como export function de action,
+// Vamos deixar o lado do Context cuidar das permissões, mas aqui também chamaremos a action
+import { syncUserPermissionsOnLogin } from "@/actions/auth-permissions";
 
 /**
  * BPlen HUB — useAuth (Central de Comandos de Autenticação)
@@ -15,7 +19,7 @@ import { useAuthContext } from "@/context/AuthContext";
  */
 
 export function useAuth() {
-  const { user, loading } = useAuthContext();
+  const { user, loading, isAdmin } = useAuthContext();
   const [error, setError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -30,6 +34,10 @@ export function useAuth() {
 
     try {
       const result = await signInWithPopup(auth, provider);
+      
+      // Validação Silenciosa de Permissão de Servidor
+      await syncUserPermissionsOnLogin(result.user.uid, result.user.email);
+      
       return result.user;
     } catch (err: any) {
       console.error("Erro no Login Google:", err);
@@ -59,6 +67,7 @@ export function useAuth() {
     loading,
     error,
     isLoggingIn,
+    isAdmin,
     signInWithGoogle,
     signOut,
   };
