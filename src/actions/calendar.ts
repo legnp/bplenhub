@@ -202,7 +202,8 @@ export async function bookEventAction(
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const d = userSnap.data();
-        nickname = d.User_Nickname || d.user_nickname || d.User_nickname || d.Nickname || d.nickname || d.User_Name || d.user_name || d.Nome || d.nome || "Membro BPlen";
+        const welcome = d.User_Welcome || {};
+        nickname = welcome.User_Nickname || welcome.Authentication_Name || d.User_Nickname || d.User_Name || d.Authentication_Name || "Membro BPlen";
       }
     }
 
