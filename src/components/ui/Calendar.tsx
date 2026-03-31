@@ -477,7 +477,7 @@ export default function Calendar({
           {eventToConfirm?.summary.toLowerCase().includes("1 to 1") && (
             <div className="space-y-4 pt-4 border-t border-black/5 animate-in fade-in slide-in-from-top-2">
               <div className="space-y-2 text-left">
-                <label className="text-[10px] font-black text-[#1D1D1F]/40 uppercase tracking-widest ml-1">Tipo de 1 to 1</label>
+                <label className="text-[10px] font-black text-[#1D1D1F]/40 uppercase tracking-widest ml-1">Demanda do 1 to 1</label>
                 <div className="relative">
                   <select
                     value={selectedType}

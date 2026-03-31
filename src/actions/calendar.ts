@@ -201,7 +201,8 @@ export async function bookEventAction(
       const userRef = doc(db, "User", matricula);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
-        nickname = userSnap.data().User_Nickname || userSnap.data().User_Name || "Membro BPlen";
+        const d = userSnap.data();
+        nickname = d.User_Nickname || d.user_nickname || d.User_nickname || d.Nickname || d.nickname || d.User_Name || d.user_name || d.Nome || d.nome || "Membro BPlen";
       }
     }
 
@@ -228,12 +229,20 @@ export async function bookEventAction(
 
       const week = getISOWeek(startTime);
       const year = getYear(startTime);
-      const weekBookingId = `${userId}_week_${week}_${year}`;
+
+      let category = "geral";
+      const evSum = eventData.summary.toLowerCase();
+      if (evSum.includes("1 to 1")) category = "1to1";
+      else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
+      else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
+
+      const weekBookingId = `${userId}_week_${week}_${year}_${category}`;
       const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
       
       const weekBookingSnap = await transaction.get(weekBookingRef);
       if (weekBookingSnap.exists()) {
-        throw new Error(`Você já possui um agendamento para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 por semana.`);
+        const catName = category === "grupo" ? "Orientação em Grupo" : category === "individual" ? "Orientação Individual" : category === "1to1" ? "1-to-1" : "evento genérico";
+        throw new Error(`Você já possui um agendamento de ${catName} para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 de cada formato na semana.`);
       }
 
       const capacity = eventData.totalCapacity || 0;
@@ -279,7 +288,7 @@ export async function bookEventAction(
         if (oneToOneData) {
           oneToOneInfo = `
             <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #667eea;">
-              <p style="margin: 0; font-size: 12px; color: #666;"><b>TIPO DE 1 TO 1:</b> ${oneToOneData.type}</p>
+              <p style="margin: 0; font-size: 12px; color: #666;"><b>DEMANDA DO 1 TO 1:</b> ${oneToOneData.type}</p>
               <p style="margin: 10px 0 0 0; font-size: 13px; color: #1d1d1f;"><b>EXPECTATIVAS:</b><br/>${oneToOneData.expectations}</p>
             </div>
           `;
@@ -421,11 +430,9 @@ export async function cancelBookingAction(
   year: number
 ) {
   try {
-    return await runTransaction(db, async (transaction) => {
+    const trxResult = await runTransaction(db, async (transaction) => {
       const eventRef = doc(db, "Calendar_Events", eventId);
       const bookingRef = doc(db, "User_Bookings", bookingId);
-      const weekBookingId = `${userId}_week_${week}_${year}`;
-      const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
       const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
 
       const eventSnap = await transaction.get(eventRef);
@@ -433,6 +440,22 @@ export async function cancelBookingAction(
 
       const eventData = eventSnap.data();
       const currentRegistered = eventData.registeredCount || 0;
+
+      // 1. Identificar Categoria para saber qual trava liberar
+      let category = "geral";
+      const evSum = (eventData.summary || "").toLowerCase();
+      if (evSum.includes("1 to 1")) category = "1to1";
+      else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
+      else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
+
+      const weekBookingId = `${userId}_week_${week}_${year}_${category}`;
+      const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
+      const legacyWeekBookingId = `${userId}_week_${week}_${year}`;
+      const legacyWeekBookingRef = doc(db, "User_Bookings", legacyWeekBookingId);
+
+      // Coletar dados do attendee para o envio do e-mail de cancelamento
+      const attendeeSnap = await transaction.get(attendeeRef);
+      const attendeeData = attendeeSnap.exists() ? attendeeSnap.data() : null;
 
       // 1. Decrementar contador de vagas (mínimo 0)
       transaction.update(eventRef, {
@@ -442,16 +465,61 @@ export async function cancelBookingAction(
       // 2. Remover o registro de participação
       transaction.delete(attendeeRef);
 
-      // 3. Remover o agendamento do usuário (libera a trava de semana)
+      // 3. Remover o agendamento do usuário (libera a trava principal)
       transaction.delete(bookingRef);
 
-      // 4. Se o agendamento for a trava de semana (o que geralmente é), remover também
-      if (bookingId !== weekBookingId) {
-        transaction.delete(weekBookingRef);
-      }
+      // 4. Remover as travas de semana (Legacy ou Nova)
+      if (bookingId !== weekBookingId) transaction.delete(weekBookingRef);
+      if (bookingId !== legacyWeekBookingId) transaction.delete(legacyWeekBookingRef);
 
-      return { success: true };
+      return {
+        success: true,
+        email: attendeeData?.email,
+        nickname: attendeeData?.nickname || "Membro BPlen",
+        eventSummary: eventData.summary || "Evento"
+      };
     });
+
+    // Fora da transação: Envio Seguro do E-mail de Cancelamento (Resend Premium)
+    if (trxResult.success && trxResult.email) {
+      try {
+        const platformLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hub.bplen.com'}/admin/gestao-agenda`;
+        await resend.emails.send({
+          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+          to: trxResult.email,
+          subject: `${trxResult.nickname}, seu ${trxResult.eventSummary} foi cancelado!`,
+          html: `
+            <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #7f1d1d15; border-radius: 20px; background: #fffcfc;">
+              <h2 style="color: #ef4444; margin-bottom: 5px;">⚠️ Agendamento Cancelado</h2>
+              <p style="font-size: 16px; margin-top: 0;">Olá, <b>${trxResult.nickname}</b>.</p>
+              
+              <p style="font-size: 14px; color: #4b5563; line-height: 1.6;">
+                Sua solicitação de cancelamento para o evento abaixo foi processada com sucesso e a vaga já foi devolvida ao ecossistema da BPlen.
+              </p>
+
+              <div style="background: #ffffff; padding: 20px; border-radius: 16px; border: 1px solid #fee2e2; margin: 20px 0; border-left: 4px solid #ef4444;">
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;"><b>EVENTO CANCELADO</b></p>
+                <p style="margin: 5px 0 0 0; font-size: 18px; color: #1d1d1f;"><b>${trxResult.eventSummary}</b></p>
+              </div>
+
+              <div style="margin: 25px 0; text-align: center;">
+                <a href="${platformLink}" style="background: #ef4444; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">MARCAR NOVO HORÁRIO</a>
+              </div>
+
+              <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 30px 0;" />
+              
+              <p style="font-size: 12px; color: #9ca3af; text-align: center; line-height: 1.5;">
+                Se você não solicitou este cancelamento, entre em contato imediatamente com o seu Pós-Venda ou Mentor.
+              </p>
+            </div>
+          `
+        });
+      } catch (emailError) {
+        console.error("Erro ao enviar e-mail de cancelamento (ignorado no fluxo):", emailError);
+      }
+    }
+
+    return { success: true };
   } catch (error: any) {
     console.error("Erro ao cancelar agendamento:", error);
     return { success: false, message: error.message };
