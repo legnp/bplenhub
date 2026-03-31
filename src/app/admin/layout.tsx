@@ -40,6 +40,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/agenda" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
             📅 Sincronizar Agenda
           </Link>
+          <Link href="/admin/gestao-agenda" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
+            ⚙️ Gestão de Agenda
+          </Link>
           <Link href="/admin/forms" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
             📝 Gestão de Formulários
           </Link>
