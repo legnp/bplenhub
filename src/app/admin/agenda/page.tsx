@@ -12,6 +12,7 @@ export default function AgendaManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [syncedEvents, setSyncedEvents] = useState<GoogleCalendarEvent[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Carregar preview dos eventos já sincronizados
   useEffect(() => {
@@ -48,10 +49,14 @@ export default function AgendaManagementPage() {
     }
   };
 
+  const filteredEvents = syncedEvents.filter(event => 
+    event.summary.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
             Sincronizar Agenda
@@ -61,22 +66,35 @@ export default function AgendaManagementPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleSync}
-          disabled={isSyncing}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
-            isSyncing 
-              ? "bg-[#1D1D1F]/5 text-[#1D1D1F]/40 cursor-not-allowed" 
-              : "bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white shadow-[#667eea]/20"
-          }`}
-        >
-          {isSyncing ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4" />
-          )}
-          {isSyncing ? "SINCRONIZANDO..." : "SINCRONIZAR AGORA"}
-        </button>
+        <div className="flex items-center gap-3 w-full md:w-auto">
+           {/* Search Input */}
+           <div className="relative flex-1 md:w-64">
+              <input 
+                type="text" 
+                placeholder="Filtrar por título..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-white/50 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/30 transition-all"
+              />
+           </div>
+
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] shrink-0 ${
+              isSyncing 
+                ? "bg-[#1D1D1F]/5 text-[#1D1D1F]/40 cursor-not-allowed" 
+                : "bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white shadow-[#667eea]/20"
+            }`}
+          >
+            {isSyncing ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            {isSyncing ? "SINCRONIZANDO..." : "SINCRONIZAR AGORA"}
+          </button>
+        </div>
       </div>
 
       {/* Sync Status Alert */}
@@ -104,9 +122,16 @@ export default function AgendaManagementPage() {
 
       {/* Current Database View */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 px-2">
-          <Clock className="w-4 h-4 text-[#1D1D1F]/40" />
-          <h3 className="text-sm font-bold text-[#1D1D1F]/60 uppercase tracking-widest">Eventos na Base (Firestore)</h3>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#1D1D1F]/40" />
+            <h3 className="text-sm font-bold text-[#1D1D1F]/60 uppercase tracking-widest">Eventos na Base (Firestore)</h3>
+          </div>
+          {searchTerm && (
+            <span className="text-[10px] font-bold bg-[#667eea]/10 text-[#667eea] px-2 py-0.5 rounded-full uppercase tracking-tighter">
+              Filtrado: {filteredEvents.length} resultados
+            </span>
+          )}
         </div>
 
         {isLoadingList ? (
@@ -115,15 +140,17 @@ export default function AgendaManagementPage() {
               <div key={i} className="h-32 bg-white/20 animate-pulse rounded-2xl border border-white/40"></div>
             ))}
           </div>
-        ) : syncedEvents.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div className="p-12 text-center border-2 border-dashed border-[#1D1D1F]/10 rounded-3xl bg-white/30 backdrop-blur-sm">
             <CalendarIcon className="w-10 h-10 text-[#1D1D1F]/20 mx-auto mb-4" />
-            <p className="text-[#1D1D1F]/50 font-medium">Nenhum evento sincronizado na base.</p>
-            <p className="text-xs text-[#1D1D1F]/30 mt-1">Clique em "Sincronizar Agora" para buscar dados do Google.</p>
+            <p className="text-[#1D1D1F]/50 font-medium">Nenhum evento encontrado.</p>
+            <p className="text-xs text-[#1D1D1F]/30 mt-1">
+              {searchTerm ? "Tente buscar por outro título." : "Clique em 'Sincronizar Agora' para buscar dados do Google."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {syncedEvents.map(event => (
+            {filteredEvents.map(event => (
               <div 
                 key={event.id}
                 className="group p-5 bg-white/40 backdrop-blur-md border border-white/60 rounded-2xl hover:bg-white hover:shadow-xl transition-all hover:scale-[1.01]"
