@@ -20,6 +20,7 @@ import {
   X
 } from "lucide-react";
 import { getOneToOneTypes, updateOneToOneTypes } from "@/actions/OneToOneActions";
+import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays, isBefore, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -410,69 +411,83 @@ export default function AgendaManagementPage() {
         </div>
       </div>
       {/* Modal de Configuração 1-to-1 */}
-      {isConfigModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsConfigModalOpen(false)} />
-          
-          <div className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-[#1D1D1F]">Configurar 1 to 1</h3>
-                <p className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest mt-1">Lista suspensa para o usuário</p>
-              </div>
-              <button 
-                onClick={() => setIsConfigModalOpen(false)}
-                className="p-2 hover:bg-black/5 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5 text-[#1D1D1F]/40" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value)}
-                  placeholder="Novo tipo (ex: Carreira)..."
-                  className="flex-1 bg-black/[0.02] border border-black/[0.05] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/20"
-                />
+      <AnimatePresence>
+        {isConfigModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+              onClick={() => setIsConfigModalOpen(false)} 
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-2xl z-[101]"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-[#1D1D1F]">Configurar 1 to 1</h3>
+                  <p className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest mt-1">Lista suspensa para o usuário</p>
+                </div>
                 <button 
-                  onClick={addType}
-                  className="p-3 bg-[#667eea] text-white rounded-xl hover:scale-105 transition-all shadow-lg shadow-[#667eea]/20"
+                  onClick={() => setIsConfigModalOpen(false)}
+                  className="p-2 hover:bg-black/5 rounded-xl transition-colors"
                 >
-                  <Plus className="w-5 h-5" />
+                  <X className="w-5 h-5 text-[#1D1D1F]/40" />
                 </button>
               </div>
 
-              <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                {oneToOneTypes.map((type, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-black/[0.02] border border-black/[0.02] rounded-xl group transition-all hover:bg-black/[0.04]">
-                    <span className="text-sm font-bold text-[#1D1D1F]/80">{type}</span>
-                    <button 
-                      onClick={() => removeType(index)}
-                      className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                {oneToOneTypes.length === 0 && (
-                  <p className="text-center py-8 text-xs text-[#1D1D1F]/30 italic font-medium">Nenhum tipo cadastrado.</p>
-                )}
-              </div>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addType()}
+                    placeholder="Novo tipo (ex: Carreira)..."
+                    className="flex-1 bg-black/[0.02] border border-black/[0.05] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/20"
+                  />
+                  <button 
+                    onClick={addType}
+                    className="p-3 bg-[#667eea] text-white rounded-xl hover:scale-105 transition-all shadow-lg shadow-[#667eea]/20"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
 
-              <button 
-                onClick={handleSaveConfig}
-                disabled={isSavingConfig}
-                className="w-full py-4 bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#667eea]/20 hover:scale-[1.02] transition-all disabled:opacity-50"
-              >
-                {isSavingConfig ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
-              </button>
-            </div>
+                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                  {oneToOneTypes.map((type, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-black/[0.02] border border-black/[0.02] rounded-xl group transition-all hover:bg-black/[0.04]">
+                      <span className="text-sm font-bold text-[#1D1D1F]/80">{type}</span>
+                      <button 
+                        onClick={() => removeType(index)}
+                        className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {oneToOneTypes.length === 0 && (
+                    <p className="text-center py-8 text-xs text-[#1D1D1F]/30 italic font-medium">Nenhum tipo cadastrado.</p>
+                  )}
+                </div>
+
+                <button 
+                  onClick={handleSaveConfig}
+                  disabled={isSavingConfig}
+                  className="w-full py-4 bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#667eea]/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                >
+                  {isSavingConfig ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }
