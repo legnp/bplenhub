@@ -209,6 +209,10 @@ export async function bookEventAction(
       const eventSnap = await transaction.get(eventRef);
       if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
 
+      const eventData = eventSnap.data() as GoogleCalendarEvent;
+      const startTime = parseISO(eventData.start);
+      const now = new Date();
+
       // [REGRAS DE GOVERNANÇA CENTRALIZADAS 🔐]
       const minLeadTime = addDays(startOfDay(now), CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS);
       if (isBefore(startTime, minLeadTime)) {
