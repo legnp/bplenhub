@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escolha seu caminho — LENS</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo_lensbylis_dho_original_icon.svg?v=1.2">
+  <link rel="stylesheet" href="style.css?v=1.1">
+  <link rel="stylesheet" href="sobre.css">
+  <style>
+    /* Standalone preview only — make picker visible immediately */
+    #servicePicker {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- This file is used two ways:
+       1. Standalone preview in browser (backdrop forced visible above)
+       2. site.js fetches it and injects ONLY the #servicePicker element into other pages
+          All styles must therefore live in style.css, not in this <style> block.
+  -->
+
+  <div id="servicePicker" class="modal-backdrop">
+    <div class="modal picker-modal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <button class="modal-close" id="closeServicePicker" aria-label="Fechar">✕</button>
+      <div class="picker-wrap">
+        <div class="picker-hero">
+          <h2 id="pickerTitle">Escolha seu caminho</h2>
+          <p>Selecione o tipo de serviço. Cada opção levará para uma página dedicada.</p>
+        </div>
+
+        <div class="picker-grid">
+
+          <!-- Pessoas -->
+          <article class="picker-card">
+            <div class="picker-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" fill="currentColor" />
+                <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8v1H4v-1z" fill="currentColor" opacity="0.9" />
+              </svg>
+            </div>
+            <div class="picker-text">
+              <h3>Para pessoas</h3>
+              <p>Carreira, repertório e execução com método.</p>
+            </div>
+            <a class="picker-btn" href="service.html#pessoas">Ver serviços</a>
+          </article>
+
+          <!-- Empresas -->
+          <article class="picker-card">
+            <div class="picker-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 13h18v8H3v-8z" fill="currentColor" />
+                <path d="M7 13V7h10v6H7z" fill="currentColor" opacity="0.85" />
+              </svg>
+            </div>
+            <div class="picker-text">
+              <h3>Para empresas</h3>
+              <p>Diagnóstico, estratégia e desenvolvimento organizacional.</p>
+            </div>
+            <a class="picker-btn" href="service.html#empresas">Ver serviços</a>
+          </article>
+
+          <!-- Parceiros -->
+          <article class="picker-card">
+            <div class="picker-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l3 6 6 .5-4.5 3.5L19 19l-7-4-7 4 2.5-7L3 8.5 9 8 12 2z" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="picker-text">
+              <h3>Para parceiros</h3>
+              <p>Projetos em conjunto e alavancas de impacto.</p>
+            </div>
+            <a class="picker-btn" href="service.html#parceiros">Ver serviços</a>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Standalone preview close controls
+    document.getElementById('closeServicePicker').addEventListener('click', () => {
+      const bm = document.querySelector('.modal-backdrop');
+      bm.style.opacity = '0'; bm.style.visibility = 'hidden';
+    });
+    document.querySelector('.modal-backdrop').addEventListener('click', e => {
+      if (e.target === e.currentTarget) { e.currentTarget.style.opacity = '0'; e.currentTarget.style.visibility = 'hidden'; }
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const bm = document.querySelector('.modal-backdrop'); bm.style.opacity = '0'; bm.style.visibility = 'hidden'; }
+    });
+  </script>
+
+</body>
+
+</html>

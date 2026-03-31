@@ -163,3 +163,14 @@ body {
   transform: scale(1.02);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
+
+/* Animação de Gradiente Flutuante (Efeito Água/Fumaça) */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-flow {
+  animation: gradientFlow 14s ease-in-out infinite;
+}

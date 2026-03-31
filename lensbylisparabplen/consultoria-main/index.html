@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LENS by Lis.</title>
+  <meta name="description" content="Página inicial minimalista - LENS by Lis." />
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo_lensbylis_dho_original_icon.svg?v=1.2">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;700;900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1.1">
+  <link rel="stylesheet" href="sobre.css">
+
+
+  <!-- Global Styles -->
+  <style>
+    /* Mobile-only override for Index Page Social Bar */
+    @media (max-width: 600px) {
+      #page-index .side-social {
+        right: 50% !important;
+        left: auto !important;
+        bottom: 40px !important;
+        top: auto !important;
+        transform: translateX(50%) !important;
+        flex-direction: row !important;
+        width: auto !important;
+        min-height: auto !important;
+        padding: 10px 20px !important;
+        border-radius: 30px !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+        gap: 20px !important;
+        background: rgba(7, 7, 11, 0.6) !important;
+        /* Slightly more opaque for visibility */
+      }
+
+      #page-index .side-label {
+        display: none !important;
+      }
+
+      #page-index .sobre-footer {
+        margin-top: 10px !important;
+      }
+    }
+  </style>
+
+</head>
+
+<body id="page-index">
+  <!-- Global Header Placeholder -->
+  <header id="global-header"></header>
+
+  <!-- Global Social Sidebar Placeholder -->
+  <div id="global-social"></div>
+
+  <!-- Center content -->
+  <main class="center-wrap">
+    <div class="hero-cta">
+      <!-- Entire block is clickable and opens the service picker popup -->
+      <a class="hero-trigger btn-services-popup" href="#" role="button"
+        aria-label="Clique para descomplicar o desenvolvimento humano no trabalho">
+        <h1 class="hero-title-wrap">
+          <span class="ht-l1">Clique aqui para</span>
+          <span class="ht-l2">Descomplicar o</span>
+          <span class="ht-l3"><strong>Desenvolvimento Humano</strong></span>
+          <span class="ht-l4">no <strong>Trabalho</strong></span>
+        </h1>
+      </a>
+    </div>
+  </main>
+
+  <!-- Global Footer Placeholder -->
+  <div id="global-footer"></div>
+
+  <script src="site.js"></script>
+</body>
+
+</html>

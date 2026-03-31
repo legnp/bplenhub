@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Serviços | LENS by Lis.</title>
+  <meta name="description" content="Serviços — LENS by Lis." />
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo_lensbylis_dho_original_icon.svg?v=1.2">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;700;900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1.1">
+  <link rel="stylesheet" href="sobre.css">
+  <style>
+    /* Small page-specific overrides to keep organization here */
+    .page-wrap {
+      padding-top: 100px;
+      padding-bottom: 80px;
+      min-height: 100vh
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Global Header Placeholder -->
+  <header id="global-header"></header>
+
+  <!-- Global Social Sidebar Placeholder -->
+  <div id="global-social"></div>
+
+  <main class="page-wrap">
+    <!-- Visual background enhancements -->
+    <div class="bg-visuals">
+      <div class="glow glow-1"></div>
+      <div class="glow glow-2"></div>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 10;">
+
+      <!-- Toggle: Pessoas / Empresas / Parceiros (Centered) -->
+      <div class="tabs-wrapper" style="display: flex; justify-content: center; margin-bottom: 20px;">
+        <div class="section-toggle glass" role="tablist" aria-label="Seções de serviços" style="margin-bottom: 0;">
+          <button class="toggle-btn active" data-tab="pessoas">Pessoas</button>
+          <button class="toggle-btn" data-tab="empresas">Empresas</button>
+          <button class="toggle-btn" data-tab="parceiros">Parceiros</button>
+        </div>
+      </div>
+
+      <!-- Subsections container -->
+      <div id="subs">
+
+        <!-- Pessoas -->
+        <section id="pessoas" class="subsection active-sub">
+          <div class="section-header-wrap" style="max-width: 950px; margin: 0 auto 30px;">
+            <span class="kicker">Para pessoas</span>
+            <h2 class="service-title">Potencialize sua carreira com método e clareza</h2>
+            <p class="service-sub">Trilhas de desenvolvimento, repertório e execução para profissionais que buscam o
+              próximo nível.</p>
+          </div>
+
+          <div class="cards-grid" id="pessoas-grid">
+            <!-- Dynamic cards will be loaded here -->
+          </div>
+        </section>
+
+        <!-- Empresas -->
+        <section id="empresas" class="subsection">
+          <div class="section-header-wrap" style="max-width: 950px; margin: 0 auto 30px;">
+            <span class="kicker">Para empresas</span>
+            <h2 class="service-title">Transformando estratégia em resultados através das pessoas</h2>
+            <p class="service-sub">Diagnóstico, People Analytics e Cultura para impulsionar a performance
+              organizacional.</p>
+          </div>
+
+          <!-- sub-toggle dentro de empresas (Centered) -->
+          <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="biz-toggle glass" style="margin-bottom: 0;">
+              <button class="biz-btn active" data-biz="carreira">Desenvolvimento de Carreira</button>
+              <button class="biz-btn" data-biz="analytics">People Analytics</button>
+              <button class="biz-btn" data-biz="cultura">Clima & Cultura</button>
+            </div>
+          </div>
+
+          <!-- Carreira (default) -->
+          <div class="biz-panel active-biz" data-panel="carreira">
+            <div class="cards-grid" id="carreira-grid">
+              <!-- Dynamic cards -->
+            </div>
+          </div>
+
+          <!-- Analytics -->
+          <div class="biz-panel" data-panel="analytics">
+            <div class="biz-panel-inner">
+              <div class="cards-grid" id="analytics-grid">
+                <!-- Dynamic cards -->
+              </div>
+              <div class="strategic-actions">
+                <a class="btn btn-glass" href="#">Vendas e Orçamentos</a>
+                <a class="btn btn-primary" href="#">Nossa Metodologia</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cultura -->
+          <div class="biz-panel" data-panel="cultura">
+            <div class="biz-panel-inner">
+              <div class="cards-grid" id="cultura-grid">
+                <!-- Dynamic cards -->
+              </div>
+              <!-- Empty sidebar space to preserve 3-card grid width -->
+              <div class="strategic-actions" style="visibility: hidden; pointer-events: none;">
+                <a class="btn btn-glass" href="#">Vendas e Orçamentos</a>
+                <a class="btn btn-primary" href="#">Nossa Metodologia</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Parceiros -->
+        <section id="parceiros" class="subsection">
+          <div class="section-header-wrap" style="max-width: 950px; margin: 0 auto 30px;">
+            <span class="kicker">Para parceiros</span>
+            <h2 class="service-title">Parcerias estratégicas e ativações</h2>
+            <p class="service-sub">Ativações, projetos conjuntos e alavancas de impacto para ampliar escala e
+              competência.</p>
+          </div>
+
+          <div class="partners-split-layout">
+            <div class="partners-content">
+              <h3 class="partners-content-title">Sugestões de Ativações</h3>
+              <p>
+                Eventos co-branded, programas de capacitação em rede, trilhas de certificação,
+                pilotos de People Analytics, webinars colaborativos, workshops customizados e curadoria de talentos para
+                projetos pontuais.
+              </p>
+              <p class="activation-formats">
+                Formatos: Presencial, Online, Misto, Evento ou In-company.
+              </p>
+              <div class="partner-actions">
+                <a class="btn btn-primary" href="#">Agendar conversa</a>
+              </div>
+            </div>
+
+            <div class="cards-grid" id="parceiros-grid">
+              <!-- Dynamic partner cards will be loaded here -->
+            </div>
+          </div>
+        </section>
+
+      </div> <!-- End subs -->
+    </div> <!-- End container -->
+  </main>
+
+
+
+  <!-- Global Footer Placeholder -->
+  <div id="global-footer"></div>
+
+  <script src="site.js"></script>
+  <script src="service.js"></script>
+</body>
+
+</html>
