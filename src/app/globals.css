@@ -13,10 +13,10 @@
   --accent-start: #667eea;
   --accent-end: #764ba2;
   --accent-soft: rgba(102, 126, 234, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-  --glass-blur: 12px;
-  --glass-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+  --glass-blur: 40px;
+  --glass-shadow: 0 20px 50px 0 rgba(0, 0, 0, 0.1);
 
   /* Dimensões Globais */
   --radius: 20px;
@@ -28,8 +28,10 @@
   --bg-primary: #000000;
   --text-primary: #FFFFFF;
   --text-secondary: #8E8E93;
-  --accent-start: #30D5C8; /* Turquesa Dark */
-  --accent-end: #007AFF;   /* Azul Apple */
+  --accent-start: #30D5C8;
+  /* Turquesa Dark */
+  --accent-end: #007AFF;
+  /* Azul Apple */
   --accent-soft: rgba(48, 213, 200, 0.15);
   --glass-bg: rgba(28, 28, 30, 0.6);
   --glass-border: 1px solid rgba(255, 255, 255, 0.1);
@@ -79,8 +81,10 @@
 
 /* [Modo Inclusivo / Daltonismo] */
 .theme-daltonico {
-  --accent-start: #005AB5; /* Azul Contraste */
-  --accent-end: #DC3220;   /* Vermelho Contraste */
+  --accent-start: #005AB5;
+  /* Azul Contraste */
+  --accent-end: #DC3220;
+  /* Vermelho Contraste */
   --bg-primary: #FFFFFF;
   --text-primary: #000000;
   --text-secondary: #333333;
@@ -105,7 +109,7 @@ body {
   min-height: 100vh;
 }
 
-/* Glassmorphism Card */
+/* Glassmorphism Card (Padrão) */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -113,6 +117,20 @@ body {
   border: var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--glass-shadow);
+}
+
+/* Glassmorphism Cristal (O Verdadeiro Desfoque - Glass Apple) */
+.glass-crystal {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+/* Abordagem Apple: Desfocar a página inteira ao invés do modal */
+body.glass-modal-open #main-content {
+  filter: blur(16px) brightness(0.9);
+  transform: scale(0.98);
+  pointer-events: none;
 }
 
 /* Gradient Accent */
@@ -126,6 +144,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -133,8 +152,15 @@ body {
 }
 
 @keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .animate-fade-in-up {
@@ -159,6 +185,7 @@ body {
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .hover-lift:hover {
   transform: scale(1.02);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
@@ -166,9 +193,17 @@ body {
 
 /* Animação de Gradiente Flutuante (Efeito Água/Fumaça) */
 @keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-gradient-flow {

@@ -26,7 +26,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <div id="main-content" className="flex-1 flex flex-col w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+              {children}
+            </div>
           </AuthProvider>
         </ThemeProvider>
       </body>

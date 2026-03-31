@@ -19,7 +19,7 @@ import {
   Loader2,
   Send
 } from "lucide-react";
-import { getUserBookingsAction, submitEvaluationAction } from "@/actions/calendar";
+import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } from "@/actions/calendar";
 import { useAuthContext } from "@/context/AuthContext";
 
 export default function UserBookings({ refreshCounter = 0 }: { refreshCounter?: number }) {
@@ -84,6 +84,7 @@ export default function UserBookings({ refreshCounter = 0 }: { refreshCounter?: 
             booking={booking} 
             onEvaluate={handleEvaluation}
             isSubmitting={isSubmitting === booking.id}
+            onRefresh={loadBookings}
           />
         ))}
       </div>
@@ -91,10 +92,21 @@ export default function UserBookings({ refreshCounter = 0 }: { refreshCounter?: 
   );
 }
 
-function BookingCard({ booking, onEvaluate, isSubmitting }: { booking: any, onEvaluate: any, isSubmitting: boolean }) {
+function BookingCard({ 
+  booking, 
+  onEvaluate, 
+  isSubmitting,
+  onRefresh 
+}: { 
+  booking: any, 
+  onEvaluate: any, 
+  isSubmitting: boolean,
+  onRefresh: () => void 
+}) {
   const [rating, setRating] = useState(booking.rating || 0);
   const [feedback, setFeedback] = useState(booking.feedback || "");
   const [isHovering, setIsHovering] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const event = booking.eventDetail;
   if (!event) return null;
@@ -141,13 +153,39 @@ function BookingCard({ booking, onEvaluate, isSubmitting }: { booking: any, onEv
 
         {/* Action Buttons */}
         <div className="flex gap-2 border-y border-black/[0.03] py-4">
-           <button 
-             onClick={() => alert("Comando em Desenvolvimento")}
-             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-black/[0.03] hover:bg-black/[0.06] rounded-xl transition-all group/btn"
-           >
-              <RefreshCcw className="w-3 h-3 text-[#1D1D1F]/40 group-hover/btn:rotate-180 transition-all duration-500" />
-              <span className="text-[9px] font-black text-[#1D1D1F]/60 uppercase tracking-widest">Reagendar</span>
-           </button>
+           {isPast ? (
+              <div className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-500/5 rounded-xl border border-green-500/10">
+                 <CheckCircle2 className="w-3 h-3 text-green-600" />
+                 <span className="text-[9px] font-black text-green-700 uppercase tracking-widest">Concluída</span>
+              </div>
+           ) : (
+              <button 
+                onClick={async () => {
+                  if (confirm("Tem certeza que deseja cancelar este agendamento? A vaga será liberada no HUB.")) {
+                    setIsDeleting(true);
+                    const res = await cancelBookingAction(booking.id, event.id, booking.userId, booking.week, booking.year);
+                    if (res.success) {
+                      onRefresh();
+                    } else {
+                      alert("Erro ao cancelar: " + res.message);
+                      setIsDeleting(false);
+                    }
+                  }
+                }}
+                disabled={isDeleting}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-500/5 hover:bg-red-500/10 rounded-xl transition-all group/btn disabled:opacity-50"
+              >
+                 {isDeleting ? (
+                   <Loader2 className="w-3 h-3 animate-spin text-red-500" />
+                 ) : (
+                   <RefreshCcw className="w-3 h-3 text-red-500/40 group-hover/btn:rotate-180 transition-all duration-500" />
+                 )}
+                 <span className="text-[9px] font-black text-red-600 uppercase tracking-widest">
+                   {isDeleting ? "Cancelando..." : "Cancelar Agendamento"}
+                 </span>
+              </button>
+           )}
+           
            <button 
              onClick={() => alert("Acesso aos materiais em Desenvolvimento")}
              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-black/[0.03] hover:bg-black/[0.06] rounded-xl transition-all"

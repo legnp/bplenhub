@@ -7,6 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { doc, setDoc, serverTimestamp, getDocs, collection, query, runTransaction, where, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Resend } from "resend";
+import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 
@@ -86,12 +87,13 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
 
 /**
  * Sincronização de 90 Dias (Firestore 🛡️)
+ * Identifica novos eventos, atualiza existentes e remove "fantasmas" (deletados no Google).
  */
 export async function syncCalendarToFirestore() {
   try {
     const calendar = await getCalendarClient();
     const now = new Date();
-    const ninetyDaysOut = addDays(now, 90);
+    const ninetyDaysOut = addDays(now, CALENDAR_CONFIG.SYNC_WINDOW_DAYS);
 
     const timeMin = formatISO(now);
     const timeMax = formatISO(ninetyDaysOut);
@@ -104,10 +106,33 @@ export async function syncCalendarToFirestore() {
       orderBy: "startTime",
     });
 
-    const items = response.data.items || [];
-    let syncCount = 0;
+    const googleItems = response.data.items || [];
+    const googleIds = new Set(googleItems.map(item => item.id).filter(Boolean));
 
-    for (const item of items) {
+    // 1. Cleanup: Buscar eventos no Firestore nesse período para detecção de deletados
+    const eventsQuery = query(
+      collection(db, "Calendar_Events"),
+      where("start", ">=", timeMin),
+      where("start", "<=", timeMax)
+    );
+    const firestoreSnap = await getDocs(eventsQuery);
+    
+    let deleteCount = 0;
+    for (const docSnap of firestoreSnap.docs) {
+      if (!googleIds.has(docSnap.id)) {
+        await runTransaction(db, async (transaction) => {
+          // Remover evento e travas de semana associadas? 
+          // Por segurança, apenas marcamos como 'deleted_on_google' ou removemos o evento principal.
+          // Aqui optaremos por deletar o evento do calendário para não poluir a UI.
+          transaction.delete(docSnap.ref);
+        });
+        deleteCount++;
+      }
+    }
+
+    // 2. Upsert: Sincronizar dados atuais do Google
+    let syncCount = 0;
+    for (const item of googleItems) {
       if (!item.id) continue;
 
       const description = item.description || "";
@@ -123,7 +148,7 @@ export async function syncCalendarToFirestore() {
 
       const eventRef = doc(db, "Calendar_Events", item.id);
       
-      // Upsert: Preserva registeredCount se já existir
+      // Upsert: Preserva registeredCount se já existir via merge: true
       await setDoc(eventRef, {
         id: item.id,
         summary: item.summary || "Sem Título",
@@ -140,7 +165,12 @@ export async function syncCalendarToFirestore() {
       syncCount++;
     }
 
-    return { success: true, count: syncCount, timestamp: new Date().toISOString() };
+    return { 
+      success: true, 
+      synced: syncCount, 
+      deleted: deleteCount,
+      timestamp: new Date().toISOString() 
+    };
   } catch (error: any) {
     console.error("Erro na sincronização de agenda:", error);
     throw new Error(error.message || "Falha na sincronização.");
@@ -179,20 +209,16 @@ export async function bookEventAction(
       const eventSnap = await transaction.get(eventRef);
       if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
 
-      const eventData = eventSnap.data() as GoogleCalendarEvent;
-      const startTime = parseISO(eventData.start);
-      const now = new Date();
-
-      // [REGRAS DE GOVERNANÇA MANTIDAS...]
-      const minLeadTime = addDays(startOfDay(now), 3);
+      // [REGRAS DE GOVERNANÇA CENTRALIZADAS 🔐]
+      const minLeadTime = addDays(startOfDay(now), CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS);
       if (isBefore(startTime, minLeadTime)) {
-        throw new Error("Agendamentos permitidos apenas com 3 dias de antecedência.");
+        throw new Error(`Agendamentos permitidos apenas com ${CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS} dias de antecedência.`);
       }
 
       if (eventData.summary.toLowerCase().includes("onboarding")) {
-        const maxOnboardingWindow = addDays(startOfDay(now), 20);
+        const maxOnboardingWindow = addDays(startOfDay(now), CALENDAR_CONFIG.MAX_ONBOARDING_WINDOW_DAYS);
         if (!isBefore(startTime, maxOnboardingWindow)) {
-          throw new Error("Eventos de Onboarding só podem ser agendados até 20 dias à frente.");
+          throw new Error(`Eventos de Onboarding só podem ser agendados até ${CALENDAR_CONFIG.MAX_ONBOARDING_WINDOW_DAYS} dias à frente.`);
         }
       }
 
@@ -256,7 +282,7 @@ export async function bookEventAction(
         }
 
         await resend.emails.send({
-          from: "BPlen HUB <hub@bplen.com>",
+          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
           to: userEmail,
           subject: `${nickname}, seu ${eventData.summary} foi confirmado na BPlen HUB!`,
           html: `
@@ -377,5 +403,53 @@ export async function submitEvaluationAction(bookingId: string, rating: number, 
   } catch (error) {
     console.error("Erro ao submeter avaliação:", error);
     return { success: false };
+  }
+}
+
+/**
+ * Cancela um agendamento, estornando a vaga e liberando a trava de semana.
+ */
+export async function cancelBookingAction(
+  bookingId: string,
+  eventId: string,
+  userId: string,
+  week: number,
+  year: number
+) {
+  try {
+    return await runTransaction(db, async (transaction) => {
+      const eventRef = doc(db, "Calendar_Events", eventId);
+      const bookingRef = doc(db, "User_Bookings", bookingId);
+      const weekBookingId = `${userId}_week_${week}_${year}`;
+      const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
+      const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
+
+      const eventSnap = await transaction.get(eventRef);
+      if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
+
+      const eventData = eventSnap.data();
+      const currentRegistered = eventData.registeredCount || 0;
+
+      // 1. Decrementar contador de vagas (mínimo 0)
+      transaction.update(eventRef, {
+        registeredCount: Math.max(0, currentRegistered - 1)
+      });
+
+      // 2. Remover o registro de participação
+      transaction.delete(attendeeRef);
+
+      // 3. Remover o agendamento do usuário (libera a trava de semana)
+      transaction.delete(bookingRef);
+
+      // 4. Se o agendamento for a trava de semana (o que geralmente é), remover também
+      if (bookingId !== weekBookingId) {
+        transaction.delete(weekBookingRef);
+      }
+
+      return { success: true };
+    });
+  } catch (error: any) {
+    console.error("Erro ao cancelar agendamento:", error);
+    return { success: false, message: error.message };
   }
 }

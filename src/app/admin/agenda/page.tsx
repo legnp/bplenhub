@@ -2,27 +2,30 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { syncCalendarToFirestore, getSyncedEvents, GoogleCalendarEvent } from "@/actions/calendar";
-import { 
-  RefreshCw, 
-  CheckCircle2, 
-  AlertCircle, 
-  Calendar as CalendarIcon, 
-  ExternalLink, 
-  Clock, 
-  LayoutDashboard, 
-  Filter, 
-  ArrowUpDown, 
+import {
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Calendar as CalendarIcon,
+  ExternalLink,
+  Clock,
+  LayoutDashboard,
+  Filter,
+  ArrowUpDown,
   TrendingUp,
   Activity,
   Settings2,
   Plus,
   Trash2,
-  X
+  X,
+  BadgeCheck,
+  Loader2
 } from "lucide-react";
 import { getOneToOneTypes, updateOneToOneTypes } from "@/actions/OneToOneActions";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, addDays, isBefore, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import GlassModal from "@/components/ui/GlassModal";
 
 type SortOption = "date" | "name" | "status";
 type DateRangeOption = "all" | "15" | "30";
@@ -34,7 +37,7 @@ export default function AgendaManagementPage() {
   const [syncedEvents, setSyncedEvents] = useState<any[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Novos controles de visualização
   const [sortBy, setSortBy] = useState<SortOption>("date");
   const [dateRange, setDateRange] = useState<DateRangeOption>("all");
@@ -43,7 +46,7 @@ export default function AgendaManagementPage() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [oneToOneTypes, setOneToOneTypes] = useState<string[]>([]);
   const [newType, setNewType] = useState("");
-  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Carregar preview dos eventos já sincronizados
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function AgendaManagementPage() {
       try {
         const events = await getSyncedEvents();
         setSyncedEvents(events);
-        
+
         // Carrega tipos 1-to-1
         const types = await getOneToOneTypes();
         setOneToOneTypes(types);
@@ -69,11 +72,12 @@ export default function AgendaManagementPage() {
     setIsSyncing(true);
     setError(null);
     try {
-      const result = await syncCalendarToFirestore();
-      setLastSyncResult({ count: result.count, timestamp: result.timestamp });
-      
-      const updatedEvents = await getSyncedEvents();
-      setSyncedEvents(updatedEvents);
+      const res = await syncCalendarToFirestore();
+      if (res.success) {
+        alert(`Sincronização concluída!\nSincronizados: ${res.synced}\nRemovidos: ${res.deleted}`);
+        const updatedEvents = await getSyncedEvents();
+        setSyncedEvents(updatedEvents);
+      }
     } catch (err: any) {
       setError(err.message || "Erro ao sincronizar agenda.");
     } finally {
@@ -81,26 +85,26 @@ export default function AgendaManagementPage() {
     }
   };
 
-  const handleSaveConfig = async () => {
-    setIsSavingConfig(true);
+  const handleSave = async () => {
+    setIsSaving(true);
     const res = await updateOneToOneTypes(oneToOneTypes);
     if (res.success) {
       setIsConfigModalOpen(false);
     } else {
       alert("Erro ao salvar configurações.");
     }
-    setIsSavingConfig(false);
+    setIsSaving(false);
   };
 
-  const addType = () => {
+  const handleAddType = () => {
     if (newType.trim() && !oneToOneTypes.includes(newType.trim())) {
       setOneToOneTypes([...oneToOneTypes, newType.trim()]);
       setNewType("");
     }
   };
 
-  const removeType = (index: number) => {
-    setOneToOneTypes(oneToOneTypes.filter((_, i) => i !== index));
+  const handleRemoveType = (typeToRemove: string) => {
+    setOneToOneTypes(oneToOneTypes.filter((t) => t !== typeToRemove));
   };
 
   /**
@@ -110,7 +114,7 @@ export default function AgendaManagementPage() {
     if (!syncedEvents.length) return { total: 0, types: [], status: { sync: 0 } };
 
     const total = syncedEvents.length;
-    
+
     // Contagem por Tipo (Top 5)
     const typeMap: Record<string, number> = {};
     syncedEvents.forEach(ev => {
@@ -141,8 +145,8 @@ export default function AgendaManagementPage() {
     // 1. Filtro de Busca (Título + Descrição)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(ev => 
-        ev.summary?.toLowerCase().includes(term) || 
+      result = result.filter(ev =>
+        ev.summary?.toLowerCase().includes(term) ||
         ev.description?.toLowerCase().includes(term)
       );
     }
@@ -197,11 +201,10 @@ export default function AgendaManagementPage() {
           <button
             onClick={handleSync}
             disabled={isSyncing}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] shrink-0 ${
-              isSyncing 
-                ? "bg-[#1D1D1F]/5 text-[#1D1D1F]/40 cursor-not-allowed" 
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] shrink-0 ${isSyncing
+                ? "bg-[#1D1D1F]/5 text-[#1D1D1F]/40 cursor-not-allowed"
                 : "bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white shadow-[#667eea]/20"
-            }`}
+              }`}
           >
             {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             {isSyncing ? "SINCRONIZANDO..." : "SINCRONIZAR AGORA"}
@@ -225,34 +228,34 @@ export default function AgendaManagementPage() {
         <div className="p-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm transition-all hover:bg-white/60">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-[#764ba2]/10 rounded-xl text-[#764ba2]">
-               <Activity className="w-4 h-4" />
+              <Activity className="w-4 h-4" />
             </div>
             <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Status Sincronizado</span>
           </div>
           <div className="text-4xl font-black text-[#1D1D1F]">{stats.status.sync}</div>
           <div className="flex items-center gap-1.5 mt-2">
-             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-             <span className="text-[10px] font-bold text-green-600 uppercase">Operacional</span>
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-[10px] font-bold text-green-600 uppercase">Operacional</span>
           </div>
         </div>
 
         <div className="col-span-1 md:col-span-2 p-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
-           <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#667eea]/10 rounded-xl text-[#667eea]">
-                <TrendingUp className="w-4 h-4" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-[#667eea]/10 rounded-xl text-[#667eea]">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Principais Tipos / Serviços (Top 5)</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {stats.types.map((t, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-xl border border-white/80 shadow-sm">
+                <span className="text-[10px] font-bold text-[#1D1D1F] line-clamp-1 max-w-[150px]">{t.name}</span>
+                <span className="text-[10px] font-black text-[#667eea] bg-[#667eea]/10 px-1.5 rounded-lg">{t.count}</span>
               </div>
-              <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Principais Tipos / Serviços (Top 5)</span>
-           </div>
-           
-           <div className="flex flex-wrap gap-2">
-              {stats.types.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-xl border border-white/80 shadow-sm">
-                  <span className="text-[10px] font-bold text-[#1D1D1F] line-clamp-1 max-w-[150px]">{t.name}</span>
-                  <span className="text-[10px] font-black text-[#667eea] bg-[#667eea]/10 px-1.5 rounded-lg">{t.count}</span>
-                </div>
-              ))}
-              {stats.types.length === 0 && <span className="text-[10px] text-[#1D1D1F]/40 italic">Aguardando dados...</span>}
-           </div>
+            ))}
+            {stats.types.length === 0 && <span className="text-[10px] text-[#1D1D1F]/40 italic">Aguardando dados...</span>}
+          </div>
         </div>
       </div>
 
@@ -261,8 +264,8 @@ export default function AgendaManagementPage() {
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1D1D1F]/30" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Filtrar por título..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -272,33 +275,32 @@ export default function AgendaManagementPage() {
 
         {/* Date Filters */}
         <div className="flex items-center bg-white/60 p-1.5 rounded-2xl border border-white/80 shadow-sm gap-1">
-           {(["all", "15", "30"] as DateRangeOption[]).map((opt) => (
-             <button
-                key={opt}
-                onClick={() => setDateRange(opt)}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-tight ${
-                  dateRange === opt 
-                    ? "bg-[#1D1D1F] text-white shadow-md shadow-[#1D1D1F]/20" 
-                    : "text-[#1D1D1F]/40 hover:text-[#1D1D1F]"
+          {(["all", "15", "30"] as DateRangeOption[]).map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setDateRange(opt)}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-tight ${dateRange === opt
+                  ? "bg-[#1D1D1F] text-white shadow-md shadow-[#1D1D1F]/20"
+                  : "text-[#1D1D1F]/40 hover:text-[#1D1D1F]"
                 }`}
-             >
-                {opt === "all" ? "Todos" : `Próx. ${opt} Dias`}
-             </button>
-           ))}
+            >
+              {opt === "all" ? "Todos" : `Próx. ${opt} Dias`}
+            </button>
+          ))}
         </div>
 
         {/* Sorting Dropdown */}
         <div className="flex items-center gap-2 px-3 py-2 bg-white/60 rounded-2xl border border-white/80 shadow-sm">
-           <ArrowUpDown className="w-3.5 h-3.5 text-[#1D1D1F]/40" />
-           <select 
-             value={sortBy} 
-             onChange={(e) => setSortBy(e.target.value as SortOption)}
-             className="bg-transparent text-[10px] font-bold text-[#1D1D1F] focus:outline-none cursor-pointer uppercase tracking-tight"
-           >
-              <option value="date">Ordenar por Data</option>
-              <option value="name">Ordenar por Nome</option>
-              <option value="status">Ordenar por Status</option>
-           </select>
+          <ArrowUpDown className="w-3.5 h-3.5 text-[#1D1D1F]/40" />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="bg-transparent text-[10px] font-bold text-[#1D1D1F] focus:outline-none cursor-pointer uppercase tracking-tight"
+          >
+            <option value="date">Ordenar por Data</option>
+            <option value="name">Ordenar por Nome</option>
+            <option value="status">Ordenar por Status</option>
+          </select>
         </div>
       </div>
 
@@ -339,7 +341,7 @@ export default function AgendaManagementPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {processedEvents.map(event => (
-              <div 
+              <div
                 key={event.id}
                 className="group relative p-6 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl hover:bg-white hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
               >
@@ -350,18 +352,18 @@ export default function AgendaManagementPage() {
                 </div>
 
                 <div className="flex justify-end items-start mb-6">
-                  <a 
-                    href={event.htmlLink} 
-                    target="_blank" 
+                  <a
+                    href={event.htmlLink}
+                    target="_blank"
                     rel="noreferrer"
                     className="p-2.5 bg-white shadow-sm border border-black/5 rounded-2xl text-[#1D1D1F]/20 hover:text-[#667eea] hover:border-[#667eea]/30 transition-all hover:scale-110"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
-                
+
                 <h4 className="font-bold text-lg text-[#1D1D1F] line-clamp-2 leading-tight min-h-[56px]">{event.summary}</h4>
-                
+
                 <div className="mt-6 space-y-3 pt-6 border-t border-black/5">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-[#667eea]/5 flex items-center justify-center text-[#667eea]">
@@ -403,97 +405,69 @@ export default function AgendaManagementPage() {
       <div className="p-4 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl shadow-sm">
         <div className="flex gap-4">
           <div className="p-2 bg-[#667eea]/10 rounded-xl shrink-0">
-             <AlertCircle className="w-4 h-4 text-[#667eea]" />
+            <AlertCircle className="w-4 h-4 text-[#667eea]" />
           </div>
           <p className="text-[11px] text-[#1D1D1F]/60 leading-relaxed font-medium">
             <span className="font-bold text-[#1D1D1F]">Governança BPlen (90 Dias):</span> Este dashboard utiliza uma base sincronizada incremental. Eventos passados são arquivados automaticamente para atribuição de Auditoria e Atas, enquanto eventos futuros são atualizados a cada sincronização. A ordenação e agrupamento por título auxiliam na identificação rápida de gargalos de portfólio.
           </p>
         </div>
       </div>
+
       {/* Modal de Configuração 1-to-1 */}
-      <AnimatePresence mode="wait">
-        {isConfigModalOpen && (
-          <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto outline-none focus:outline-none"
-            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-          >
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
-              onClick={() => setIsConfigModalOpen(false)} 
+      <GlassModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+        title="Configuração de 1-to-1"
+        subtitle="Gerencie os tipos de reunião disponíveis na plataforma."
+      >
+        <div className="space-y-6">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={newType}
+              onChange={(e) => setNewType(e.target.value)}
+              placeholder="Ex: Alinhamento Estratégico"
+              className="flex-1 px-5 py-4 bg-white/40 border border-white/60 rounded-2xl text-sm font-medium text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 transition-all"
+              onKeyDown={(e) => e.key === "Enter" && handleAddType()}
             />
-            
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md bg-white rounded-[32px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-[10000] border border-white/20"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              onClick={handleAddType}
+              className="px-6 py-4 bg-[#667eea] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#5a6fd6] transition-all"
             >
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-[#1D1D1F]">Configurar 1 to 1</h3>
-                  <p className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest mt-1">Lista suspensa para o usuário</p>
-                </div>
-                <button 
-                  onClick={() => setIsConfigModalOpen(false)}
-                  className="p-2 hover:bg-black/5 rounded-xl transition-colors"
-                >
-                  <X className="w-5 h-5 text-[#1D1D1F]/40" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addType())}
-                    placeholder="Novo tipo (ex: Carreira)..."
-                    className="flex-1 bg-black/[0.02] border border-black/[0.05] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 text-[#1D1D1F]"
-                  />
-                  <button 
-                    onClick={addType}
-                    className="p-3 bg-[#667eea] text-white rounded-xl hover:scale-105 transition-all shadow-lg shadow-[#667eea]/20"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="max-h-[250px] overflow-y-auto space-y-2 pr-2 custom-scrollbar bg-black/[0.01] rounded-2xl p-2 border border-black/[0.02]">
-                  {oneToOneTypes.map((type, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white border border-black/[0.03] rounded-xl group transition-all hover:border-[#667eea]/30">
-                      <span className="text-sm font-bold text-[#1D1D1F]/80">{type}</span>
-                      <button 
-                        onClick={() => removeType(index)}
-                        className="p-1.5 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  {oneToOneTypes.length === 0 && (
-                    <p className="text-center py-8 text-xs text-[#1D1D1F]/30 italic font-medium">Nenhum tipo cadastrado.</p>
-                  )}
-                </div>
-
-                <div className="pt-2">
-                  <button 
-                    onClick={handleSaveConfig}
-                    disabled={isSavingConfig}
-                    className="w-full py-4 bg-[#1D1D1F] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-black/90 transition-all disabled:opacity-50"
-                  >
-                    {isSavingConfig ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+              Adicionar
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            {oneToOneTypes.length === 0 ? (
+              <p className="text-[10px] text-center text-[#1D1D1F]/30 py-10 font-bold uppercase tracking-widest">Nenhum tipo cadastrado.</p>
+            ) : (
+              oneToOneTypes.map((type, index) => (
+                <div key={index} className="flex justify-between items-center p-4 bg-white/40 border border-white/60 rounded-2xl group hover:bg-white/60 transition-all">
+                  <span className="text-sm font-bold text-[#1D1D1F]">{type}</span>
+                  <button
+                    onClick={() => handleRemoveType(type)}
+                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-500 rounded-xl transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-black/5 flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-8 py-4 bg-[#1D1D1F] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
+              {isSaving ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+            </button>
+          </div>
+        </div>
+      </GlassModal>
     </div>
   );
 }
