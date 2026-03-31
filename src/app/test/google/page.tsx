@@ -50,13 +50,15 @@ export default function GoogleTestLab() {
       const res = await (arg !== undefined ? testFn(arg) : testFn());
       setResults(prev => ({ ...prev, [testId]: res }));
     } catch (err: unknown) {
-      setResults(prev => ({ ...prev, [testId]: { success: false, message: err.message } }));
+      const error = err as Error;
+      setResults(prev => ({ ...prev, [testId]: { success: false, message: error.message } }));
     } finally {
       setLoading(prev => ({ ...prev, [testId]: false }));
     }
   };
 
-  const TestCard = ({ id, title, description, icon: React.ElementType, testFn, children }: { id: string, title: string, description: string, icon: React.ElementType, testFn: (arg?: any) => Promise<any>, children?: React.ReactNode }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const TestCard = ({ id, title, description, icon: Icon, testFn, children }: { id: string; title: string; description: string; icon: React.ElementType; testFn: (arg?: any) => Promise<any>; children?: React.ReactNode }) => {
     const res = results[id];
     const isLoading = loading[id];
 
