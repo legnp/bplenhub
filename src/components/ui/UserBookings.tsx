@@ -167,7 +167,7 @@ function BookingCard({
                     if (res.success) {
                       onRefresh();
                     } else {
-                      alert("Erro ao cancelar: " + res.message);
+                      alert("Erro ao cancelar: " + ((res as any).message || "Falha na transação"));
                       setIsDeleting(false);
                     }
                   }
