@@ -40,7 +40,8 @@ export interface FormConfig {
   title: string;
   steps: FormStepConfig[];
   submitLabel?: string;
-  driveFolder?: string; // Nome da pasta no Google Drive (ex: '2.3.Showroom')
+  driveFolder?: string; // Nome da pasta do formulário (ex: 'Showroom')
+  rootFolderKey?: "PORTFOLIO" | "USERS" | "ATAS"; // Qual o domínio pai no Drive
   sheetNamePrefix?: string; // Prefixo do nome da planilha
 }
 

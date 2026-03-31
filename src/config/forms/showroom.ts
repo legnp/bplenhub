@@ -6,7 +6,8 @@ import { FormConfig } from "@/types/forms";
 export const showroomFormConfig: FormConfig = {
   id: "showroom_interest",
   title: "Interesse no Showroom BPlen",
-  driveFolder: "2.3.Showroom",
+  driveFolder: "Showroom",
+  rootFolderKey: "PORTFOLIO",
   sheetNamePrefix: "Interesse_Fisico",
   submitLabel: "Quero ser avisado!",
   steps: [

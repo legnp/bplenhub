@@ -35,26 +35,31 @@ export async function submitGenericForm(config: FormConfig, response: FormRespon
       submittedAt: serverTimestamp(),
     });
 
-    // 3. Sincronização Google Drive
     const drive = await getDriveClient();
     const sheets = await getSheetsClient();
     
-    // Raiz: Pasta definida na Config ou Pasta de Usuários como fallback
-    const rootFolderId = serverEnv.GOOGLE_DRIVE_ROOT_ID; 
+    // 3. Raiz de Segurança (Sempre Users para a Opção A)
+    const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID; 
 
-    // A. Garantir Pasta do Módulo (ex: 'Showroom', 'Pesquisas')
-    const moduleFolderName = config.driveFolder || "General_Forms";
-    const moduleFolderId = await ensureFolder(drive, rootFolderId, moduleFolderName);
+    // A. Identificar se é B2C (PF) ou B2B (PJ) pela matrícula
+    const isPJ = matricula.includes("-PJ-");
+    const subFolderName = isPJ ? "2.3.B2B" : "2.2.B2C"; // TODO: Validar nome da pasta B2B futuramente
 
-    // B. Garantir Pasta do Usuário dentro do Módulo
-    const userFolderId = await ensureFolder(drive, moduleFolderId, matricula);
+    // B. Garantir Pasta de Categoria (Auto-Healing)
+    const categoryFolderId = await ensureFolder(drive, baseFolderId, subFolderName);
 
-    // C. Criar/Preparar Planilha
+    // C. Encontrar ou Criar Pasta Pessoal do Usuário
+    const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
+
+    // D. Garantir Pasta Temática DENTRO do Usuário (ex: 'Showroom')
+    const themeFolderId = await ensureFolder(drive, userFolderId, config.driveFolder || config.id);
+
+    // E. Criar/Preparar Planilha
     const fileName = `${config.sheetNamePrefix || config.id} - ${matricula}`;
-    const spreadsheetId = await createSpreadsheet(drive, userFolderId, fileName);
+    const spreadsheetId = await createSpreadsheet(drive, themeFolderId, fileName);
 
-    // D. Formatar Dados para Sheets
-    const headers = ["Timestamp", "ID Formulário", "Matrícula", ...Object.keys(response)];
+    // F. Formatar Dados para Sheets
+    const headers = ["Timestamp", "Formulário", "Matrícula", ...Object.keys(response)];
     const rowData = [
       new Date().toLocaleString("pt-BR"),
       config.id,
