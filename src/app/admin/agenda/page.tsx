@@ -140,7 +140,7 @@ export default function AgendaManagementPage() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-            Gestão de Agenda
+            Sincronizar Agenda
           </h1>
           <p className="text-[#1D1D1F]/60 mt-2 font-medium">
             Interface de controle operacional e auditoria de serviços.
