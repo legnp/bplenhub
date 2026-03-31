@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content Area */}
       <main className="flex-1 ml-64 p-10 max-w-7xl relative z-10 transition-all duration-300">
-        <div className="bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] rounded-2xl p-8 min-h-[85vh]">
+        <div className="bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] rounded-2xl p-8 h-[1000px] overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </main>
