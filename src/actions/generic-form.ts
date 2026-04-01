@@ -71,7 +71,8 @@ export async function submitGenericForm(config: FormConfig, response: FormRespon
 
     console.log(`✅ [Generic Form] Submissão Concluída: ${config.id} - ${matricula}`);
     return { success: true, matricula };
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     console.error(`❌ Erro [submitGenericForm] para ${config.id}:`, error);
     throw new Error(error.message || "Falha na submissão do formulário.");
   }

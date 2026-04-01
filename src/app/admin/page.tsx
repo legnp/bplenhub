@@ -12,7 +12,7 @@ export default function AdminDashboardPage() {
         <h3 className="text-xl font-semibold mb-2 text-[#1D1D1F]">Bem-vindo(a) ao seu HUB</h3>
         <p className="text-[#1D1D1F]/70 text-sm">
           Utilize a navegação lateral para visualizar e gerenciar o ecossistema. 
-          Use o menu "Sincronizar Agenda" para organizar seus serviços e os menus de 
+          Use o menu &quot;Sincronizar Agenda&quot; para organizar seus serviços e os menus de 
           Formulários, Portfólio e Usuários para gerenciar os pilares operacionais.
         </p>
       </div>

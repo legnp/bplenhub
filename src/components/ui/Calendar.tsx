@@ -73,7 +73,7 @@ export default function Calendar({
   onMonthChange,
   onBookingSuccess
 }: CalendarProps) {
-  const { user } = useAuthContext();
+  const { user, matricula, nickname } = useAuthContext();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filterType, setFilterType] = useState("Todos");
@@ -95,13 +95,13 @@ export default function Calendar({
       const types = await getOneToOneTypes();
       setOneToOneTypes(types);
       
-      if (user?.uid) {
-        const bookings = await getUserBookingsAction(user.uid);
+      if (matricula) {
+        const bookings = await getUserBookingsAction(matricula);
         setUserBookings(bookings);
       }
     }
     load();
-  }, [user]);
+  }, [user, matricula]);
 
   // --- LÓGICA DE DADOS ---
 
@@ -137,11 +137,18 @@ export default function Calendar({
   // --- AÇÕES ---
 
   const handleBooking = async (eventId: string, oneToOneData?: { type: string; expectations: string }) => {
-    if (!user) return;
+    if (!user || !matricula || !nickname) return;
     setIsBooking(eventId);
     setBookingStatus(null);
     try {
-      const result = (await bookEventAction(eventId, user.uid, user.email || "", oneToOneData)) as { success: boolean; message: string };
+      const result = await bookEventAction(
+        eventId, 
+        user.uid, 
+        user.email || "", 
+        matricula, 
+        nickname, 
+        oneToOneData
+      );
       if (result.success) {
         setBookingStatus({ id: eventId, message: "Agendamento realizado com sucesso!", type: 'success' });
         onBookingSuccess?.();

@@ -22,9 +22,9 @@ describe('BPlen HUB — Governança de Agenda', () => {
     const mockDataWelcome = { User_Welcome: { User_Nickname: "Lis Welcome" } };
     const mockDataEmpty = {};
 
-    const getNickname = (d: any) => {
-      const welcome = d.User_Welcome || {};
-      return welcome.User_Nickname || d.User_Nickname || "Membro BPlen";
+    const getNickname = (d: Record<string, unknown>) => {
+      const welcome = (d.User_Welcome as Record<string, unknown>) || {};
+      return (welcome.User_Nickname as string) || (d.User_Nickname as string) || "Membro BPlen";
     };
 
     expect(getNickname(mockDataWelcome)).toBe("Lis Welcome");

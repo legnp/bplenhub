@@ -4,10 +4,12 @@ import { getCalendarClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { doc, setDoc, serverTimestamp, getDocs, collection, query, runTransaction, where, getDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDocs, collection, query, runTransaction, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
+
+import { calendar_v3 } from "googleapis";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 
@@ -67,7 +69,7 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
 
     const items = response.data.items || [];
 
-    return items.map((item: any) => {
+    return items.map((item: calendar_v3.Schema$Event) => {
       const description = item.description || "";
       const capacityMatch = description.match(/Vagas:\s*(\d+)/i);
       const mentorMatch = description.match(/Orientador:\s*(.*)/i);
@@ -185,41 +187,26 @@ export async function syncCalendarToFirestore() {
       deleted: deleteCount,
       timestamp: new Date().toISOString() 
     };
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     console.error("Erro na sincronização de agenda:", error);
     throw new Error(error.message || "Falha na sincronização.");
   }
 }
 
 /**
- * Agendamento de Evento (Workflow de Governança 🔐)
+ * Agendamento de Evento (Nova Arquitetura: Subcoleção de User 🔐)
  */
 export async function bookEventAction(
   eventId: string, 
   userId: string, 
   userEmail: string,
+  matricula: string,
+  nickname: string,
   oneToOneData?: { type: string; expectations: string }
 ): Promise<{ success: boolean; message: string }> {
   try {
     const eventRef = doc(db, "Calendar_Events", eventId);
-    
-    // 1. Buscar Matrícula e Nickname
-    const uidMapRef = doc(db, "_AuthMap", userId);
-    const uidMapSnap = await getDoc(uidMapRef);
-    
-    let matricula = "N/A";
-    let nickname = "Membro BPlen";
-
-    if (uidMapSnap.exists()) {
-      matricula = uidMapSnap.data().matricula || "N/A";
-      const userRef = doc(db, "User", matricula);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const d = userSnap.data();
-        const welcome = d.User_Welcome || {};
-        nickname = welcome.User_Nickname || welcome.Authentication_Name || d.User_Nickname || d.User_Name || d.Authentication_Name || "Membro BPlen";
-      }
-    }
 
     return await runTransaction(db, async (transaction) => {
       const eventSnap = await transaction.get(eventRef);
@@ -251,8 +238,9 @@ export async function bookEventAction(
       else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
       else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
 
-      const weekBookingId = `${userId}_week_${week}_${year}_${category}`;
-      const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
+      // Trava de semana na nova subcoleção
+      const weekBookingId = `week_${week}_${year}_${category}`;
+      const weekBookingRef = doc(db, "User", matricula, "User_Bookings", weekBookingId);
       
       const weekBookingSnap = await transaction.get(weekBookingRef);
       if (weekBookingSnap.exists()) {
@@ -267,7 +255,7 @@ export async function bookEventAction(
       }
 
       // EXECUÇÃO:
-      // 1. Criar registro de participação detalhado
+      // 1. Criar registro de participação detalhado no evento
       const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
       transaction.set(attendeeRef, {
         userId,
@@ -283,14 +271,16 @@ export async function bookEventAction(
         registeredCount: registered + 1
       });
 
-      // 3. Registrar trava de semana
+      // 3. Registrar trava de semana na subcoleção do usuário
       transaction.set(weekBookingRef, {
-        userId,
         eventId,
         week,
         year,
+        category,
         oneToOneData: oneToOneData || null,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        rating: 0,
+        feedback: ""
       });
 
       // 4. Enviar E-mail (Workflow Resend)
@@ -351,7 +341,6 @@ export async function bookEventAction(
         });
       } catch (emailError) {
         console.error("Erro ao enviar e-mail de confirmação:", emailError);
-        // Não falhamos o agendamento se apenas o e-mail falhar, mas logamos.
       }
 
       return { success: true, message: "Sucesso" };
@@ -378,15 +367,13 @@ export async function getSyncedEvents() {
 }
 
 /**
- * Busca agendamentos do usuário e enriquece com detalhes do evento.
+ * Busca agendamentos do usuário diretamente de sua subcoleção dedicada.
  */
-export async function getUserBookingsAction(userId: string): Promise<UserBooking[]> {
+export async function getUserBookingsAction(matricula: string): Promise<UserBooking[]> {
   try {
-    const q = query(collection(db, "User_Bookings"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
+    const bookingsRef = collection(db, "User", matricula, "User_Bookings");
+    const querySnapshot = await getDocs(bookingsRef);
     
-    // Buscar todos os eventos sincronizados para o "join" em memória
-    // Em uma escala maior, usaríamos um Map ou buscaríamos apenas os IDs necessários
     const allEvents = await getSyncedEvents();
     const eventsMap = new Map(allEvents.map(e => [e.id, e]));
 
@@ -397,31 +384,33 @@ export async function getUserBookingsAction(userId: string): Promise<UserBooking
       return {
         id: docSnap.id,
         eventId: data.eventId,
-        userId: data.userId,
+        userId: matricula, // Mapeado para matricula na nova estrutura
         week: data.week,
         year: data.year,
+        category: data.category || "geral",
         timestamp: data.timestamp?.toDate?.()?.toISOString() || null,
         rating: data.rating || 0,
         feedback: data.feedback || "",
+        evaluatedAt: data.evaluatedAt?.toDate?.()?.toISOString() || null,
         eventDetail: eventDetail || null
       };
     }).sort((a, b) => {
       const startA = a.eventDetail ? new Date(a.eventDetail.start).getTime() : 0;
       const startB = b.eventDetail ? new Date(b.eventDetail.start).getTime() : 0;
-      return startB - startA; // Mais recentes primeiro
+      return startB - startA;
     });
   } catch (error) {
-    console.error("Erro ao buscar agendamentos:", error);
+    console.error("Erro ao buscar agendamentos na subcoleção:", error);
     return [];
   }
 }
 
 /**
- * Submete avaliação Likert e feedback para um agendamento.
+ * Submete avaliação Likert e feedback para um agendamento na subcoleção.
  */
-export async function submitEvaluationAction(bookingId: string, rating: number, feedback: string) {
+export async function submitEvaluationAction(matricula: string, bookingId: string, rating: number, feedback: string) {
   try {
-    const bookingRef = doc(db, "User_Bookings", bookingId);
+    const bookingRef = doc(db, "User", matricula, "User_Bookings", bookingId);
     await setDoc(bookingRef, {
       rating,
       feedback,
@@ -430,25 +419,24 @@ export async function submitEvaluationAction(bookingId: string, rating: number, 
     
     return { success: true };
   } catch (error) {
-    console.error("Erro ao submeter avaliação:", error);
+    console.error("Erro ao submeter avaliação na subcoleção:", error);
     return { success: false };
   }
 }
 
 /**
- * Cancela um agendamento, estornando a vaga e liberando a trava de semana.
+ * Cancela um agendamento na subcoleção do usuário, estornando a vaga e liberando a trava de semana.
  */
 export async function cancelBookingAction(
+  matricula: string,
   bookingId: string,
   eventId: string,
-  userId: string,
-  week: number,
-  year: number
+  userId: string
 ) {
   try {
     const trxResult = await runTransaction(db, async (transaction) => {
       const eventRef = doc(db, "Calendar_Events", eventId);
-      const bookingRef = doc(db, "User_Bookings", bookingId);
+      const bookingRef = doc(db, "User", matricula, "User_Bookings", bookingId);
       const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
 
       const eventSnap = await transaction.get(eventRef);
@@ -457,17 +445,9 @@ export async function cancelBookingAction(
       const eventData = eventSnap.data();
       const currentRegistered = eventData.registeredCount || 0;
 
-      // 1. Identificar Categoria para saber qual trava liberar
-      let category = "geral";
-      const evSum = (eventData.summary || "").toLowerCase();
-      if (evSum.includes("1 to 1")) category = "1to1";
-      else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
-      else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
-
-      const weekBookingId = `${userId}_week_${week}_${year}_${category}`;
-      const weekBookingRef = doc(db, "User_Bookings", weekBookingId);
-      const legacyWeekBookingId = `${userId}_week_${week}_${year}`;
-      const legacyWeekBookingRef = doc(db, "User_Bookings", legacyWeekBookingId);
+      // 1. Identificar Categoria para saber qual trava liberar (se o ID for dinâmico)
+      // Na nova estrutura, o bookingId JÁ É a trava (ex: week_14_2026_grupo)
+      // Mas se o usuário passar um ID que não segue o padrão, tentamos encontrar.
 
       // Coletar dados do attendee para o envio do e-mail de cancelamento
       const attendeeSnap = await transaction.get(attendeeRef);
@@ -478,15 +458,11 @@ export async function cancelBookingAction(
         registeredCount: Math.max(0, currentRegistered - 1)
       });
 
-      // 2. Remover o registro de participação
+      // 2. Remover o registro de participação no evento
       transaction.delete(attendeeRef);
 
-      // 3. Remover o agendamento do usuário (libera a trava principal)
+      // 3. Remover o agendamento da subcoleção do usuário (libera a trava)
       transaction.delete(bookingRef);
-
-      // 4. Remover as travas de semana (Legacy ou Nova)
-      if (bookingId !== weekBookingId) transaction.delete(weekBookingRef);
-      if (bookingId !== legacyWeekBookingId) transaction.delete(legacyWeekBookingRef);
 
       return {
         success: true,
@@ -538,7 +514,7 @@ export async function cancelBookingAction(
     return { success: true };
   } catch (error: unknown) {
     const err = error as Error;
-    console.error("Erro ao cancelar agendamento:", err);
+    console.error("Erro ao cancelar agendamento na subcoleção:", err);
     return { success: false, message: err.message };
   }
 }

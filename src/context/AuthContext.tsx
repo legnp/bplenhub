@@ -14,18 +14,24 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  matricula: string | null;
+  nickname: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isAdmin: false,
+  matricula: null,
+  nickname: null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [matricula, setMatricula] = useState<string | null>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
 
   useEffect(() => {
     // Escuta mudanças no estado de autenticação (login/logout/refresh)
@@ -34,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (!currentUser) {
         setIsAdmin(false);
+        setMatricula(null);
+        setNickname(null);
         setLoading(false);
         return;
       }
@@ -54,15 +62,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const uidMapSnap = await getDoc(uidMapRef);
         
         if (uidMapSnap.exists()) {
-          const matricula = uidMapSnap.data().matricula;
+          const mat = uidMapSnap.data().matricula;
+          setMatricula(mat);
           
-          if (matricula) {
-            // Inscreve no Snapshot das Permissões
-            const permissionsRef = doc(db, "User", matricula, "User_Permissions", "access");
-            const permSnap = await getDoc(permissionsRef);
+          if (mat) {
+            const userRef = doc(db, "User", mat);
+            const userSnap = await getDoc(userRef);
             
-            if (permSnap.exists() && permSnap.data().admin === true) {
-              setIsAdmin(true);
+            if (userSnap.exists()) {
+              const d = userSnap.data();
+              const welcome = d.User_Welcome || {};
+              const resolvedNick = welcome.User_Nickname || welcome.Authentication_Name || d.User_Nickname || d.User_Name || d.Authentication_Name || "Membro BPlen";
+              setNickname(resolvedNick);
+
+              // Snapshot das Permissões
+              const permissionsRef = doc(db, "User", mat, "User_Permissions", "access");
+              const permSnap = await getDoc(permissionsRef);
+              
+              if (permSnap.exists() && permSnap.data().admin === true) {
+                setIsAdmin(true);
+              }
             }
           }
         }
@@ -78,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname }}>
       {!loading && children}
     </AuthContext.Provider>
   );

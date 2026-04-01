@@ -80,13 +80,13 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
             autoFocus={field.autoFocus}
             placeholder={field.placeholder}
             onChange={(e) => updateResponse(field.id, e.target.value)}
-            value={value as any}
+            value={(value as string) || ""}
           />
         );
       case "choice":
         return (
           <div className="flex flex-col gap-3">
-            {field.options?.map((opt: string | { label: string, value: string }) => {
+            {field.options?.map((opt) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               return (
@@ -102,10 +102,10 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
           </div>
         );
       case "checkbox":
-        const currentVals = Array.isArray(value) ? value : [];
+        const currentVals = Array.isArray(value) ? (value as string[]) : [];
         return (
           <div className="flex flex-col gap-2">
-            {field.options?.map((opt: string | { label: string, value: string }) => {
+            {field.options?.map((opt) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               const isChecked = currentVals.includes(val);
@@ -128,7 +128,7 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
       case "textarea":
         return (
           <TextareaGlass
-            value={value as any}
+            value={(value as string) || ""}
             onChange={(e) => updateResponse(field.id, e.target.value)}
             placeholder={field.placeholder}
             rows={4}
@@ -137,11 +137,11 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
       case "select":
         return (
           <SelectGlass
-            value={value as any}
+            value={(value as string) || ""}
             onChange={(e) => updateResponse(field.id, e.target.value)}
           >
             <option value="" disabled>{field.placeholder || "Selecione uma opção"}</option>
-            {field.options?.map((opt: string | { label: string, value: string }) => {
+            {field.options?.map((opt) => {
               const label = typeof opt === "string" ? opt : opt.label;
               const val = typeof opt === "string" ? opt : opt.value;
               return <option key={val} value={val}>{label}</option>;

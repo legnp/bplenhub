@@ -34,7 +34,7 @@ export default function AgendaManagementPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<{ count: number; timestamp: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [syncedEvents, setSyncedEvents] = useState<any[]>([]);
+  const [syncedEvents, setSyncedEvents] = useState<GoogleCalendarEvent[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -59,8 +59,8 @@ export default function AgendaManagementPage() {
         // Carrega tipos 1-to-1
         const types = await getOneToOneTypes();
         setOneToOneTypes(types);
-      } catch (e) {
-        console.error(e);
+      } catch (err: unknown) {
+        console.error("Erro ao carregar preview:", err);
       } finally {
         setIsLoadingList(false);
       }
@@ -78,8 +78,9 @@ export default function AgendaManagementPage() {
         const updatedEvents = await getSyncedEvents();
         setSyncedEvents(updatedEvents);
       }
-    } catch (err: any) {
-      setError(err.message || "Erro ao sincronizar agenda.");
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Erro ao sincronizar agenda.");
     } finally {
       setIsSyncing(false);
     }
@@ -391,7 +392,7 @@ export default function AgendaManagementPage() {
                 {event.description && (
                   <div className="mt-6 p-4 rounded-2xl bg-black/[0.02] border border-black/[0.03]">
                     <p className="text-[10px] text-[#1D1D1F]/60 line-clamp-2 italic leading-relaxed">
-                      "{event.description}"
+                      &quot;{event.description}&quot;
                     </p>
                   </div>
                 )}

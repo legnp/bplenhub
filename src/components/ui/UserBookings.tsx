@@ -15,46 +15,52 @@ import {
   User, 
   CheckCircle2, 
   Clock, 
-  AlertCircle,
   Loader2,
   Send
 } from "lucide-react";
 import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } from "@/actions/calendar";
 import { useAuthContext } from "@/context/AuthContext";
-import { UserBooking, GoogleCalendarEvent } from "@/types/calendar";
+import { UserBooking } from "@/types/calendar";
 
 export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} }: { refreshCounter?: number; onRefresh?: () => void }) {
-  const { user } = useAuthContext();
+  const { matricula } = useAuthContext();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState<string | null>(null);
 
-  const loadBookings = useCallback(async () => {
-    if (!user?.uid) return;
+  const fetchBookings = useCallback(async () => {
+    if (!matricula) return;
     setIsLoading(true);
     try {
-      const data = await getUserBookingsAction(user.uid);
-      setBookings(data as UserBooking[]);
-    } catch (error) {
-      console.error(error);
+      const data = await getUserBookingsAction(matricula);
+      setBookings(data || []);
+    } catch (err: unknown) {
+      console.error("Erro ao carregar agendamentos:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [user?.uid]);
+  }, [matricula]);
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings, refreshCounter]);
+    fetchBookings();
+  }, [fetchBookings, refreshCounter]);
 
-  const handleEvaluation = async (bookingId: string, rating: number, feedback: string) => {
-    setIsSubmitting(bookingId);
-    const res = await submitEvaluationAction(bookingId, rating, feedback);
-    if (res.success) {
-      // Atualiza localmente
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, rating, feedback } : b));
+  const handleEvaluate = async (bookingId: string, rating: number, feedback: string) => {
+    if (!matricula) return;
+    setIsEvaluating(bookingId);
+    try {
+      const res = await submitEvaluationAction(matricula, bookingId, rating, feedback);
+      if (res.success) {
+        alert("Avaliação enviada com sucesso!");
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, rating, feedback, evaluatedAt: new Date().toISOString() } : b));
+      } else {
+        alert("Falha ao enviar avaliação.");
+      }
+    } catch (err: unknown) {
+      console.error("Erro ao avaliar:", err);
+    } finally {
+      setIsEvaluating(null);
     }
-    setIsSubmitting(null);
   };
 
   if (isLoading) {
@@ -88,9 +94,9 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
           <BookingCard 
             key={booking.id} 
             booking={booking} 
-            onEvaluate={handleEvaluation}
-            isSubmitting={isSubmitting === booking.id}
-            onRefresh={loadBookings}
+            onEvaluate={handleEvaluate}
+            isSubmitting={isEvaluating === booking.id}
+            onRefresh={fetchBookings}
           />
         ))}
       </div>
@@ -109,6 +115,7 @@ function BookingCard({
   isSubmitting: boolean,
   onRefresh: () => void 
 }) {
+  const { user, matricula } = useAuthContext();
   const [rating, setRating] = useState(booking.rating || 0);
   const [feedback, setFeedback] = useState(booking.feedback || "");
   const [isHovering, setIsHovering] = useState(0);
@@ -167,14 +174,26 @@ function BookingCard({
            ) : (
               <button 
                 onClick={async () => {
+                  if (!user || !matricula) return;
                   if (confirm("Tem certeza que deseja cancelar este agendamento? A vaga será liberada no HUB.")) {
                     setIsDeleting(true);
-                    const res = await cancelBookingAction(booking.id, event.id, booking.userId, booking.week, booking.year);
-                    if (res?.success) {
-                      onRefresh();
-                    } else {
-                      const msg = (res as { message?: string })?.message || "Falha na transação";
-                      alert("Erro ao cancelar: " + msg);
+                    try {
+                      const res = await cancelBookingAction(
+                        matricula, 
+                        booking.id, 
+                        event.id, 
+                        user.uid
+                      );
+                      if (res?.success) {
+                        alert("Agendamento cancelado!");
+                        onRefresh();
+                      } else {
+                        const msg = (res as { message?: string })?.message || "Falha na transação";
+                        alert("Erro ao cancelar: " + msg);
+                      }
+                    } catch (err: unknown) {
+                      console.error("Erro ao cancelar:", err);
+                    } finally {
                       setIsDeleting(false);
                     }
                   }

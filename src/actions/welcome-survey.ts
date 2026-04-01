@@ -57,7 +57,8 @@ export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
     await syncToDrive(matricula, data);
 
     return { success: true, matricula };
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     console.error("Erro na Welcome Action:", error);
     throw new Error(error.message || "Falha ao processar cadastro inicial.");
   }
@@ -107,7 +108,8 @@ async function syncToDrive(matricula: string, data: WelcomeSurveyData) {
     await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
 
     console.log(`✅ [Welcome Survey] Drive Sincronizado: ${matricula}`);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     console.error("Erro na Sincronização Global do Drive:", error);
     throw error;
   }
