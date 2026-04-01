@@ -18,4 +18,13 @@ export const CALENDAR_CONFIG = {
 
   // E-mail oficial do HUB
   OFFICIAL_EMAIL: "hub@bplen.com",
+
+  // Configurações para Agendamento Público (Landing Page)
+  PUBLIC_BOOKING_SETTINGS: {
+    workingHours: { start: "08:00", end: "18:00" },
+    defaultDuration: 30, // minutos
+    bufferBetweenMeetings: 15, // minutos
+    maxDaysInFuture: 15, // Quantos dias à frente o cliente pode ver
+    minDaysInFuture: 1, // Mínimo de 1 dia de antecedência
+  }
 };

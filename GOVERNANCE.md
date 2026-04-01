@@ -1,45 +1,42 @@
-# Governança & Estabilidade do BPlen HUB
+# BPlen HUB — Diretrizes de Governança e Robustez 🛡️
 
-Este documento formaliza as práticas de engenharia, garantia de qualidade e ritos de entrega para manter o ecossistema BPlen HUB estável em produção.
+Este documento formaliza os critérios de qualidade e a rotina de entrega segura do ecossistema BPlen HUB.
 
-## 1. Definição de Pronto (Definition of Done - DoD)
+## 📋 Definição de Pronto (Definition of Done)
 
-Um épico, feature ou ajuste é considerado **PRONTO** apenas quando:
+Uma tarefa ou funcionalidade é considerada **CONCLUÍDA** apenas quando:
+1. **Tipagem Forte**: Não existem usos de `any` em áreas lógicas ou críticas (Política Zero Any).
+2. **Build Limpo**: O comando `npm run build` termina com sucesso sem erros.
+3. **Lint & Style**: `npm run lint` não reporta erros (avisos de acessibilidade em imagens são aceitáveis temporariamente).
+4. **Testes**: `npm run test` passa em 100% dos casos.
+5. **Arquitetura Hierárquica**: Dados sensíveis de usuários residem em subcoleções privadas (`User/{matricula}/...`).
 
-1.  **Zero Erros de Compilação & Lint**: `npm run build` e `npm run lint` passam sem falhas locais.
-2.  **Lógica de Usuário Mapeada**: O `User_Nickname` deve ser extraído obrigatoriamente via `/user-nickname`.
-3.  **Fluxos Críticos Validados**:
-    -   🔐 Login e Sessão.
-    -   🌱 Fluxo de Onboarding (preenchimento no Firestore).
-    -   📅 Agendamento e Cancelamento de Eventos (Governança SI).
-    -   🛡️ Permissões de Admin (Acesso restrito bloqueado para outros usuários).
-4.  **Sincronização**: O deploy no GitHub deve refletir fielmente o código local validado.
+## ⚙️ Rotina de Validação (Pipeline Local)
 
-## 2. Bloqueadores de Entrega
+Antes de cada `git push` ou deploy, **DEVE-SE** executar obrigatoriamente:
 
-É terminantemente proibido subir código que contenha:
-- Erros de TypeScript/Lint no build.
-- Mudanças em coleções do Firestore sem o respectivo mapeamento no `/user-nickname`.
-- Falhas na regra de negócio de "1 agendamento por semana" (Governança SI).
-
-## 3. Rotina Padrão de Validação
-
-Antes de qualquer push crucial, o desenvolvedor deve rodar:
-
-```bash
+```powershell
 npm run check
 ```
 
-O comando `check` orquestra:
-1.  `npm run lint` (Garagem Limpa).
-2.  `npm test` (Proteção de Fluxos Críticos).
-3.  `npm run type-check` (Integridade de Tipos).
-4.  `npm run build` (Preparo para Produção).
+Este comando unifica:
+- `lint`: Garante padrões de código.
+- `test`: Valida fluxos críticos (Vitest).
+- `type-check`: Valida integridade do TypeScript (`tsc`).
+- `build`: Garante que a aplicação Next.js está pronta para produção.
 
-## 4. Matriz de Riscos Atuais
+## 🔐 Segurança e Arquitetura de Dados
 
-- **Sincronização Manual**: O push manual no Git Desktop exige atenção dupla do desenvolvedor para não pular as checagens `check`.
-- **Governança de Tipos**: Algumas extensões de arquivos podem carregar `any` silenciados — prioridade é erradicação total do `any` em fluxos financeiros ou de agenda.
+- **Isolamento**: Nunca use coleções raiz para dados que pertencem a um único usuário.
+- **Identificação**: Utilize o `AuthContext` para obter `matricula` e `nickname`. Evite consultas repetitivas ao Firestore.
+- **Transactions**: Operações que envolvem contadores (vagas, sequências) devem usar `runTransaction`.
+
+## 🚀 O que bloqueia a entrega?
+
+- ❌ Erros de build ou `type-check`.
+- ❌ Uso de `any` sem justificativa técnica extrema.
+- ❌ Vazamento de chaves de API (protegido pelo sensor Zod).
+- ❌ Chamadas de banco de dados sem validação de permissão.
 
 ---
-**Equipe AI Antigravity & BPlen Team**
+**BPlen HUB** — *Excelência em Desenvolvimento Humano.*

@@ -5,6 +5,7 @@ import { ScenarioSection } from "@/components/home/ScenarioSection";
 import { ServicesSection } from "@/components/home/ServicesSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { FinalCTA } from "@/components/home/FinalCTA";
+import { BookingSection } from "@/components/home/BookingSection";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { ParticleNexus } from "@/components/home/ParticleNexus";
 import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
@@ -43,7 +44,10 @@ export default function Home() {
       {/* 7. Diferenciais (As 4 Forças BPlen) */}
       <FeaturesSection />
 
-      {/* 7.1 CTA Final (Conversão Direta) */}
+      {/* 8. Agendamento Público (Conversão Direta Integrada) */}
+      <BookingSection />
+
+      {/* 9. CTA Final (Resumo de Conversão) */}
       <FinalCTA />
 
       {/* 8. Rodapé Minimalista (Final da Jornada) */}
