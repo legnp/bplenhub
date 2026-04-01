@@ -50,11 +50,11 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
       requestBody: {
         timeMin,
         timeMax,
-        items: [{ id: "primary" }]
+        items: [{ id: serverEnv.GOOGLE_CALENDAR_ID }]
       }
     });
 
-    const busyIntervals = fbResponse.data.calendars?.primary?.busy || [];
+    const busyIntervals = fbResponse.data.calendars?.[serverEnv.GOOGLE_CALENDAR_ID]?.busy || [];
 
     // 2. Gerar slots baseados nas Working Hours e Duração
     const slots: TimeSlot[] = [];
@@ -140,7 +140,7 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
 `.trim();
 
     await calendar.events.insert({
-      calendarId: "primary",
+      calendarId: serverEnv.GOOGLE_CALENDAR_ID,
       requestBody: {
         summary: `Reunião 1to1: ${formData.name}`,
         description: eventDescription,
