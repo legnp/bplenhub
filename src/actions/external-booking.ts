@@ -126,6 +126,7 @@ export async function bookPublicMeetingAction(formData: {
     });
 
     // 2. Criar Evento no Google Calendar com Google Meet
+    // 2. Criar Evento para gerar Google Meet (na agenda primária da Service Account para evitar erros de permissão)
     const eventDescription = `
 👤 **Cliente:** ${formData.name}
 📧 **E-mail:** ${formData.email}
@@ -139,51 +140,64 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
 🔗 **Agendado via BPlen HUB**
 `.trim();
 
-    const calendarResponse = await calendar.events.insert({
-      calendarId: serverEnv.GOOGLE_BOOKING_CALENDAR_ID,
+    // Passo A: Gerar o Meet Link na agenda "dona" da Service Account
+    const meetResponse = await calendar.events.insert({
+      calendarId: "primary",
       conferenceDataVersion: 1,
       requestBody: {
-        summary: `BPlen | 1 to 1: ${formData.name}`,
-        description: eventDescription,
+        summary: `BPlen Meet: ${formData.name}`,
+        description: `Link gerado para agendamento ${leadRef.id}`,
         start: { dateTime: formatISO(startTime) },
         end: { dateTime: formatISO(endTime) },
         conferenceData: {
           createRequest: {
-            requestId: `bplen-${leadRef.id}`,
+            requestId: `meet-${leadRef.id}`,
             conferenceSolutionKey: { type: "hangoutsMeet" }
           }
         },
+      }
+    });
+
+    const meetingLink = meetResponse.data.hangoutLink || "";
+
+    // Passo B: Criar o evento na agenda de destino (legnp@bplen.com) como evento simples
+    const calendarResponse = await calendar.events.insert({
+      calendarId: serverEnv.GOOGLE_BOOKING_CALENDAR_ID,
+      requestBody: {
+        summary: `BPlen | 1 to 1: ${formData.name}`,
+        description: `${eventDescription}\n\n🎥 Link da Reunião: ${meetingLink}`,
+        start: { dateTime: formatISO(startTime) },
+        end: { dateTime: formatISO(endTime) },
+        location: meetingLink,
         reminders: {
           useDefault: false,
           overrides: [
-            { method: "email", minutes: 24 * 60 },
             { method: "popup", minutes: 30 },
           ],
         },
       }
     });
 
-    const event = calendarResponse.data;
-    const meetingLink = event.hangoutLink || "";
+    const eventId = calendarResponse.data.id;
 
     // 3. Atualizar Firestore com dados do evento
     await updateDoc(leadRef, {
       status: "confirmed",
-      calendarEventId: event.id,
+      calendarEventId: eventId,
       meetingLink: meetingLink,
       meetingDuration: CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.defaultDuration,
-      meetingTitle: event.summary,
+      meetingTitle: `BPlen | 1 to 1: ${formData.name}`,
       bookingCalendar: serverEnv.GOOGLE_BOOKING_CALENDAR_ID
     });
 
     // 4. Gerar arquivo .ics
     const icsContent = generateIcsString({
-      title: event.summary || "BPlen | 1 to 1",
+      title: `BPlen | 1 to 1: ${formData.name}`,
       description: `${eventDescription}\n\nLink da Reunião: ${meetingLink}`,
       location: meetingLink,
       start: startTime,
       end: endTime,
-      uid: event.id || `bplen-${Date.now()}`
+      uid: eventId || `bplen-${Date.now()}`
     });
 
     // 5. Enviar E-mail via Resend (hub@bplen.com)
