@@ -228,6 +228,9 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
   } catch (error: unknown) {
     console.error("Erro no bookPublicMeetingAction:", error);
     const err = error as Error;
-    throw new Error(err.message || "Erro ao processar agendamento.");
+    return { 
+      success: false, 
+      message: err.message || "Erro ao processar agendamento." 
+    };
   }
 }
