@@ -147,7 +147,6 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
         description: eventDescription,
         start: { dateTime: formatISO(startTime) },
         end: { dateTime: formatISO(endTime) },
-        attendees: [{ email: formData.email }],
         conferenceData: {
           createRequest: {
             requestId: `bplen-${leadRef.id}`,
