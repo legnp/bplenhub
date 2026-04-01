@@ -60,6 +60,7 @@ const serverSchema = z.object({
   GOOGLE_DRIVE_USUARIOS_ID: z.string().min(1, "Google Drive Usuarios ID é obrigatório"),
   GOOGLE_DRIVE_ATAS_ID: z.string().min(1, "Google Drive Atas ID é obrigatório"),
   GOOGLE_CALENDAR_ID: z.string().min(1, "Google Calendar ID é obrigatório"),
+  GOOGLE_BOOKING_CALENDAR_ID: z.string().min(1, "Google Booking Calendar ID é obrigatório"),
 });
 
 // ──────────────────────────────
@@ -104,6 +105,7 @@ if (typeof window === "undefined") {
     GOOGLE_DRIVE_USUARIOS_ID: process.env.GOOGLE_DRIVE_USUARIOS_ID,
     GOOGLE_DRIVE_ATAS_ID: process.env.GOOGLE_DRIVE_ATAS_ID,
     GOOGLE_CALENDAR_ID: process.env.GOOGLE_CALENDAR_ID,
+    GOOGLE_BOOKING_CALENDAR_ID: process.env.GOOGLE_BOOKING_CALENDAR_ID,
   }, "server");
 }
 

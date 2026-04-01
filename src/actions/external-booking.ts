@@ -16,10 +16,11 @@ import {
   format
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, collection, addDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
+import { generateIcsString } from "@/lib/ics-utils";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 
@@ -34,7 +35,7 @@ export interface TimeSlot {
 
 /**
  * Busca slots disponíveis para agendamento público (1 to 1).
- * Baseia-se no Free/Busy do Google Calendar e nas configurações de Working Hours.
+ * Baseia-se no Free/Busy da agenda de disponibilidade configurada.
  */
 export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]> {
   try {
@@ -45,7 +46,7 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
     const timeMin = formatISO(startOfDay(targetDate));
     const timeMax = formatISO(endOfDay(targetDate));
 
-    // 1. Consultar Free/Busy do Google
+    // 1. Consultar Free/Busy da agenda de disponibilidade
     const fbResponse = await calendar.freebusy.query({
       requestBody: {
         timeMin,
@@ -75,7 +76,6 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
       const isBusy = busyIntervals.some(busy => {
         const bStart = parseISO(busy.start!);
         const bEnd = parseISO(busy.end!);
-        // Sobreposição de intervalos: (A_start < B_end) && (B_start < A_end)
         return isBefore(currentSlotStart, bEnd) && isBefore(bStart, currentSlotEnd);
       });
 
@@ -100,34 +100,33 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
 }
 
 /**
- * Executa o agendamento externo: Salva Lead, Cria Evento no Google e envia E-mail.
+ * Executa o agendamento externo: Salva Lead, Cria Evento com Meet, gera ICS e envia E-mail.
  */
 export async function bookPublicMeetingAction(formData: {
   name: string;
   email: string;
   phone: string;
   screening: Record<string, string>;
-  slot: string; // ISO String do início do slot
+  slot: string;
 }) {
   try {
     const calendar = await getCalendarClient();
     const startTime = parseISO(formData.slot);
     const endTime = addMinutes(startTime, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.defaultDuration);
 
-    // 1. Salvar Lead no Firestore
+    // 1. Salvar Lead Inicial no Firestore
     const leadRef = await addDoc(collection(db, "User_Leads"), {
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
       screening: formData.screening,
       selectedSlot: formData.slot,
-      status: "confirmed",
+      status: "pending_calendar", // Status temporário enquanto cria agenda
       createdAt: serverTimestamp()
     });
 
-    // 2. Criar Evento no Google Calendar (Apenas na agenda do Admin devido à limitação de Service Account)
+    // 2. Criar Evento no Google Calendar com Google Meet
     const eventDescription = `
-🔔 **Agendamento Externo via BPlen HUB**
 👤 **Cliente:** ${formData.name}
 📧 **E-mail:** ${formData.email}
 📱 **Telefone:** ${formData.phone}
@@ -137,15 +136,24 @@ export async function bookPublicMeetingAction(formData: {
 ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n")}
 
 🆔 **Lead ID:** ${leadRef.id}
+🔗 **Agendado via BPlen HUB**
 `.trim();
 
-    await calendar.events.insert({
-      calendarId: serverEnv.GOOGLE_CALENDAR_ID,
+    const calendarResponse = await calendar.events.insert({
+      calendarId: serverEnv.GOOGLE_BOOKING_CALENDAR_ID,
+      conferenceDataVersion: 1,
       requestBody: {
-        summary: `Reunião 1to1: ${formData.name}`,
+        summary: `BPlen | 1 to 1: ${formData.name}`,
         description: eventDescription,
         start: { dateTime: formatISO(startTime) },
         end: { dateTime: formatISO(endTime) },
+        attendees: [{ email: formData.email }],
+        conferenceData: {
+          createRequest: {
+            requestId: `bplen-${leadRef.id}`,
+            conferenceSolutionKey: { type: "hangoutsMeet" }
+          }
+        },
         reminders: {
           useDefault: false,
           overrides: [
@@ -156,35 +164,62 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
       }
     });
 
-    // 3. Link dinâmico para o cliente adicionar ao seu próprio calendário
-    const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Reunião BPlen: ${formData.name}`)}&dates=${format(startTime, "yyyyMMdd'T'HHmmss'Z'")}/${format(endTime, "yyyyMMdd'T'HHmmss'Z'")}&details=${encodeURIComponent(eventDescription)}&sf=true&output=xml`;
+    const event = calendarResponse.data;
+    const meetingLink = event.hangoutLink || "";
 
-    // 4. Enviar E-mail via Resend (cs@bplen.com)
+    // 3. Atualizar Firestore com dados do evento
+    await updateDoc(leadRef, {
+      status: "confirmed",
+      calendarEventId: event.id,
+      meetingLink: meetingLink,
+      meetingDuration: CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.defaultDuration,
+      meetingTitle: event.summary,
+      bookingCalendar: serverEnv.GOOGLE_BOOKING_CALENDAR_ID
+    });
+
+    // 4. Gerar arquivo .ics
+    const icsContent = generateIcsString({
+      title: event.summary || "BPlen | 1 to 1",
+      description: `${eventDescription}\n\nLink da Reunião: ${meetingLink}`,
+      location: meetingLink,
+      start: startTime,
+      end: endTime,
+      uid: event.id || `bplen-${Date.now()}`
+    });
+
+    // 5. Enviar E-mail via Resend (hub@bplen.com)
     await resend.emails.send({
-      from: "BPlen <cs@bplen.com>",
+      from: "BPlen HUB <hub@bplen.com>",
       to: [formData.email],
       subject: `Confirmado: Sua reunião com a BPlen`,
+      attachments: [
+        {
+          filename: "convite-bplen.ics",
+          content: Buffer.from(icsContent)
+        }
+      ],
       html: `
-        <div style="font-family: sans-serif; color: #1D1D1F; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px;">
-          <h2 style="color: #667eea;">Olá, ${formData.name}!</h2>
-          <p>Seu agendamento foi realizado com sucesso.</p>
+        <div style="font-family: sans-serif; color: #1D1D1F; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 20px;">
+          <h2 style="color: #667eea; font-weight: 900; letter-spacing: -0.02em;">Olá, ${formData.name}!</h2>
+          <p style="font-size: 16px; line-height: 1.5;">Sua reunião estratégica 1 to 1 foi confirmada com sucesso.</p>
           
-          <div style="background: #f9f9fb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 5px 0;"><strong>Data:</strong> ${format(startTime, "dd / MM / yyyy", { locale: ptBR })}</p>
-            <p style="margin: 5px 0;"><strong>Horário:</strong> ${format(startTime, "HH:mm")} às ${format(endTime, "HH:mm")}</p>
+          <div style="background: #f9f9fb; padding: 25px; border-radius: 16px; margin: 24px 0; border: 1px solid #eee;">
+            <p style="margin: 8px 0; font-size: 14px;"><strong>📅 Data:</strong> ${format(startTime, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+            <p style="margin: 8px 0; font-size: 14px;"><strong>⏰ Horário:</strong> ${format(startTime, "HH:mm")} às ${format(endTime, "HH:mm")}</p>
+            <p style="margin: 8px 0; font-size: 14px;"><strong>💻 Plataforma:</strong> Google Meet</p>
           </div>
 
-          <div style="margin: 30px 0;">
-            <a href="${gCalUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(102,126,234,0.3);">
-               📅 Adicionar ao Google Calendar
+          <div style="margin: 32px 0; text-align: center;">
+            <a href="${meetingLink}" target="_blank" style="display: inline-block; padding: 16px 32px; background: #667eea; color: white; text-decoration: none; border-radius: 14px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(102,126,234,0.2);">
+               Acessar Sala de Reunião
             </a>
           </div>
 
-          <p style="color: #667eea; font-weight: bold;">Lembrete:</p>
-          <p>O link da reunião (Google Meet / Zoom) será enviado em breve pela nossa equipe.</p>
+          <p style="color: #667eea; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; margin-top: 40px;">⚠️ Importante:</p>
+          <p style="font-size: 13px; color: #666;">Anexamos um arquivo de calendário (ICS) a este email. Ao abri-lo, o evento será adicionado automaticamente à sua agenda pessoal com todos os alertas configurados.</p>
           
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-          <p style="font-size: 12px; color: #86868b;">Este é um e-mail automático enviado pelo BPlen HUB. Dúvidas? Responda a este e-mail ou entre em contato via WhatsApp.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;" />
+          <p style="font-size: 11px; color: #86868b; text-align: center; font-weight: 500;">Este é um e-mail oficial do BPlen HUB.<br/>Evolução através da excelência.</p>
         </div>
       `,
     });
@@ -193,6 +228,6 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
   } catch (error: unknown) {
     console.error("Erro no bookPublicMeetingAction:", error);
     const err = error as Error;
-    return { success: false, message: err.message };
+    throw new Error(err.message || "Erro ao processar agendamento.");
   }
 }
