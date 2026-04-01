@@ -125,7 +125,7 @@ export async function bookPublicMeetingAction(formData: {
       createdAt: serverTimestamp()
     });
 
-    // 2. Criar Evento no Google Calendar
+    // 2. Criar Evento no Google Calendar (Apenas na agenda do Admin devido à limitação de Service Account)
     const eventDescription = `
 🔔 **Agendamento Externo via BPlen HUB**
 👤 **Cliente:** ${formData.name}
@@ -146,7 +146,6 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
         description: eventDescription,
         start: { dateTime: formatISO(startTime) },
         end: { dateTime: formatISO(endTime) },
-        attendees: [{ email: formData.email }],
         reminders: {
           useDefault: false,
           overrides: [
@@ -157,7 +156,10 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
       }
     });
 
-    // 3. Enviar E-mail via Resend (cs@bplen.com)
+    // 3. Link dinâmico para o cliente adicionar ao seu próprio calendário
+    const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Reunião BPlen: ${formData.name}`)}&dates=${format(startTime, "yyyyMMdd'T'HHmmss'Z'")}/${format(endTime, "yyyyMMdd'T'HHmmss'Z'")}&details=${encodeURIComponent(eventDescription)}&sf=true&output=xml`;
+
+    // 4. Enviar E-mail via Resend (cs@bplen.com)
     await resend.emails.send({
       from: "BPlen <cs@bplen.com>",
       to: [formData.email],
@@ -172,7 +174,14 @@ ${Object.entries(formData.screening).map(([q, a]) => `• ${q}: ${a}`).join("\n"
             <p style="margin: 5px 0;"><strong>Horário:</strong> ${format(startTime, "HH:mm")} às ${format(endTime, "HH:mm")}</p>
           </div>
 
-          <p>Em breve você receberá um convite no seu calendário Google/Outlook com o link da reunião.</p>
+          <div style="margin: 30px 0;">
+            <a href="${gCalUrl}" target="_blank" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(102,126,234,0.3);">
+               📅 Adicionar ao Google Calendar
+            </a>
+          </div>
+
+          <p style="color: #667eea; font-weight: bold;">Lembrete:</p>
+          <p>O link da reunião (Google Meet / Zoom) será enviado em breve pela nossa equipe.</p>
           
           <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
           <p style="font-size: 12px; color: #86868b;">Este é um e-mail automático enviado pelo BPlen HUB. Dúvidas? Responda a este e-mail ou entre em contato via WhatsApp.</p>
