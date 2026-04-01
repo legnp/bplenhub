@@ -46,7 +46,7 @@ export function BookingSection() {
                   <div className="w-1.5 h-1.5 rounded-full bg-[#667eea] mt-2.5 shrink-0" />
                   <div>
                     <h4 className="text-white font-bold text-sm uppercase tracking-widest">{item.title}</h4>
-                    <p className="text-[#1D1D1F]/50 text-xs font-medium">{item.desc}</p>
+                    <p className="text-white/40 text-[11px] font-medium leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
