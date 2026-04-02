@@ -31,7 +31,12 @@ import {
 } from "lucide-react";
 import { InputGlass } from "./InputGlass";
 import { NavButton } from "./NavButton";
-import { getPublicSlotsAction, bookPublicMeetingAction, TimeSlot } from "@/actions/external-booking";
+import { 
+  getPublicSlotsAction, 
+  bookPublicMeetingAction, 
+  getPublicAvailableDaysAction,
+  TimeSlot 
+} from "@/actions/external-booking";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 
 type Step = "lead" | "triagem" | "calendar" | "success";
@@ -41,7 +46,9 @@ export function PublicBookingFlow() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phoneDDI: "+55",
+    phoneDDD: "",
+    phoneNumber: "",
     screening: {
       objetivo: "",
       conheceu_como: "",
@@ -49,6 +56,7 @@ export function PublicBookingFlow() {
     }
   });
 
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(addDays(new Date(), 1));
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -56,6 +64,22 @@ export function PublicBookingFlow() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchAvailableDays = useCallback(async () => {
+    try {
+      const res = await getPublicAvailableDaysAction();
+      setAvailableDays(res);
+      if (res.length > 0) {
+        setSelectedDate(parseISO(res[0]));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAvailableDays();
+  }, [fetchAvailableDays]);
 
   const fetchSlots = useCallback(async (date: Date) => {
     setIsLoadingSlots(true);
@@ -83,7 +107,10 @@ export function PublicBookingFlow() {
     setError(null);
     try {
       const res = await bookPublicMeetingAction({
-        ...formData,
+        name: formData.name,
+        email: formData.email,
+        phone: `${formData.phoneDDI} ${formData.phoneDDD}${formData.phoneNumber}`,
+        screening: formData.screening,
         slot: selectedSlot
       });
       if (res.success) {
@@ -122,7 +149,9 @@ export function PublicBookingFlow() {
   }, [currentMonth]);
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
-  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));  return (
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+
+  return (
     <div className="w-full max-w-4xl mx-auto py-12 px-4">
       {/* 48px Header */}
       <div className="text-center space-y-4 mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
@@ -138,8 +167,8 @@ export function PublicBookingFlow() {
       <div className={`w-full ${step === 'calendar' ? 'max-w-4xl' : 'max-w-xl'} mx-auto p-4 sm:p-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700`}>
         
         {/* 🔮 Glow Decoration */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#667eea]/20 rounded-full blur-3xl group-hover:bg-[#667eea]/30 transition-all duration-700" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#764ba2]/20 rounded-full blur-3xl opacity-50" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#ff2c8d]/20 rounded-full blur-3xl group-hover:bg-[#ff2c8d]/30 transition-all duration-700" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#ff006e]/20 rounded-full blur-3xl opacity-50" />
 
         <AnimatePresence mode="wait">
           
@@ -191,39 +220,53 @@ export function PublicBookingFlow() {
 
                 <div className="space-y-1.5 text-left">
                   <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] ml-1">WhatsApp / Telefone</label>
+                  
                   <div className="flex gap-2">
+                    {/* Seletor de País (DDI) */}
                     <select 
-                      className="w-24 bg-white/10 border border-white/10 rounded-2xl text-xs text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#667eea]"
-                      value={formData.phone.split(' ')[0] || "+55"}
-                      onChange={(e) => {
-                        const rest = formData.phone.split(' ').slice(1).join(' ');
-                        setFormData({...formData, phone: `${e.target.value} ${rest}`});
-                      }}
+                      className="w-28 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] appearance-none cursor-pointer"
+                      value={formData.phoneDDI}
+                      onChange={(e) => setFormData({...formData, phoneDDI: e.target.value, phoneDDD: ""})}
                     >
                       <option value="+55" className="bg-[#1D1D1F]">🇧🇷 +55</option>
                       <option value="+1" className="bg-[#1D1D1F]">🇺🇸 +1</option>
                       <option value="+351" className="bg-[#1D1D1F]">🇵🇹 +351</option>
+                      <option value="+34" className="bg-[#1D1D1F]">🇪🇸 +34</option>
+                      <option value="+44" className="bg-[#1D1D1F]">🇬🇧 +44</option>
+                      <option value="+33" className="bg-[#1D1D1F]">🇫🇷 +33</option>
+                      <option value="+49" className="bg-[#1D1D1F]">🇩🇪 +49</option>
+                      <option value="+244" className="bg-[#1D1D1F]">🇦🇴 +244</option>
+                      <option value="+54" className="bg-[#1D1D1F]">🇦🇷 +54</option>
                     </select>
-                    <input 
-                      placeholder="DDD"
-                      maxLength={2}
-                      className="w-16 bg-white/10 border border-white/10 rounded-2xl text-xs text-white p-3 text-center focus:outline-none focus:ring-1 focus:ring-[#667eea]"
-                      onChange={(e) => {
-                        const ddd = e.target.value.replace(/\D/g, "");
-                        const ddi = formData.phone.split(' ')[0] || "+55";
-                        const num = formData.phone.split(' ')[1]?.substring(2) || "";
-                        setFormData({...formData, phone: `${ddi} ${ddd}${num}`});
-                      }}
-                    />
+
+                    {/* DDD Condicional */}
+                    {formData.phoneDDI === "+55" ? (
+                      <select 
+                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] appearance-none"
+                        value={formData.phoneDDD}
+                        onChange={(e) => setFormData({...formData, phoneDDD: e.target.value})}
+                      >
+                        <option value="" disabled className="bg-[#1D1D1F]">DDD</option>
+                        {[11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99].map(ddd => (
+                          <option key={ddd} value={ddd} className="bg-[#1D1D1F]">{ddd}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input 
+                        placeholder="Cód."
+                        maxLength={4}
+                        value={formData.phoneDDD}
+                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 text-center focus:outline-none focus:ring-1 focus:ring-[#ff2c8d]"
+                        onChange={(e) => setFormData({...formData, phoneDDD: e.target.value.replace(/\D/g, "")})}
+                      />
+                    )}
+
+                    {/* Número Blindado */}
                     <input 
                       placeholder="Número"
-                      className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-xs text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#667eea]"
-                      onChange={(e) => {
-                        const num = e.target.value.replace(/\D/g, "");
-                        const ddi = formData.phone.split(' ')[0] || "+55";
-                        const ddd = formData.phone.split(' ')[1]?.substring(0, 2) || "";
-                        setFormData({...formData, phone: `${ddi} ${ddd}${num}`});
-                      }}
+                      className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d]"
+                      value={formData.phoneNumber}
+                      onChange={(e) => setFormData({...formData, phoneNumber: e.target.value.replace(/\D/g, "")})}
                     />
                   </div>
                 </div>
@@ -232,7 +275,7 @@ export function PublicBookingFlow() {
               <div className="flex justify-end pt-4">
                 <NavButton 
                   onClick={() => setStep("triagem")} 
-                  disabled={!formData.name || !formData.email || !formData.phone} 
+                  disabled={!formData.name || !formData.email || !formData.phoneNumber} 
                 />
               </div>
             </motion.div>
@@ -253,7 +296,7 @@ export function PublicBookingFlow() {
                     Qual o objetivo da reunião?
                   </label>
                   <textarea 
-                    className="w-full bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#667eea] transition-all min-h-[120px]"
+                    className="w-full bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] transition-all min-h-[120px]"
                     placeholder="Conte um pouco sobre o que você busca..."
                     value={formData.screening.objetivo}
                     onChange={(e) => setFormData({...formData, screening: {...formData.screening, objetivo: e.target.value}})}
@@ -306,7 +349,7 @@ export function PublicBookingFlow() {
                   <h3 className="text-xl font-black text-white">Escolha um Horário</h3>
                 </div>
                 <div className="flex items-center gap-4">
-                   <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">AGENDA VIRTUAL 📺</p>
+                   <p className="text-[10px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">AGENDA VIRTUAL 📺</p>
                 </div>
               </div>
 
@@ -329,7 +372,7 @@ export function PublicBookingFlow() {
                   </div>
 
                   <div className="grid grid-cols-8 gap-1">
-                    <div className="text-center py-2"><span className="text-[9px] font-black text-[#764ba2] uppercase tracking-tighter opacity-50">SI</span></div>
+                    <div className="text-center py-2"><span className="text-[9px] font-black text-[#ff006e] uppercase tracking-tighter opacity-70">SI</span></div>
                     {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
                       <div key={i} className="text-center py-2"><span className="text-[9px] font-black text-white/30 uppercase">{d}</span></div>
                     ))}
@@ -337,26 +380,29 @@ export function PublicBookingFlow() {
                     {calendarCells.map((day, idx) => {
                       const isSelected = isSameDay(day, selectedDate);
                       const isCurrentMonth = isSameMonth(day, currentMonth);
-                      const isPast = isBefore(day, startOfDay(new Date()));
+                      const dayISO = format(day, "yyyy-MM-dd");
+                      const isAvailable = availableDays.includes(dayISO);
                       const weekNumber = getISOWeek(day);
 
                       return (
                         <React.Fragment key={day.toString()}>
                           {(idx % 7 === 0) && (
-                            <div className="flex items-center justify-center py-2 opacity-30">
-                              <span className="text-[9px] font-black text-[#764ba2]">{weekNumber.toString().padStart(2, '0')}</span>
+                            <div className="flex items-center justify-center py-2 opacity-70">
+                              <span className="text-[10px] font-black text-[#ff2c8d]">{weekNumber.toString().padStart(2, '0')}</span>
                             </div>
                           )}
                           <button
-                            onClick={() => !isPast && setSelectedDate(day)}
-                            disabled={isPast && !isSelected}
+                            onClick={() => isAvailable && setSelectedDate(day)}
+                            disabled={!isAvailable && !isSelected}
                             className={`relative flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-300 border
                                        ${isSelected 
-                                         ? "bg-[#667eea] border-[#667eea] text-white shadow-xl shadow-[#667eea]/30 scale-105 z-10" 
+                                         ? "bg-[#ff2c8d] border-[#ff2c8d] text-white shadow-xl shadow-[#ff2c8d]/30 scale-105 z-10" 
                                          : isToday(day) 
-                                           ? "bg-[#667eea]/10 border-white/5 text-[#667eea] font-bold" 
-                                           : isCurrentMonth ? "text-white border-transparent hover:border-white/10 hover:bg-white/5" : "text-white/10 border-transparent"
-                                       } ${isPast && !isSelected ? "opacity-10 cursor-not-allowed" : ""}`}
+                                           ? "bg-[#ff2c8d]/10 border-white/5 text-[#ff2c8d] font-bold" 
+                                           : isAvailable 
+                                             ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
+                                             : "text-white/10 border-transparent cursor-default"
+                                       }`}
                           >
                             <span className="text-xs font-bold">{format(day, "d")}</span>
                           </button>
@@ -369,7 +415,7 @@ export function PublicBookingFlow() {
                 {/* --- SLOTS LIST --- */}
                 <div className="flex flex-col h-full space-y-4">
                   <div className="space-y-1">
-                    <h4 className="text-[9px] font-black text-[#667eea] uppercase tracking-[0.2em]">PROGRAMAÇÃO DISPONÍVEL</h4>
+                    <h4 className="text-[9px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">PROGRAMAÇÃO DISPONÍVEL</h4>
                     <p className="text-lg font-black text-white capitalize">
                       {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                     </p>
@@ -396,7 +442,7 @@ export function PublicBookingFlow() {
                             className={`py-4 rounded-2xl text-xs font-black transition-all border
                                        ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                        ${selectedSlot === s.id 
-                                         ? "bg-[#667eea] border-[#667eea] text-white shadow-lg scale-[1.02]" 
+                                         ? "bg-[#ff2c8d] border-[#ff2c8d] text-white shadow-lg scale-[1.02]" 
                                          : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
                           >
                             <div className="flex items-center justify-center gap-2">
@@ -434,26 +480,27 @@ export function PublicBookingFlow() {
 
           {step === "success" && (
             <motion.div key="success" {...containerVariants} className="text-center py-12 space-y-6 relative z-10">
-              <div className="w-24 h-24 bg-[#667eea]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#667eea]/20 shadow-[0_0_50px_rgba(102,126,234,0.1)]">
-                <CheckCircle2 className="w-12 h-12 text-[#667eea]" />
+              <div className="w-16 h-16 bg-[#ff2c8d]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#ff2c8d]/20 shadow-[0_0_40px_rgba(255,44,141,0.2)]">
+                <CheckCircle2 className="w-8 h-8 text-[#ff2c8d] stroke-[1.5]" />
               </div>
               <div className="space-y-3">
-                <h3 className="text-4xl font-black text-white tracking-tighter">Solicitação Recebida!</h3>
+                <h3 className="text-4xl font-black text-white tracking-tighter">Que alegria! 🎉</h3>
                 <p className="text-white/60 text-base font-medium leading-relaxed">
-                  Enviamos um e-mail de confirmação para <br/>
-                  <span className="text-[#667eea] font-black">{formData.email}</span>
+                  Tudo pronto para nossa conversa. <br/>
+                  Enviamos os detalhes do acesso para <br/>
+                  <span className="text-[#ff2c8d] font-black">{formData.email}</span>
                 </p>
               </div>
               <div className="p-5 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-2 text-left">
-                <p className="text-[10px] font-black text-[#667eea] uppercase tracking-[0.2em]">⚡ Próximos Passos</p>
+                <p className="text-[10px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">📍 Confirmação Imediata</p>
                 <p className="text-xs text-white/60 leading-relaxed">
-                  Você receberá um e-mail com o link do Google Meet e o convite de calendário anexado. Por favor, verifique sua caixa de entrada e spam.
+                  Verifique sua caixa de entrada e spam. O link do Google Meet e o convite de calendário já estão a caminho.
                 </p>
               </div>
               <div className="pt-6">
                 <button
                   onClick={() => window.location.href = "/"}
-                  className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all"
+                  className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[#ff2c8d]/40"
                 >
                   Retornar ao HUB
                 </button>

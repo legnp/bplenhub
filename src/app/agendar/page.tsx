@@ -19,14 +19,7 @@ export default function AgendarPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#667eea15,transparent_50%)]" />
 
       <div className="z-10 w-full max-w-4xl py-20">
-         <div className="text-center mb-12 space-y-4 px-4">
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/30 bg-clip-text text-transparent leading-[1.1]">
-              Reserve seu <br className="md:hidden" /> Momento BPlen
-            </h1>
-            <p className="text-gray-400 font-medium max-w-lg mx-auto text-sm md:text-base leading-relaxed">
-              Dê o primeiro passo para sua evolução. Escolha um slot de 30 minutos abaixo e receba a confirmação em seu e-mail.
-            </p>
-         </div>
+
 
          {/* 📅 O Motor de Agendamento */}
          <div className="px-2">

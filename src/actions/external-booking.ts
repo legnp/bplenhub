@@ -125,3 +125,47 @@ export async function bookPublicMeetingAction(formData: {
     };
   }
 }
+
+/**
+ * Busca todos os dias que possuem pelo menos um slot disponível nos próximos meses.
+ * Usado para destacar no calendário apenas os dias clicáveis.
+ */
+export async function getPublicAvailableDaysAction(): Promise<string[]> {
+  try {
+    const now = new Date();
+    const timeMin = formatISO(startOfDay(now));
+    // Buscar disponibilidade para os próximos 60 dias
+    const timeMax = formatISO(addDays(now, 60));
+
+    const eventsQuery = query(
+      collection(db, "Calendar_Events"),
+      where("start", ">=", timeMin),
+      where("start", "<", timeMax),
+      orderBy("start", "asc")
+    );
+
+    const snap = await getDocs(eventsQuery);
+    const availableDaysSet = new Set<string>();
+    
+    const minAllowedTime = addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
+
+    snap.forEach((doc) => {
+      const data = doc.data();
+      const summary = data.summary || "";
+      if (summary.toLowerCase().includes("1 to 1")) {
+        const startTime = parseISO(data.start);
+        const registered = data.registeredCount || 0;
+        const capacity = data.totalCapacity || 1;
+
+        if (registered < capacity && isAfter(startTime, minAllowedTime)) {
+          availableDaysSet.add(formatISO(startOfDay(startTime), { representation: 'date' }));
+        }
+      }
+    });
+
+    return Array.from(availableDaysSet);
+  } catch (error) {
+    console.error("Erro ao buscar dias disponíveis:", error);
+    return [];
+  }
+}
