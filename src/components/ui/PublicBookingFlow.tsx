@@ -343,12 +343,12 @@ export function PublicBookingFlow() {
                     <div className="grid grid-cols-2 gap-2">
                       {slots.map((s) => (
                         <button
-                          key={s.start}
+                          key={s.id} // Usando ID do evento real
                           disabled={!s.available}
-                          onClick={() => setSelectedSlot(s.start)}
+                          onClick={() => setSelectedSlot(s.id)} // Slot agora é o eventId
                           className={`py-4 rounded-2xl text-xs font-black transition-all border
                                      ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
-                                     ${selectedSlot === s.start 
+                                     ${selectedSlot === s.id 
                                        ? "bg-[#667eea] border-[#667eea] text-white shadow-lg active:scale-95" 
                                        : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
                         >

@@ -201,12 +201,14 @@ export async function bookEventAction(
   eventId: string, 
   userId: string, 
   userEmail: string,
-  matricula: string,
-  nickname: string,
-  oneToOneData?: { type: string; expectations: string }
+  matricula?: string, // Opcional para Leads
+  nickname?: string,  // Opcional para Leads
+  oneToOneData?: { type: string; expectations: string },
+  leadInfo?: { name: string; phone: string } // Novo campo para Leads
 ): Promise<{ success: boolean; message: string }> {
   try {
     const eventRef = doc(db, "Calendar_Events", eventId);
+    const displayName = nickname || leadInfo?.name || "Convidado BPlen";
 
     return await runTransaction(db, async (transaction) => {
       const eventSnap = await transaction.get(eventRef);
@@ -238,30 +240,36 @@ export async function bookEventAction(
       else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
       else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
 
-      // Trava de semana na nova subcoleção
+      // Trava de semana na nova subcoleção (Apenas para usuários internos logados)
       const weekBookingId = `week_${week}_${year}_${category}`;
-      const weekBookingRef = doc(db, "User", matricula, "User_Bookings", weekBookingId);
+      const weekBookingRef = matricula 
+        ? doc(db, "User", matricula, "User_Bookings", weekBookingId)
+        : null;
       
-      const weekBookingSnap = await transaction.get(weekBookingRef);
-      if (weekBookingSnap.exists()) {
-        const catName = category === "grupo" ? "Orientação em Grupo" : category === "individual" ? "Orientação Individual" : category === "1to1" ? "1-to-1" : "evento genérico";
-        throw new Error(`Você já possui um agendamento de ${catName} para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 de cada formato na semana.`);
+      if (weekBookingRef) {
+        const weekBookingSnap = await transaction.get(weekBookingRef);
+        if (weekBookingSnap.exists()) {
+          const catName = category === "grupo" ? "Orientação em Grupo" : category === "individual" ? "Orientação Individual" : category === "1to1" ? "1-to-1" : "evento genérico";
+          throw new Error(`Você já possui um agendamento de ${catName} para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 de cada formato na semana.`);
+        }
       }
 
-      const capacity = eventData.totalCapacity || 0;
+      const capacity = eventData.totalCapacity || 1; // Default 1 para 1 to 1
       const registered = eventData.registeredCount || 0;
       if (registered >= capacity) {
         throw new Error("Infelizmente as vagas para este horário esgotaram.");
       }
 
       // EXECUÇÃO:
-      // 1. Criar registro de participação detalhado no evento
+      // 1. Criar registro de participação detalhado no evento (Para ambos: Lead ou User)
       const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
       transaction.set(attendeeRef, {
         userId,
-        matricula,
-        nickname,
+        matricula: matricula || "LEAD_EXTERNO",
+        nickname: displayName,
         email: userEmail,
+        phone: leadInfo?.phone || null,
+        isLead: !matricula,
         timestamp: serverTimestamp(),
         ...oneToOneData
       });
@@ -271,17 +279,19 @@ export async function bookEventAction(
         registeredCount: registered + 1
       });
 
-      // 3. Registrar trava de semana na subcoleção do usuário
-      transaction.set(weekBookingRef, {
-        eventId,
-        week,
-        year,
-        category,
-        oneToOneData: oneToOneData || null,
-        timestamp: serverTimestamp(),
-        rating: 0,
-        feedback: ""
-      });
+      // 3. Registrar trava de semana na subcoleção do usuário (Apenas se for usuário interno)
+      if (weekBookingRef) {
+        transaction.set(weekBookingRef, {
+          eventId,
+          week,
+          year,
+          category,
+          oneToOneData: oneToOneData || null,
+          timestamp: serverTimestamp(),
+          rating: 0,
+          feedback: ""
+        });
+      }
 
       // 4. Enviar E-mail (Workflow Resend)
       try {
@@ -302,11 +312,11 @@ export async function bookEventAction(
         await resend.emails.send({
           from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
           to: userEmail,
-          subject: `${nickname}, seu ${eventData.summary} foi confirmado na BPlen HUB!`,
+          subject: `${displayName}, seu 1 to 1 foi confirmado na BPlen HUB!`,
           html: `
             <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 20px;">
               <h2 style="color: #667eea; margin-bottom: 5px;">📍 Agendamento Confirmado!</h2>
-              <p style="font-size: 16px; margin-top: 0;">Olá, <b>${nickname}</b>!</p>
+              <p style="font-size: 16px; margin-top: 0;">Olá, <b>${displayName}</b>!</p>
               
               <div style="background: #fdfdfd; padding: 20px; border-radius: 16px; border: 1px solid #f0f0f0; margin: 20px 0;">
                 <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;"><b>EVENTO</b></p>
