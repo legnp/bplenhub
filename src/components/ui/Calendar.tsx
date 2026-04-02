@@ -198,31 +198,31 @@ export default function Calendar({
       {/* 1. Header Bar: Filtros */}
       <div className="flex justify-end gap-3 px-2">
         <div className="relative group">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1D1D1F]/40 group-focus-within:text-[#667eea]">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] opacity-40 group-focus-within:text-[var(--accent-start)]">
             <Filter className="w-3.5 h-3.5" />
           </div>
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="appearance-none pl-9 pr-10 py-2 bg-white/40 backdrop-blur-md border border-white/60 rounded-xl text-xs font-bold text-[#1D1D1F]/70 focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 transition-all cursor-pointer hover:bg-white/60 uppercase tracking-tight"
+            className="appearance-none pl-9 pr-10 py-2 bg-[var(--input-bg)] backdrop-blur-md border border-[var(--input-border)] rounded-xl text-xs font-bold text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20 transition-all cursor-pointer hover:bg-[var(--accent-soft)] uppercase tracking-tight"
           >
             {eventTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type} className="bg-[var(--bg-primary)] text-[var(--text-primary)]">{type}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[#1D1D1F]/30 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] opacity-30 pointer-events-none" />
         </div>
       </div>
 
       {/* 2. Política de Agendamento */}
-      <div className="flex flex-col md:flex-row gap-4 p-5 bg-[#1D1D1F]/5 border border-white/40 rounded-3xl animate-in fade-in slide-in-from-top-2 duration-700">
-        <div className="flex items-center gap-3 md:border-r md:border-black/5 md:pr-6 text-left">
-          <div className="p-2 bg-white/80 rounded-xl shadow-sm text-[#764ba2]"><CalendarIcon className="w-4 h-4" /></div>
-          <p className="text-[10px] font-black text-[#1D1D1F]/60 uppercase tracking-widest leading-none text-left">Política de<br />Agendamento</p>
+      <div className="flex flex-col md:flex-row gap-4 p-5 bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-3xl animate-in fade-in slide-in-from-top-2 duration-700">
+        <div className="flex items-center gap-3 md:border-r md:border-[var(--border-primary)] md:pr-6 text-left">
+          <div className="p-2 bg-[var(--bg-primary)] rounded-xl shadow-sm text-[var(--accent-end)]"><CalendarIcon className="w-4 h-4" /></div>
+          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none text-left">Política de<br />Agendamento</p>
         </div>
         <div className="flex-1 text-left">
-          <p className="text-[10px] font-bold text-[#1D1D1F]/40 leading-relaxed italic text-left">
-            As sessões são liberadas com <span className="text-[#1D1D1F] font-black">{CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS} dias de antecedência</span>. Eventos de <span className="text-[#667eea] font-black">Onboarding</span> possuem visibilidade limitada a {CALENDAR_CONFIG.MAX_ONBOARDING_WINDOW_DAYS} dias. O limite de participação é de <span className="text-[#1D1D1F] font-black uppercase">{CALENDAR_CONFIG.MAX_BOOKINGS_PER_WEEK} evento por semana (SI)</span>.
+          <p className="text-[10px] font-bold text-[var(--text-muted)] leading-relaxed italic text-left">
+            As sessões são liberadas com <span className="text-[var(--text-primary)] font-black">{CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS} dias de antecedência</span>. Eventos de <span className="text-[var(--accent-start)] font-black">Onboarding</span> possuem visibilidade limitada a {CALENDAR_CONFIG.MAX_ONBOARDING_WINDOW_DAYS} dias. O limite de participação é de <span className="text-[var(--text-primary)] font-black uppercase">{CALENDAR_CONFIG.MAX_BOOKINGS_PER_WEEK} evento por semana (SI)</span>.
           </p>
         </div>
       </div>
@@ -232,29 +232,29 @@ export default function Calendar({
 
         {/* COLUNA ESQUERDA: MINI CALENDAR + LEGENDA */}
         <div className="w-full lg:w-[360px] shrink-0 flex flex-col gap-4">
-          <div className="bg-white/30 backdrop-blur-md rounded-3xl border border-white/60 p-5 shadow-[0_8px_32_0_rgba(31,38,135,0.02)]">
+          <div className="bg-[var(--input-bg)] backdrop-blur-md rounded-3xl border border-[var(--input-border)] p-5 shadow-[0_8px_32_0_rgba(31,38,135,0.02)]">
 
             <div className="flex items-center justify-between mb-6 px-1 text-left">
-              <h3 className="text-sm font-black text-[#1D1D1F] uppercase tracking-widest leading-none">
+              <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest leading-none">
                 {format(currentDate, "MMMM yyyy", { locale: ptBR })}
               </h3>
               <div className="flex items-center gap-1">
-                <button onClick={prevMonth} className="p-1.5 hover:bg-black/5 rounded-lg transition-colors text-[#1D1D1F]/50 hover:text-[#1D1D1F]">
+                <button onClick={prevMonth} className="p-1.5 hover:bg-[var(--accent-soft)] rounded-lg transition-colors text-[var(--text-muted)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)]">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <button onClick={goToToday} className="px-2.5 py-1 text-[10px] font-black bg-[#667eea]/10 text-[#667eea] hover:bg-[#667eea]/20 rounded-md transition-all uppercase">
+                <button onClick={goToToday} className="px-2.5 py-1 text-[10px] font-black bg-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-start)]/20 rounded-md transition-all uppercase">
                   Hoje
                 </button>
-                <button onClick={nextMonth} className="p-1.5 hover:bg-black/5 rounded-lg transition-colors text-[#1D1D1F]/50 hover:text-[#1D1D1F]">
+                <button onClick={nextMonth} className="p-1.5 hover:bg-[var(--accent-soft)] rounded-lg transition-colors text-[var(--text-muted)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)]">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-8 gap-0.5">
-              <div className="text-center py-2"><span className="text-[10px] font-black text-[#764ba2]/40 uppercase tracking-tighter">SI</span></div>
+              <div className="text-center py-2"><span className="text-[10px] font-black text-[var(--accent-end)] opacity-40 uppercase tracking-tighter">SI</span></div>
               {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
-                <div key={i} className="text-center py-2"><span className="text-[10px] font-black text-[#1D1D1F]/30 uppercase">{d}</span></div>
+                <div key={i} className="text-center py-2"><span className="text-[10px] font-black text-[var(--text-muted)] opacity-30 uppercase">{d}</span></div>
               ))}
 
               {(() => {
@@ -275,7 +275,7 @@ export default function Calendar({
                   if (day.getDay() === 1 || day === startDate) {
                     cells.push(
                       <div key={`si-${day}`} className="flex items-center justify-center py-2.5">
-                        <span className="text-[10px] font-black text-[#764ba2] opacity-60">{weekNumber.toString().padStart(2, '0')}</span>
+                        <span className="text-[10px] font-black text-[var(--accent-end)] opacity-60">{weekNumber.toString().padStart(2, '0')}</span>
                       </div>
                     );
                   }
@@ -296,14 +296,14 @@ export default function Calendar({
                     <button
                       key={day.toString()}
                       onClick={() => setSelectedDate(cloneDay)}
-                      className={`relative flex flex-col items-center justify-center py-2.5 rounded-xl transition-all duration-300 ${isSelected ? "bg-[#667eea] text-white shadow-lg shadow-[#667eea]/30 scale-105 z-10" :
-                          isCurrentDay ? "bg-[#667eea]/10 text-[#667eea] font-bold" :
-                            isCurrentMonth ? "text-[#1D1D1F]" : "text-[#1D1D1F]/20"
+                      className={`relative flex flex-col items-center justify-center py-2.5 rounded-xl transition-all duration-300 ${isSelected ? "bg-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/30 scale-105 z-10" :
+                          isCurrentDay ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)] font-bold" :
+                            isCurrentMonth ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)] opacity-20"
                         } ${isPast && !isSelected && !isCurrentDay ? "opacity-30 grayscale saturate-0" : ""}`}
                     >
                       <span className="text-[11px] font-bold">{format(day, "d")}</span>
                       {hasVisibleEvents && !isSelected && (
-                        <div className={`absolute bottom-1 w-1 h-1 rounded-full ${isPast ? "bg-[#1D1D1F]/20" : "bg-[#667eea]"}`} />
+                        <div className={`absolute bottom-1 w-1 h-1 rounded-full ${isPast ? "bg-[var(--text-muted)] opacity-20" : "bg-[var(--accent-start)]"}`} />
                       )}
                     </button>
                   );
@@ -317,12 +317,12 @@ export default function Calendar({
           {/* Legenda SI */}
           <div className="px-4 py-2 bg-transparent border-none animate-in fade-in slide-in-from-top-2 duration-700">
             <div className="flex items-start gap-3 group text-left">
-              <div className="shrink-0 w-6 h-6 flex items-center justify-center bg-[#764ba2]/5 rounded-lg border border-[#764ba2]/10 transition-all group-hover:bg-[#764ba2]/10">
-                <span className="text-[10px] font-black text-[#764ba2]">SI</span>
+              <div className="shrink-0 w-6 h-6 flex items-center justify-center bg-[var(--accent-end)]/5 rounded-lg border border-[var(--accent-end)]/10 transition-all group-hover:bg-[var(--accent-end)]/10">
+                <span className="text-[10px] font-black text-[var(--accent-end)]">SI</span>
               </div>
               <div className="flex flex-col">
-                <p className="text-[9px] font-black text-[#1D1D1F]/70 uppercase tracking-widest leading-none mb-1 text-left">Semana ISO</p>
-                <p className="text-[9px] font-bold text-[#1D1D1F]/50 leading-relaxed italic text-left">
+                <p className="text-[9px] font-black text-[var(--text-muted)] opacity-70 uppercase tracking-widest leading-none mb-1 text-left">Semana ISO</p>
+                <p className="text-[9px] font-bold text-[var(--text-muted)] opacity-50 leading-relaxed italic text-left">
                   Padrão internacional de contagem utilizado para sincronização de cronogramas globais (SI-01 a SI-52).
                 </p>
               </div>
@@ -331,11 +331,11 @@ export default function Calendar({
         </div>
 
         {/* COLUNA DIREITA: EVENT PANEL */}
-        <div className="flex-1 w-full lg:h-[400px] bg-white/[0.02] backdrop-blur-[40px] rounded-3xl border border-white/60 p-8 shadow-[0_8px_32_0_rgba(31,38,135,0.03)] flex flex-col">
+        <div className="flex-1 w-full lg:h-[400px] bg-[var(--input-bg)]/20 backdrop-blur-[40px] rounded-3xl border border-[var(--input-border)] p-8 shadow-[0_8px_32_0_rgba(31,38,135,0.03)] flex flex-col">
 
           <div className="mb-4 text-left">
-            <h4 className="text-[10px] font-black text-[#667eea] uppercase tracking-[0.2em] mb-1">PROGRAMAÇÃO DISPONÍVEL</h4>
-            <h2 className="text-2xl font-black text-[#1D1D1F] capitalize">
+            <h4 className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em] mb-1">PROGRAMAÇÃO DISPONÍVEL</h4>
+            <h2 className="text-2xl font-black text-[var(--text-primary)] capitalize">
               {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </h2>
           </div>
@@ -348,12 +348,12 @@ export default function Calendar({
               </div>
             ) : selectedDayEvents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="p-4 bg-black/5 rounded-full mb-4">
-                  <CalendarIcon className="w-6 h-6 text-[#1D1D1F]/10" />
+                <div className="p-4 bg-[var(--accent-soft)] rounded-full mb-4">
+                  <CalendarIcon className="w-6 h-6 text-[var(--text-muted)] opacity-20" />
                 </div>
-                <h3 className="text-xs font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-relaxed">
+                <h3 className="text-xs font-bold text-[var(--text-muted)] opacity-40 uppercase tracking-widest leading-relaxed">
                   Nenhuma sessão disponível para esta data<br />
-                  <span className="text-[9px] opacity-50 lowercase tracking-normal">Consulte as regras de antecedência de 3 dias</span>
+                  <span className="text-[9px] opacity-50 lowercase tracking-normal">Consulte as regras de antecedência de {CALENDAR_CONFIG.MIN_LEAD_TIME_DAYS} dias</span>
                 </h3>
               </div>
             ) : (
@@ -363,44 +363,43 @@ export default function Calendar({
                 const isFull = registered >= capacity && capacity > 0;
                 const status = bookingStatus?.id === ev.id ? bookingStatus : null;
 
-                // Verificação de Trava de Semana (SI)
                 const evDate = parseISO(ev.start);
                 const evWeek = getISOWeek(evDate);
                 const evYear = getYear(evDate);
                 const isWeekLocked = userBookings.some(b => b.week === evWeek && b.year === evYear);
 
                 return (
-                  <div key={ev.id} className="group relative flex flex-col p-6 bg-white border border-black/[0.03] rounded-3xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
+                  <div key={ev.id} className="group relative flex flex-col p-6 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-3xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
                     <div className="flex gap-5">
                       <div className="shrink-0 flex flex-col items-center gap-1 pt-1">
-                        <span className="text-[11px] font-black text-[#1D1D1F]">{format(evDate, "HH:mm")}</span>
-                        <div className="w-0.5 h-10 bg-black/[0.05] rounded-full" />
-                        <Clock className="w-3 h-3 text-[#1D1D1F]/20" />
+                        <span className="text-[11px] font-black text-[var(--text-primary)]">{format(evDate, "HH:mm")}</span>
+                        <div className="w-0.5 h-10 bg-[var(--text-muted)] opacity-10 rounded-full" />
+                        <Clock className="w-3 h-3 text-[var(--text-muted)] opacity-20" />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-2">
                           <div className="text-left">
-                            <h5 className="font-black text-[#1D1D1F] text-sm group-hover:text-[#667eea] transition-colors leading-tight">{ev.summary}</h5>
+                            <h5 className="font-black text-[var(--text-primary)] text-sm group-hover:text-[var(--accent-start)] transition-colors leading-tight">{ev.summary}</h5>
 
                             <div className="flex items-center gap-2 mt-1">
-                              <Users className="w-3 h-3 text-[#1D1D1F]/30" />
-                              <span className={`text-[10px] font-bold ${isFull ? "text-red-500" : "text-[#1D1D1F]/40"}`}>
+                              <Users className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
+                              <span className={`text-[10px] font-bold ${isFull ? "text-red-500" : "text-[var(--text-muted)] opacity-60"}`}>
                                 {isFull ? "ESGOTADO" : `${capacity - registered} vagas disponíveis`}
                               </span>
                             </div>
 
                             <div className="flex items-center gap-2 mt-1">
-                              <User className="w-3 h-3 text-[#1D1D1F]/30" />
-                              <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-tight">
+                              <User className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
+                              <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-60 uppercase tracking-tight">
                                 Orientador: {ev.mentor || "BPlen"}
                               </span>
                             </div>
 
                             {ev.theme && (
                               <div className="flex items-center gap-2 mt-1">
-                                <Tag className="w-3 h-3 text-[#667eea]/40" />
-                                <span className="text-[10px] font-bold text-[#667eea] uppercase tracking-tight">
+                                <Tag className="w-3 h-3 text-[var(--accent-start)] opacity-40" />
+                                <span className="text-[10px] font-bold text-[var(--accent-start)] uppercase tracking-tight">
                                   Tema: {ev.theme}
                                 </span>
                               </div>
@@ -411,24 +410,23 @@ export default function Calendar({
                             onClick={() => openConfirmModal(ev)}
                             disabled={isBooking === ev.id || isFull || isWeekLocked}
                             className={`px-5 py-2.5 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest shrink-0 shadow-lg ${isFull || isWeekLocked
-                                ? "bg-black/5 text-[#1D1D1F]/20 shadow-none scale-100"
+                                ? "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-30 shadow-none scale-100"
                                 : isBooking === ev.id
-                                  ? "bg-[#667eea]/50 text-white cursor-wait"
-                                  : "bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white shadow-[#667eea]/20 hover:scale-[1.05] active:scale-[0.95]"
+                                  ? "bg-[var(--accent-start)] opacity-50 text-white cursor-wait"
+                                  : "bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] text-white shadow-[var(--accent-start)]/20 hover:scale-[1.05] active:scale-[0.95]"
                               }`}
                           >
                             {isBooking === ev.id ? "Aguarde..." : isFull ? "Sem Vagas" : isWeekLocked ? "Semana Ocupada" : "Agendar Reunião"}
                           </button>
                         </div>
                         {ev.description && (
-                          <p className="text-[10px] text-[#1D1D1F]/50 line-clamp-2 italic leading-relaxed bg-black/[0.02] p-3 rounded-xl mt-3 text-left">
+                          <p className="text-[10px] text-[var(--text-muted)] opacity-70 line-clamp-2 italic leading-relaxed bg-[var(--accent-soft)] p-3 rounded-xl mt-3 text-left">
                             &quot;{ev.description}&quot;
                           </p>
                         )}
                       </div>
                     </div>
 
-                    {/* Feedback Overlays */}
                     {status && (
                       <div className={`mt-4 flex items-center gap-3 p-3 rounded-2xl animate-in slide-in-from-bottom-2 ${status.type === 'success' ? "bg-green-500/10 text-green-700 border border-green-500/20" : "bg-red-500/10 text-red-700 border border-red-500/20"
                         }`}>
@@ -454,24 +452,24 @@ export default function Calendar({
       >
         <div className="space-y-6 mb-10">
           <div className="flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-[#667eea]/5 flex items-center justify-center text-[#667eea] border border-[#667eea]/10 group-hover:bg-[#667eea]/10 transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--accent-start)]/5 flex items-center justify-center text-[var(--accent-start)] border border-[var(--accent-start)]/10 group-hover:bg-[var(--accent-start)]/10 transition-all">
               <CalendarIcon className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <p className="text-[10px] font-bold text-[#1D1D1F]/30 uppercase tracking-widest leading-none mb-1">Data do Evento</p>
-              <p className="text-sm font-bold text-[#1D1D1F]">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] opacity-40 uppercase tracking-widest leading-none mb-1">Data do Evento</p>
+              <p className="text-sm font-bold text-[var(--text-primary)]">
                 {eventToConfirm && format(parseISO(eventToConfirm.start), "EEEE, dd 'de' MMMM", { locale: ptBR })}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-[#764ba2]/5 flex items-center justify-center text-[#764ba2] border border-[#764ba2]/10 group-hover:bg-[#764ba2]/10 transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--accent-end)]/5 flex items-center justify-center text-[var(--accent-end)] border border-[var(--accent-end)]/10 group-hover:bg-[var(--accent-end)]/10 transition-all">
               <Clock className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <p className="text-[10px] font-bold text-[#1D1D1F]/30 uppercase tracking-widest leading-none mb-1">Horário Previsto</p>
-              <p className="text-sm font-bold text-[#1D1D1F]">
+              <p className="text-[10px] font-bold text-[var(--text-muted)] opacity-40 uppercase tracking-widest leading-none mb-1">Horário Previsto</p>
+              <p className="text-sm font-bold text-[var(--text-primary)]">
                 {eventToConfirm && format(parseISO(eventToConfirm.start), "HH:mm")} — {eventToConfirm?.end ? format(parseISO(eventToConfirm.end), "HH:mm") : "..."}
               </p>
             </div>
@@ -479,31 +477,31 @@ export default function Calendar({
 
           {/* Campos Dinâmicos para 1 to 1 */}
           {eventToConfirm?.summary.toLowerCase().includes("1 to 1") && (
-            <div className="space-y-4 pt-4 border-t border-black/5 animate-in fade-in slide-in-from-top-2">
+            <div className="space-y-4 pt-4 border-t border-[var(--border-primary)] animate-in fade-in slide-in-from-top-2">
               <div className="space-y-2 text-left">
-                <label className="text-[10px] font-black text-[#1D1D1F]/40 uppercase tracking-widest ml-1">Demanda do 1 to 1</label>
+                <label className="text-[10px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-widest ml-1">Demanda do 1 to 1</label>
                 <div className="relative">
                   <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className="w-full pl-5 pr-10 py-4 bg-white/60 border border-white/80 rounded-2xl text-sm font-bold text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 appearance-none cursor-pointer"
+                    className="w-full pl-5 pr-10 py-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20 appearance-none cursor-pointer"
                   >
-                    <option value="">Selecione o motivo...</option>
+                    <option value="" className="bg-[var(--bg-primary)]">Selecione o motivo...</option>
                     {oneToOneTypes.map((type, idx) => (
-                      <option key={idx} value={type}>{type}</option>
+                      <option key={idx} value={type} className="bg-[var(--bg-primary)]">{type}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1D1D1F]/20 pointer-events-none" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-20 pointer-events-none" />
                 </div>
               </div>
 
               <div className="space-y-2 text-left">
-                <label className="text-[10px] font-black text-[#1D1D1F]/40 uppercase tracking-widest ml-1">Expectativas do Encontro</label>
+                <label className="text-[10px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-widest ml-1">Expectativas do Encontro</label>
                 <textarea
                   value={expectations}
                   onChange={(e) => setExpectations(e.target.value)}
                   placeholder="O que você espera desta reunião? Quais pontos deseja abordar?"
-                  className="w-full p-5 bg-white/60 border border-white/80 rounded-2xl text-sm font-medium text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 min-h-[120px] resize-none"
+                  className="w-full p-5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20 min-h-[120px] resize-none"
                 />
               </div>
             </div>
@@ -514,7 +512,7 @@ export default function Calendar({
           <button
             onClick={() => eventToConfirm && handleBooking(eventToConfirm.id, eventToConfirm.summary.toLowerCase().includes("1 to 1") ? { type: selectedType, expectations } : undefined)}
             disabled={isBooking === eventToConfirm?.id || (eventToConfirm?.summary.toLowerCase().includes("1 to 1") && !selectedType)}
-            className="w-full py-5 bg-[#1D1D1F] text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-black/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+            className="w-full py-5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
           >
             <div className="relative z-10 flex items-center justify-center gap-2">
               {isBooking === eventToConfirm?.id ? (
@@ -525,7 +523,7 @@ export default function Calendar({
               {isBooking === eventToConfirm?.id ? "PROCESSANDO..." : "CONFIRMAR E AGENDAR"}
             </div>
           </button>
-          <p className="text-[9px] text-[#1D1D1F]/30 font-bold uppercase tracking-widest text-center">
+          <p className="text-[9px] text-[var(--text-muted)] opacity-40 font-bold uppercase tracking-widest text-center">
             Ao confirmar, um e-mail com os detalhes será enviado para você.
           </p>
         </div>

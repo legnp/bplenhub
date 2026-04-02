@@ -73,11 +73,11 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
 
   if (bookings.length === 0) {
     return (
-      <div className="w-full p-12 bg-white/30 backdrop-blur-md rounded-3xl border border-white/60 flex flex-col items-center justify-center text-center">
-        <div className="p-4 bg-black/5 rounded-full mb-4">
-          <CalendarIcon className="w-6 h-6 text-[#1D1D1F]/10" />
+      <div className="w-full p-12 bg-[var(--input-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--input-border)] flex flex-col items-center justify-center text-center">
+        <div className="p-4 bg-[var(--accent-soft)] rounded-full mb-4">
+          <CalendarIcon className="w-6 h-6 text-[var(--text-muted)] opacity-20" />
         </div>
-        <p className="text-[10px] font-black text-[#1D1D1F]/30 uppercase tracking-[0.2em]">Você ainda não possui agendamentos</p>
+        <p className="text-[10px] font-black text-[var(--text-muted)] opacity-50 uppercase tracking-[0.2em]">Você ainda não possui agendamentos</p>
       </div>
     );
   }
@@ -85,8 +85,8 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
   return (
     <div className="w-full flex flex-col gap-4 animate-in fade-in duration-700">
       <div className="flex items-center gap-3 mb-2 px-2">
-         <h4 className="text-[10px] font-black text-[#667eea] uppercase tracking-[0.2em]">Meus Agendamentos</h4>
-         <div className="h-[1px] flex-1 bg-gradient-to-r from-black/[0.05] to-transparent" />
+         <h4 className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">Meus Agendamentos</h4>
+         <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--text-muted)] opacity-10 to-transparent" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -129,24 +129,24 @@ function BookingCard({
   
   // Lógica temporária de status
   const statusLabel = isPast ? "Realizada" : "Agendada";
-  const statusColor = isPast ? "bg-black/5 text-[#1D1D1F]/40" : "bg-green-500/10 text-green-600";
+  const statusColor = isPast ? "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-60" : "bg-green-500/10 text-green-600";
 
   return (
-    <div className="bg-white/60 backdrop-blur-lg border border-white/80 rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.02)] hover:shadow-xl transition-all duration-500 overflow-hidden group">
+    <div className="bg-[var(--glass-bg)] backdrop-blur-lg border border-[var(--border-primary)] rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.02)] hover:shadow-xl transition-all duration-500 overflow-hidden group">
       <div className="flex flex-col gap-5">
         
         {/* Top Section: Date & Status */}
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#667eea] to-[#764ba2] flex flex-col items-center justify-center text-white shadow-lg shadow-[#667eea]/20">
+             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] flex flex-col items-center justify-center text-white shadow-lg shadow-[var(--accent-start)]/20">
                 <span className="text-[8px] font-black uppercase leading-none">{format(eventDate, "MMM", { locale: ptBR })}</span>
                 <span className="text-sm font-black leading-none">{format(eventDate, "dd")}</span>
              </div>
              <div>
-                <p className="text-[10px] font-black text-[#1D1D1F] uppercase leading-none mb-1">{format(eventDate, "eeee", { locale: ptBR })}</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)] uppercase leading-none mb-1">{format(eventDate, "eeee", { locale: ptBR })}</p>
                 <div className="flex items-center gap-1.5 opacity-40">
-                   <Clock className="w-2.5 h-2.5" />
-                   <p className="text-[9px] font-bold">{format(eventDate, "HH:mm")}h</p>
+                   <Clock className="w-2.5 h-2.5 text-[var(--text-muted)]" />
+                   <p className="text-[9px] font-bold text-[var(--text-muted)]">{format(eventDate, "HH:mm")}h</p>
                 </div>
              </div>
           </div>
@@ -157,15 +157,15 @@ function BookingCard({
 
         {/* Content Section: Title & Mentor */}
         <div className="text-left py-1">
-          <h5 className="text-sm font-black text-[#1D1D1F] leading-tight group-hover:text-[#667eea] transition-colors line-clamp-1">{event.summary}</h5>
+          <h5 className="text-sm font-black text-[var(--text-primary)] leading-tight group-hover:text-[var(--accent-start)] transition-colors line-clamp-1">{event.summary}</h5>
           <div className="flex items-center gap-2 mt-1.5 opacity-40">
-             <User className="w-3 h-3 text-[#1D1D1F]" />
-             <p className="text-[10px] font-bold uppercase tracking-tight">Orientador: {event.mentor || "BPlen"}</p>
+             <User className="w-3 h-3 text-[var(--text-primary)]" />
+             <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">Orientador: {event.mentor || "BPlen"}</p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 border-y border-black/[0.03] py-4">
+        <div className="flex gap-2 border-y border-[var(--input-border)] py-4">
            {isPast ? (
               <div className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-500/5 rounded-xl border border-green-500/10">
                  <CheckCircle2 className="w-3 h-3 text-green-600" />
@@ -214,17 +214,17 @@ function BookingCard({
            
            <button 
              onClick={() => alert("Acesso aos materiais em Desenvolvimento")}
-             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-black/[0.03] hover:bg-black/[0.06] rounded-xl transition-all"
+             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[var(--accent-soft)] hover:opacity-80 rounded-xl transition-all"
            >
-              <FileText className="w-3 h-3 text-[#1D1D1F]/40" />
-              <span className="text-[9px] font-black text-[#1D1D1F]/60 uppercase tracking-widest">Documentos</span>
+              <FileText className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
+              <span className="text-[9px] font-black text-[var(--text-muted)] opacity-60 uppercase tracking-widest">Documentos</span>
            </button>
         </div>
 
         {/* Evaluation Section (Stars & Text) */}
         <div className="flex flex-col gap-3">
            <div className="flex items-center justify-between">
-              <p className="text-[9px] font-black text-[#1D1D1F]/30 uppercase tracking-widest">Avaliação da Reunião</p>
+              <p className="text-[9px] font-black text-[var(--text-muted)] opacity-30 uppercase tracking-widest">Avaliação da Reunião</p>
               <div className="flex gap-1">
                 {[1,2,3,4,5].map(star => (
                    <button 
@@ -251,17 +251,17 @@ function BookingCard({
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Como foi sua experiência? (Opcional)"
-                className="w-full p-4 bg-black/[0.02] border border-black/[0.03] rounded-2xl text-[10px] text-[#1D1D1F] placeholder:text-black/20 focus:outline-none focus:ring-2 focus:ring-[#667eea]/10 transition-all resize-none h-20 font-bold"
+                className="w-full p-4 bg-[var(--input-bg)]/20 border border-[var(--input-border)] rounded-2xl text-[10px] text-[var(--text-primary)] placeholder:opacity-20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/10 transition-all resize-none h-20 font-bold"
               />
               <button 
                 onClick={() => onEvaluate(booking.id, rating, feedback)}
                 disabled={isSubmitting || (rating === booking.rating && feedback === booking.feedback)}
                 className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all ${
                   isSubmitting 
-                    ? "bg-black/5 opacity-50" 
+                    ? "bg-[var(--accent-soft)] opacity-50" 
                     : (rating !== booking.rating || feedback !== booking.feedback)
-                      ? "bg-[#667eea] text-white shadow-lg shadow-[#667eea]/20 hover:scale-105"
-                      : "bg-black/5 text-black/10 cursor-not-allowed"
+                      ? "bg-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 hover:scale-105"
+                      : "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-20 cursor-not-allowed"
                 }`}
               >
                 {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
