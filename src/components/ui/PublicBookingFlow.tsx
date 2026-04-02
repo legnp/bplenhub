@@ -27,7 +27,8 @@ import {
   Loader2,
   AlertCircle,
   Clock,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Sparkles
 } from "lucide-react";
 import { InputGlass } from "./InputGlass";
 import { NavButton } from "./NavButton";
@@ -167,8 +168,8 @@ export function PublicBookingFlow() {
       <div className={`w-full ${step === 'calendar' ? 'max-w-4xl' : 'max-w-xl'} mx-auto p-4 sm:p-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700`}>
         
         {/* 🔮 Glow Decoration */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#ff2c8d]/20 rounded-full blur-3xl group-hover:bg-[#ff2c8d]/30 transition-all duration-700" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#ff006e]/20 rounded-full blur-3xl opacity-50" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-[var(--accent-start)]/20 rounded-full blur-3xl group-hover:bg-[var(--accent-start)]/30 transition-all duration-700" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[var(--accent-end)]/20 rounded-full blur-3xl opacity-50" />
 
         <AnimatePresence mode="wait">
           
@@ -178,8 +179,8 @@ export function PublicBookingFlow() {
                 <h3 className="text-2xl font-black bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
                   Agende sua Reunião
                 </h3>
-                <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">
-                  PRIMEIRO, PRECISAMOS TE CONHECER 🛡️
+                <p className="text-[var(--accent-start)] text-[10px] font-black uppercase tracking-[0.2em]">
+                  PRIMEIRO UMA BOA CONVERSA, E DEPOIS MÃOS A OBRA!
                 </p>
               </div>
 
@@ -194,7 +195,7 @@ export function PublicBookingFlow() {
                 
                 <div className="space-y-1.5 text-left relative">
                   <InputGlass 
-                    label="E-mail Corporativo" 
+                    label="Seu melhor e-mail" 
                     placeholder="seu@email.com" 
                     type="email"
                     value={formData.email}
@@ -224,7 +225,7 @@ export function PublicBookingFlow() {
                   <div className="flex gap-2">
                     {/* Seletor de País (DDI) */}
                     <select 
-                      className="w-28 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] appearance-none cursor-pointer"
+                      className="w-28 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none cursor-pointer"
                       value={formData.phoneDDI}
                       onChange={(e) => setFormData({...formData, phoneDDI: e.target.value, phoneDDD: ""})}
                     >
@@ -242,7 +243,7 @@ export function PublicBookingFlow() {
                     {/* DDD Condicional */}
                     {formData.phoneDDI === "+55" ? (
                       <select 
-                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] appearance-none"
+                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none"
                         value={formData.phoneDDD}
                         onChange={(e) => setFormData({...formData, phoneDDD: e.target.value})}
                       >
@@ -256,7 +257,7 @@ export function PublicBookingFlow() {
                         placeholder="Cód."
                         maxLength={4}
                         value={formData.phoneDDD}
-                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 text-center focus:outline-none focus:ring-1 focus:ring-[#ff2c8d]"
+                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
                         onChange={(e) => setFormData({...formData, phoneDDD: e.target.value.replace(/\D/g, "")})}
                       />
                     )}
@@ -264,7 +265,7 @@ export function PublicBookingFlow() {
                     {/* Número Blindado */}
                     <input 
                       placeholder="Número"
-                      className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[#ff2c8d]"
+                      className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
                       value={formData.phoneNumber}
                       onChange={(e) => setFormData({...formData, phoneNumber: e.target.value.replace(/\D/g, "")})}
                     />
@@ -296,7 +297,7 @@ export function PublicBookingFlow() {
                     Qual o objetivo da reunião?
                   </label>
                   <textarea 
-                    className="w-full bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#ff2c8d] transition-all min-h-[120px]"
+                    className="w-full bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] transition-all min-h-[120px]"
                     placeholder="Conte um pouco sobre o que você busca..."
                     value={formData.screening.objetivo}
                     onChange={(e) => setFormData({...formData, screening: {...formData.screening, objetivo: e.target.value}})}
@@ -357,7 +358,7 @@ export function PublicBookingFlow() {
                 
                 {/* --- MINI CALENDAR GRID --- */}
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center justify-between">
                     <h4 className="text-sm font-black text-white uppercase tracking-widest">
                       {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
                     </h4>
@@ -372,7 +373,7 @@ export function PublicBookingFlow() {
                   </div>
 
                   <div className="grid grid-cols-8 gap-1">
-                    <div className="text-center py-2"><span className="text-[9px] font-black text-[#ff006e] uppercase tracking-tighter opacity-70">SI</span></div>
+                    <div className="text-center py-2"><span className="text-[9px] font-black text-[var(--accent-end)] uppercase tracking-tighter opacity-70">SI</span></div>
                     {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
                       <div key={i} className="text-center py-2"><span className="text-[9px] font-black text-white/30 uppercase">{d}</span></div>
                     ))}
@@ -388,7 +389,7 @@ export function PublicBookingFlow() {
                         <React.Fragment key={day.toString()}>
                           {(idx % 7 === 0) && (
                             <div className="flex items-center justify-center py-2 opacity-70">
-                              <span className="text-[10px] font-black text-[#ff2c8d]">{weekNumber.toString().padStart(2, '0')}</span>
+                              <span className="text-[10px] font-black text-[var(--accent-start)]">{weekNumber.toString().padStart(2, '0')}</span>
                             </div>
                           )}
                           <button
@@ -396,9 +397,9 @@ export function PublicBookingFlow() {
                             disabled={!isAvailable && !isSelected}
                             className={`relative flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-300 border
                                        ${isSelected 
-                                         ? "bg-[#ff2c8d] border-[#ff2c8d] text-white shadow-xl shadow-[#ff2c8d]/30 scale-105 z-10" 
+                                         ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/30 scale-105 z-10" 
                                          : isToday(day) 
-                                           ? "bg-[#ff2c8d]/10 border-white/5 text-[#ff2c8d] font-bold" 
+                                           ? "bg-[var(--accent-start)]/10 border-white/5 text-[var(--accent-start)] font-bold" 
                                            : isAvailable 
                                              ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
                                              : "text-white/10 border-transparent cursor-default"
@@ -415,7 +416,7 @@ export function PublicBookingFlow() {
                 {/* --- SLOTS LIST --- */}
                 <div className="flex flex-col h-full space-y-4">
                   <div className="space-y-1">
-                    <h4 className="text-[9px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">PROGRAMAÇÃO DISPONÍVEL</h4>
+                    <h4 className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">PROGRAMAÇÃO DISPONÍVEL</h4>
                     <p className="text-lg font-black text-white capitalize">
                       {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                     </p>
@@ -442,7 +443,7 @@ export function PublicBookingFlow() {
                             className={`py-4 rounded-2xl text-xs font-black transition-all border
                                        ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                        ${selectedSlot === s.id 
-                                         ? "bg-[#ff2c8d] border-[#ff2c8d] text-white shadow-lg scale-[1.02]" 
+                                         ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]" 
                                          : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
                           >
                             <div className="flex items-center justify-center gap-2">
@@ -480,19 +481,21 @@ export function PublicBookingFlow() {
 
           {step === "success" && (
             <motion.div key="success" {...containerVariants} className="text-center py-12 space-y-6 relative z-10">
-              <div className="w-16 h-16 bg-[#ff2c8d]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#ff2c8d]/20 shadow-[0_0_40px_rgba(255,44,141,0.2)]">
-                <CheckCircle2 className="w-8 h-8 text-[#ff2c8d] stroke-[1.5]" />
+              <div className="w-16 h-16 bg-[var(--accent-start)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--accent-start)]/20 shadow-[0_0_40px_var(--accent-start)]/20">
+                <CheckCircle2 className="w-8 h-8 text-[var(--accent-start)] stroke-[1.5]" />
               </div>
               <div className="space-y-3">
-                <h3 className="text-4xl font-black text-white tracking-tighter">Que alegria! 🎉</h3>
+                <h3 className="text-4xl font-black text-white tracking-tighter inline-flex items-center">
+                  Que alegria! <Sparkles className="w-8 h-8 text-[var(--accent-start)] ml-3 animate-pulse" />
+                </h3>
                 <p className="text-white/60 text-base font-medium leading-relaxed">
                   Tudo pronto para nossa conversa. <br/>
                   Enviamos os detalhes do acesso para <br/>
-                  <span className="text-[#ff2c8d] font-black">{formData.email}</span>
+                  <span className="text-[var(--accent-start)] font-black">{formData.email}</span>
                 </p>
               </div>
               <div className="p-5 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-2 text-left">
-                <p className="text-[10px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">📍 Confirmação Imediata</p>
+                <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">📍 Confirmação Imediata</p>
                 <p className="text-xs text-white/60 leading-relaxed">
                   Verifique sua caixa de entrada e spam. O link do Google Meet e o convite de calendário já estão a caminho.
                 </p>
@@ -500,7 +503,7 @@ export function PublicBookingFlow() {
               <div className="pt-6">
                 <button
                   onClick={() => window.location.href = "/"}
-                  className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[#ff2c8d]/40"
+                  className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[var(--accent-start)]/40"
                 >
                   Retornar ao HUB
                 </button>
