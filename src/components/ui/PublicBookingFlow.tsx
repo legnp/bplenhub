@@ -32,7 +32,8 @@ import {
   AlertCircle,
   Clock,
   Calendar as CalendarIcon,
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 import { InputGlass } from "./InputGlass";
 import { NavButton } from "./NavButton";
@@ -157,6 +158,21 @@ export function PublicBookingFlow() {
     exit: { opacity: 0, y: -20 }
   };
 
+  // --- GOVERNANCE DATES ---
+  const { minMaxDates } = useMemo(() => {
+    const now = startOfDay(new Date());
+    return {
+      minMaxDates: {
+        min: addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture),
+        max: addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.maxDaysInFuture)
+      }
+    };
+  }, []);
+
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   // --- CALENDAR GRID LOGIC ---
   const calendarCells = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
@@ -175,6 +191,17 @@ export function PublicBookingFlow() {
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const goToToday = () => {
+    const today = new Date();
+    setCurrentMonth(today);
+    // Selecionamos o primeiro dia válido se hoje for bloqueado pela regra de 3 dias
+    const minDate = minMaxDates.min;
+    if (isBefore(today, minDate)) {
+      setSelectedDate(minDate);
+    } else {
+      setSelectedDate(today);
+    }
+  };
 
   const proposalSlots = useMemo(() => {
     // Gerar slots de 30 minutos entre 06:00 e 21:00
@@ -200,9 +227,9 @@ export function PublicBookingFlow() {
   return (
     <div className="w-full max-w-4xl mx-auto py-4 px-4">
       {/* 48px Header */}
-      <div className="text-center space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <h1 className="text-[32px] font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent leading-[1.1]">
-          Reserve seu Momento BPlen
+      <div className="text-center space-y-1.5 mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <h1 className="text-[30px] font-black tracking-tighter text-white leading-[1.1]">
+          Reserve seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)]">Momento BPlen</span>
         </h1>
         <p className="text-white/60 text-sm font-medium max-w-xl mx-auto leading-relaxed">
           Que tal descomplicarmos o desenvolvimento humano no trabalho juntos? <br/>
@@ -210,7 +237,7 @@ export function PublicBookingFlow() {
         </p>
       </div>
 
-      <div className={`w-full ${step === 'calendar' ? 'max-w-4xl' : 'max-w-xl'} mx-auto p-4 sm:p-6 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700`}>
+      <div className="w-full max-w-4xl mx-auto p-4 sm:p-5 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700 min-h-[600px] flex flex-col justify-center">
         
         {/* 🔮 Glow Decoration */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-[var(--accent-start)]/20 rounded-full blur-3xl group-hover:bg-[var(--accent-start)]/30 transition-all duration-700" />
@@ -219,7 +246,7 @@ export function PublicBookingFlow() {
         <AnimatePresence mode="wait">
           
           {step === "lead" && (
-            <motion.div key="lead" {...containerVariants} className="space-y-6 relative z-10">
+            <motion.div key="lead" {...containerVariants} className="space-y-6 relative z-10 max-w-xl mx-auto w-full">
               <div className="space-y-2">
                 <h3 className="text-2xl font-black bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
                   Agende sua Reunião
@@ -346,14 +373,14 @@ export function PublicBookingFlow() {
                 </button>
                 <NavButton 
                   onClick={() => setStep("triagem")} 
-                  disabled={!formData.name || !formData.email || !formData.phoneNumber || (formData.phoneDDI === "+55" && !formData.phoneDDD)} 
+                  disabled={!formData.name || !isValidEmail(formData.email) || !formData.phoneNumber || (formData.phoneDDI === "+55" && !formData.phoneDDD)} 
                 />
               </div>
             </motion.div>
           )}
 
           {step === "triagem" && (
-            <motion.div key="triagem" {...containerVariants} className="space-y-6 relative z-10 text-left">
+            <motion.div key="triagem" {...containerVariants} className="space-y-6 relative z-10 text-left max-w-xl mx-auto w-full">
                <div className="flex items-center gap-2">
                 <button onClick={() => setStep("lead")} className="p-2 hover:bg-white/5 rounded-full transition-all">
                   <ChevronLeft className="w-5 h-5 text-white/40" />
@@ -431,7 +458,7 @@ export function PublicBookingFlow() {
                 <div className="p-4 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
                   <p className="text-xs text-white/80 leading-relaxed font-medium">
                     <Sparkles className="w-4 h-4 inline-block mr-2 text-[var(--accent-start)]" />
-                    <b>Não encontrou uma boa agenda?</b> Sugira até 3 opções de datas e horários (apenas dias úteis) e entraremos em contato para confirmar!
+                    <b>Não encontrou uma boa agenda?</b> Sugira até 3 opções de datas e horários e entraremos em contato para confirmar!
                   </p>
                 </div>
               )}
@@ -444,13 +471,21 @@ export function PublicBookingFlow() {
                     <h4 className="text-sm font-black text-white uppercase tracking-widest">
                       {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
                     </h4>
-                    <div className="flex items-center gap-1">
-                      <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                        <ChevronLeft className="w-4 h-4 text-white" />
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={goToToday}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest transition-all"
+                      >
+                        Hoje
                       </button>
-                      <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                        <ChevronRight className="w-4 h-4 text-white" />
-                      </button>
+                      <div className="flex items-center gap-0.5">
+                        <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                          <ChevronLeft className="w-4 h-4 text-white" />
+                        </button>
+                        <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                          <ChevronRight className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -476,23 +511,42 @@ export function PublicBookingFlow() {
                           )}
                           <button
                             onClick={() => {
+                              const dayStart = startOfDay(day);
+                              const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                              
                               if (isProposalMode) {
-                                // Em modo proposta, apenas dias úteis
-                                if (!isSaturday(day) && !isSunday(day)) setSelectedDate(day);
+                                // Em modo proposta, apenas dias úteis E dentro do range 3-33
+                                if (!isSaturday(day) && !isSunday(day) && !isOutsideRange) {
+                                  setSelectedDate(day);
+                                }
                               } else {
-                                if (isAvailable) setSelectedDate(day);
+                                if (isAvailable && !isOutsideRange) {
+                                  setSelectedDate(day);
+                                }
                               }
                             }}
-                            disabled={isProposalMode ? (isSaturday(day) || isSunday(day)) : (!isAvailable && !isSelected)}
+                            disabled={(() => {
+                              const dayStart = startOfDay(day);
+                              const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                              
+                              if (isProposalMode) {
+                                return isSaturday(day) || isSunday(day) || isOutsideRange;
+                              }
+                              return !isAvailable && !isSelected;
+                            })()}
                             className={`relative flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-300 border
                                        ${isSelected 
                                          ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/30 scale-105 z-10" 
                                          : isToday(day) 
                                            ? "bg-[var(--accent-start)]/10 border-white/5 text-[var(--accent-start)] font-bold" 
                                            : isProposalMode
-                                             ? (!isSaturday(day) && !isSunday(day))
-                                                ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
-                                                : "opacity-10 cursor-not-allowed"
+                                             ? (() => {
+                                                 const dayStart = startOfDay(day);
+                                                 const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                                                 return (!isSaturday(day) && !isSunday(day) && !isOutsideRange)
+                                                   ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
+                                                   : "opacity-10 cursor-not-allowed cursor-default";
+                                               })()
                                              : isAvailable 
                                                ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
                                                : "text-white/10 border-transparent cursor-default"
@@ -504,6 +558,38 @@ export function PublicBookingFlow() {
                       );
                     })}
                   </div>
+
+                  {/* 📊 Preview das Opções Selecionadas (Modo Proposta) */}
+                  {isProposalMode && proposalOptions.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="pt-6 space-y-3 border-t border-white/5"
+                    >
+                      <h5 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1">Seu roteiro sugerido:</h5>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        {proposalOptions.map((opt, idx) => (
+                          <div 
+                            key={idx} 
+                            className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl group/item hover:border-[var(--accent-start)]/30 transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-1 h-1 rounded-full bg-[var(--accent-start)] shadow-[0_0_8px_var(--accent-start)]" />
+                              <span className="text-[11px] font-bold text-white tracking-tight uppercase">
+                                {format(parseISO(opt.date), "dd 'de' MMM", { locale: ptBR })} — <span className="text-[var(--accent-start)]">{opt.time}</span>
+                              </span>
+                            </div>
+                            <button 
+                              onClick={() => setProposalOptions(proposalOptions.filter((_, i) => i !== idx))}
+                              className="p-1.5 hover:bg-red-500/10 rounded-xl transition-all opacity-40 group-hover/item:opacity-100 hover:text-red-500"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* --- SLOTS LIST --- */}
