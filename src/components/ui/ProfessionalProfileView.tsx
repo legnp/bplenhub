@@ -209,7 +209,7 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
                   {profile.name}: Uma visão técnica com <span className="text-gray-400">olhar profundamente humano</span>.
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-4xl italic">
-                  "{profile.details.about}"
+                  &quot;{profile.details.about}&quot;
                 </p>
               </motion.div>
             </div>
@@ -293,7 +293,7 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
                     {profile.details.behavioralProfile.title}
                   </h3>
                   <p className="text-sm text-gray-400 leading-relaxed italic">
-                    "{profile.details.behavioralProfile.description}"
+                    &quot;{profile.details.behavioralProfile.description}&quot;
                   </p>
                 </div>
               )}
