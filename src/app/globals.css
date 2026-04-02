@@ -25,10 +25,10 @@
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
 
   /* Tokens de Input e Bordas */
-  --border-primary: rgba(0, 0, 0, 0.08);
-  --input-bg: rgba(255, 255, 255, 0.6);
-  --input-border: rgba(0, 0, 0, 0.12);
-  --input-placeholder: rgba(0, 0, 0, 0.45);
+  --border-primary: rgba(0, 0, 0, 0.12); /* Aumentado para visibilidade em #EEF2F6 */
+  --input-bg: rgba(255, 255, 255, 0.85); /* Mais opaco para não sumir */
+  --input-border: rgba(0, 0, 0, 0.18);   /* Aumentado de 0.12 para 0.18 */
+  --input-placeholder: rgba(0, 0, 0, 0.4);
 
   /* Dimensões Globais */
   --radius: 20px;

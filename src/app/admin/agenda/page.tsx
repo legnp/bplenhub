@@ -193,7 +193,7 @@ export default function AgendaManagementPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsConfigModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest bg-white/5 border border-white/10 text-secondary transition-all hover:bg-white/10 hover:text-foreground active:scale-[0.98]"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--text-muted)] transition-all hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)] active:scale-[0.98]"
           >
             <Settings2 className="w-4 h-4" />
             Configurar 1 to 1
@@ -203,8 +203,8 @@ export default function AgendaManagementPage() {
             onClick={handleSync}
             disabled={isSyncing}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg hover:translate-y-[-2px] active:scale-[0.98] shrink-0 ${isSyncing
-                ? "bg-white/5 text-secondary cursor-not-allowed"
-                : "bg-gradient-to-tr from-accent-start to-accent-end text-white shadow-accent-start/20"
+                ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed"
+                : "bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] text-white shadow-[var(--accent-start)]/20"
               }`}
           >
             {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
@@ -215,74 +215,74 @@ export default function AgendaManagementPage() {
 
       {/* Stats Cards Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 shadow-2xl transition-all hover:bg-white/[0.08]">
+        <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl transition-all hover:bg-[var(--accent-soft)]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-accent-start/10 rounded-xl text-accent-start">
+            <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)]">
               <LayoutDashboard className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Total na Base</span>
+            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Total na Base</span>
           </div>
-          <div className="text-4xl font-black text-foreground">{stats.total}</div>
-          <p className="text-[10px] text-secondary mt-2 font-bold uppercase tracking-widest opacity-40">Eventos mapeados</p>
+          <div className="text-4xl font-black text-[var(--text-primary)]">{stats.total}</div>
+          <p className="text-[10px] text-[var(--text-muted)] mt-2 font-bold uppercase tracking-widest opacity-40">Eventos mapeados</p>
         </div>
 
-        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 shadow-2xl transition-all hover:bg-white/[0.08]">
+        <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl transition-all hover:bg-[var(--accent-soft)]">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
               <Activity className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Status Sincronizado</span>
+            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Status Sincronizado</span>
           </div>
-          <div className="text-4xl font-black text-foreground">{stats.status.sync}</div>
+          <div className="text-4xl font-black text-[var(--text-primary)]">{stats.status.sync}</div>
           <div className="flex items-center gap-1.5 mt-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
             <span className="text-[10px] font-bold text-green-500 uppercase">Operacional</span>
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-2 p-7 bg-white/5 rounded-3xl border border-white/5 shadow-2xl">
+        <div className="col-span-1 md:col-span-2 p-7 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-accent-end/10 rounded-xl text-accent-end">
+            <div className="p-2 bg-[var(--accent-end)]/10 rounded-xl text-[var(--accent-end)]">
               <TrendingUp className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Principais Tipos / Serviços (Top 5)</span>
+            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Principais Tipos / Serviços (Top 5)</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {stats.types.map((t, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/10 shadow-sm hover:border-accent-start/30 transition-all">
-                <span className="text-[10px] font-bold text-foreground line-clamp-1 max-w-[150px]">{t.name}</span>
-                <span className="text-[10px] font-black text-accent-start bg-accent-start/10 px-1.5 rounded-lg border border-accent-start/10">{t.count}</span>
+              <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--input-border)] shadow-sm hover:border-[var(--accent-start)]/30 transition-all">
+                <span className="text-[10px] font-bold text-[var(--text-primary)] line-clamp-1 max-w-[150px]">{t.name}</span>
+                <span className="text-[10px] font-black text-[var(--accent-start)] bg-[var(--accent-start)]/10 px-1.5 rounded-lg border border-[var(--accent-start)]/10">{t.count}</span>
               </div>
             ))}
-            {stats.types.length === 0 && <span className="text-[10px] text-secondary italic">Aguardando dados...</span>}
+            {stats.types.length === 0 && <span className="text-[10px] text-[var(--text-muted)] italic">Aguardando dados...</span>}
           </div>
         </div>
       </div>
 
       {/* Controls Bar (Filter/Sort/Search) */}
-      <div className="flex flex-wrap items-center gap-4 p-5 bg-white/5 border border-white/10 rounded-[2rem] sticky top-4 z-10 shadow-2xl backdrop-blur-3xl">
+      <div className="flex flex-wrap items-center gap-4 p-5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-[2rem] sticky top-4 z-10 shadow-2xl backdrop-blur-3xl">
         {/* Search */}
         <div className="relative flex-1 min-w-[250px]">
-          <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary opacity-40" />
+          <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
           <input
             type="text"
             placeholder="Filtrar por título..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3.5 text-sm font-medium text-foreground focus:outline-none focus:border-accent-start/50 transition-all placeholder:text-secondary placeholder:opacity-40"
+            className="w-full bg-[var(--bg-primary)]/50 border border-[var(--input-border)] rounded-2xl pl-12 pr-6 py-3.5 text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-40"
           />
         </div>
 
         {/* Date Filters */}
-        <div className="flex items-center bg-white/5 p-1.5 rounded-2xl border border-white/10 gap-1">
+        <div className="flex items-center bg-[var(--bg-primary)]/50 p-1.5 rounded-2xl border border-[var(--input-border)] gap-1">
           {(["all", "15", "30"] as DateRangeOption[]).map((opt) => (
             <button
               key={opt}
               onClick={() => setDateRange(opt)}
               className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest ${dateRange === opt
-                  ? "bg-accent-start text-white shadow-xl shadow-accent-start/20"
-                  : "text-secondary hover:text-foreground"
+                  ? "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
             >
               {opt === "all" ? "Todos" : `Próx. ${opt} Dias`}
@@ -291,16 +291,16 @@ export default function AgendaManagementPage() {
         </div>
 
         {/* Sorting Dropdown */}
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-white/5 rounded-2xl border border-white/10">
-          <ArrowUpDown className="w-3.5 h-3.5 text-accent-start" />
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--bg-primary)]/50 rounded-2xl border border-[var(--input-border)]">
+          <ArrowUpDown className="w-3.5 h-3.5 text-[var(--accent-start)]" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="bg-transparent text-[9px] font-black text-secondary focus:outline-none cursor-pointer uppercase tracking-widest hover:text-foreground transition-colors"
+            className="bg-transparent text-[9px] font-black text-[var(--text-muted)] focus:outline-none cursor-pointer uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors"
           >
-            <option value="date" className="bg-black">Ordenar por Data</option>
-            <option value="name" className="bg-black">Ordenar por Nome</option>
-            <option value="status" className="bg-black">Ordenar por Status</option>
+            <option value="date" className="bg-[var(--bg-primary)] text-[var(--text-primary)]">Ordenar por Data</option>
+            <option value="name" className="bg-[var(--bg-primary)] text-[var(--text-primary)]">Ordenar por Nome</option>
+            <option value="status" className="bg-[var(--bg-primary)] text-[var(--text-primary)]">Ordenar por Status</option>
           </select>
         </div>
       </div>
@@ -339,26 +339,26 @@ export default function AgendaManagementPage() {
         {isLoadingList ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-64 bg-white/5 animate-pulse rounded-[2.5rem] border border-white/5"></div>
+              <div key={i} className="h-64 bg-[var(--input-bg)] animate-pulse rounded-[2.5rem] border border-[var(--border-primary)]"></div>
             ))}
           </div>
         ) : processedEvents.length === 0 ? (
-          <div className="p-24 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] backdrop-blur-sm">
-            <CalendarIcon className="w-16 h-16 text-secondary opacity-10 mx-auto mb-6" />
-            <p className="text-[10px] text-secondary font-black uppercase tracking-[0.3em]">Nenhum evento encontrado</p>
-            <p className="text-[11px] text-secondary opacity-40 mt-3 max-w-xs mx-auto">Ajuste os filtros ou realize uma nova sincronização.</p>
+          <div className="p-24 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)] backdrop-blur-sm">
+            <CalendarIcon className="w-16 h-16 text-[var(--text-muted)] opacity-10 mx-auto mb-6" />
+            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em]">Nenhum evento encontrado</p>
+            <p className="text-[11px] text-[var(--text-muted)] opacity-40 mt-3 max-w-xs mx-auto">Ajuste os filtros ou realize uma nova sincronização.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {processedEvents.map(event => (
               <div
                 key={event.id}
-                className="group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] hover:bg-white/[0.08] hover:border-white/10 transition-all duration-500 hover:translate-y-[-4px]"
+                className="group relative p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 transition-all duration-500 hover:translate-y-[-4px] shadow-sm hover:shadow-xl"
               >
                 {/* Status Indicator Dot */}
-                <div className="absolute top-8 left-8 flex items-center gap-2 bg-white/5 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-2xl">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent-start shadow-[0_0_10px_rgba(255,44,141,0.5)]" />
-                  <span className="text-[8px] font-black text-secondary uppercase tracking-widest">Sincronizado</span>
+                <div className="absolute top-8 left-8 flex items-center gap-2 bg-[var(--bg-primary)] backdrop-blur-xl px-3 py-1.5 rounded-full border border-[var(--border-primary)] shadow-2xl">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-start)] shadow-[0_0_10px_rgba(255,44,141,0.5)]" />
+                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Sincronizado</span>
                 </div>
 
                 <div className="flex justify-end items-start mb-8">
@@ -366,32 +366,32 @@ export default function AgendaManagementPage() {
                     href={event.htmlLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-3 bg-white/5 shadow-xl border border-white/10 rounded-xl text-secondary hover:text-accent-start hover:border-accent-start/30 transition-all hover:scale-110"
+                    className="p-3 bg-[var(--bg-primary)] shadow-xl border border-[var(--border-primary)] rounded-xl text-[var(--text-muted)] hover:text-[var(--accent-start)] hover:border-[var(--accent-start)]/30 transition-all hover:scale-110"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
 
-                <h4 className="font-bold text-xl text-foreground group-hover:text-accent-start transition-colors line-clamp-2 leading-tight min-h-[56px]">{event.summary}</h4>
+                <h4 className="font-bold text-xl text-[var(--text-primary)] group-hover:text-[var(--accent-start)] transition-colors line-clamp-2 leading-tight min-h-[56px]">{event.summary}</h4>
 
-                <div className="mt-8 space-y-4 pt-8 border-t border-white/5">
+                <div className="mt-8 space-y-4 pt-8 border-t border-[var(--border-primary)]">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-accent-start/5 flex items-center justify-center text-accent-start border border-accent-start/10">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--accent-start)]/5 flex items-center justify-center text-[var(--accent-start)] border border-[var(--accent-start)]/10">
                       <CalendarIcon className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-secondary uppercase tracking-[0.2em] opacity-40">Data do Serviço</p>
-                      <p className="text-xs font-bold text-foreground">{event.start && format(new Date(event.start), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Data do Serviço</p>
+                      <p className="text-xs font-bold text-[var(--text-primary)]">{event.start && format(new Date(event.start), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-accent-end/5 flex items-center justify-center text-accent-end border border-accent-end/10">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--accent-end)]/5 flex items-center justify-center text-[var(--accent-end)] border border-[var(--accent-end)]/10">
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-secondary uppercase tracking-[0.2em] opacity-40">Horário Previsto</p>
-                      <p className="text-xs font-bold text-foreground">
+                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Horário Previsto</p>
+                      <p className="text-xs font-bold text-[var(--text-primary)]">
                         {event.start && format(new Date(event.start), "HH:mm")} - {event.end && format(new Date(event.end), "HH:mm")}
                       </p>
                     </div>
@@ -399,8 +399,8 @@ export default function AgendaManagementPage() {
                 </div>
 
                 {event.description && (
-                  <div className="mt-8 p-5 rounded-2xl bg-white/[0.01] border border-white/5">
-                    <p className="text-[10px] text-secondary line-clamp-2 italic leading-relaxed opacity-60">
+                  <div className="mt-8 p-5 rounded-2xl bg-[var(--accent-start)]/[0.02] border border-[var(--border-primary)]">
+                    <p className="text-[10px] text-[var(--text-secondary)] line-clamp-2 italic leading-relaxed opacity-60">
                       &quot;{event.description}&quot;
                     </p>
                   </div>
@@ -412,14 +412,14 @@ export default function AgendaManagementPage() {
       </div>
 
       {/* Info Logic Box */}
-      <div className="p-6 bg-accent-start/[0.02] border border-accent-start/10 rounded-[2.5rem] shadow-2xl">
+      <div className="p-6 bg-[var(--accent-start)]/[0.04] border border-[var(--accent-start)]/10 rounded-[2.5rem] shadow-2xl">
         <div className="flex gap-5">
-          <div className="p-3 bg-accent-start/10 rounded-2xl shrink-0 h-fit">
-            <AlertCircle className="w-5 h-5 text-accent-start" />
+          <div className="p-3 bg-[var(--accent-start)]/10 rounded-2xl shrink-0 h-fit">
+            <AlertCircle className="w-5 h-5 text-[var(--accent-start)]" />
           </div>
           <div className="space-y-1">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Governança BPlen (90 Dias Audit)</p>
-            <p className="text-[11px] text-secondary leading-relaxed font-medium opacity-60">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-primary)]">Governança BPlen (90 Dias Audit)</p>
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium opacity-60">
               Este dashboard utiliza uma base sincronizada incremental. Eventos passados são arquivados automaticamente para atribuição de Auditoria e Atas, enquanto eventos futuros são atualizados a cada sincronização. A ordenação e agrupamento por título auxiliam na identificação rápida de gargalos de portfólio.
             </p>
           </div>
@@ -440,18 +440,18 @@ export default function AgendaManagementPage() {
               value={newType}
               onChange={(e) => setNewType(e.target.value)}
               placeholder="Ex: Alinhamento Estratégico"
-              className="flex-1 px-6 py-4.5 bg-white/5 border border-white/10 rounded-2xl text-sm font-bold text-foreground focus:outline-none focus:border-accent-start/30 transition-all placeholder:text-secondary placeholder:opacity-40"
+              className="flex-1 px-6 py-4.5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-40"
               onKeyDown={(e) => e.key === "Enter" && handleAddType()}
             />
             <button
               onClick={handleAddType}
-              className="px-6 py-4 bg-accent-start text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-accent-end transition-all shadow-xl shadow-accent-start/20"
+              className="px-6 py-4 bg-[var(--accent-start)] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--accent-end)] transition-all shadow-xl shadow-[var(--accent-start)]/20"
             >
               Adicionar
             </button>
           </div>
 
-          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-3 custom-scrollbar">
+          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-3 custom-scrollbar text-left">
             {oneToOneTypes.length === 0 ? (
               <div className="py-16 text-center space-y-3 opacity-20">
                  <Settings2 size={32} className="mx-auto" />
@@ -463,9 +463,9 @@ export default function AgendaManagementPage() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   key={index} 
-                  className="flex justify-between items-center p-5 bg-white/5 border border-white/5 rounded-2xl group hover:border-white/20 transition-all"
+                  className="flex justify-between items-center p-5 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl group hover:border-[var(--accent-start)]/30 transition-all"
                 >
-                  <span className="text-sm font-bold text-foreground">{type}</span>
+                  <span className="text-sm font-bold text-[var(--text-primary)]">{type}</span>
                   <button
                     onClick={() => handleRemoveType(type)}
                     className="p-2.5 opacity-0 group-hover:opacity-100 bg-red-500/10 text-red-500 rounded-xl transition-all hover:bg-red-500 hover:text-white"
@@ -477,11 +477,11 @@ export default function AgendaManagementPage() {
             )}
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex justify-end">
+          <div className="pt-6 border-t border-[var(--border-primary)] flex justify-end">
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-3 px-10 py-4.5 bg-foreground text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+              className="flex items-center gap-3 px-10 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-md"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
               {isSaving ? "Salvando..." : "Salvar Alterações"}

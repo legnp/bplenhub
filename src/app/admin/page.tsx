@@ -44,8 +44,8 @@ export default function AdminDashboardPage() {
       value: loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (pendingCount ?? 0),
       label: "cliques diretos nesta semana",
       icon: Handshake,
-      color: "text-[#667eea]",
-      bg: "bg-[#667eea]/10",
+      color: "text-[var(--accent-start)]",
+      bg: "bg-[var(--accent-start)]/10",
       link: "/admin/gestao-agenda",
       highlight: (pendingCount ?? 0) > 0
     },
@@ -63,8 +63,8 @@ export default function AdminDashboardPage() {
       value: "Gestão",
       label: "base de contatos",
       icon: Users,
-      color: "text-[#764ba2]",
-      bg: "bg-[#764ba2]/10",
+      color: "text-[var(--accent-end)]",
+      bg: "bg-[var(--accent-end)]/10",
       link: "/admin/users"
     }
   ];
@@ -77,10 +77,10 @@ export default function AdminDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-2"
       >
-        <h1 className="text-4xl font-black bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#667eea] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x tracking-tighter">
+        <h1 className="text-4xl font-black bg-gradient-to-r from-[var(--accent-start)] via-[var(--accent-end)] to-[var(--accent-start)] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x tracking-tighter text-left">
           Dashboard Administrativo
         </h1>
-        <p className="text-[#1D1D1F]/50 font-medium flex items-center gap-2">
+        <p className="text-[var(--text-muted)] font-medium flex items-center gap-2 text-left">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
           BPlen HUB — Centro de Comando Operacional
         </p>
@@ -97,30 +97,30 @@ export default function AdminDashboardPage() {
           >
             <Link 
               href={stat.link}
-              className={`group block p-6 rounded-[24px] border border-white/60 bg-white/40 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[#667eea]/5 hover:-translate-y-1 relative overflow-hidden ${stat.highlight ? 'ring-2 ring-[#667eea]/20' : ''}`}
+              className={`group block p-6 rounded-[24px] border border-[var(--border-primary)] bg-[var(--input-bg)] backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[var(--accent-start)]/5 hover:-translate-y-1 relative overflow-hidden ${stat.highlight ? 'ring-2 ring-[var(--accent-start)]/20' : ''}`}
             >
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} transition-transform group-hover:scale-110 duration-500`}>
                   <stat.icon className="w-6 h-6" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#1D1D1F]/20 group-hover:text-[#667eea] transition-colors" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)] opacity-40 group-hover:text-[var(--accent-start)] transition-colors" />
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-3xl font-black text-[#1D1D1F] tracking-tighter flex items-baseline gap-2">
+              <div className="space-y-1 text-left">
+                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter flex items-baseline gap-2">
                   {stat.value}
                 </h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1D1D1F]/40">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">
                   {stat.title}
                 </p>
-                <p className="text-xs font-medium text-[#1D1D1F]/60">
+                <p className="text-xs font-medium text-[var(--text-muted)]">
                   {stat.label}
                 </p>
               </div>
 
               {/* Decorative Glow for high priority */}
               {stat.highlight && (
-                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-[#667eea]/5 rounded-full blur-2xl group-hover:bg-[#667eea]/10 transition-all" />
+                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-[var(--accent-start)]/5 rounded-full blur-2xl group-hover:bg-[var(--accent-start)]/10 transition-all" />
               )}
             </Link>
           </motion.div>
@@ -128,10 +128,10 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Quick Access Section */}
-      <div className="bg-white/40 backdrop-blur-xl border border-white/60 rounded-[32px] p-8 shadow-sm">
+      <div className="bg-[var(--input-bg)] backdrop-blur-xl border border-[var(--border-primary)] rounded-[32px] p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <Clock className="w-5 h-5 text-[#667eea]" />
-          <h2 className="text-xl font-black text-[#1D1D1F] tracking-tight">Atalhos de Gestão</h2>
+          <Clock className="w-5 h-5 text-[var(--accent-start)]" />
+          <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Atalhos de Gestão</h2>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -144,10 +144,10 @@ export default function AdminDashboardPage() {
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center gap-3 p-4 bg-white/20 hover:bg-white/60 border border-white/40 rounded-2xl transition-all group"
+              className="flex items-center gap-3 p-4 bg-[var(--bg-primary)]/50 hover:bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-2xl transition-all group"
             >
-              <item.icon className="w-4 h-4 text-[#1D1D1F]/40 group-hover:text-[#667eea] transition-colors" />
-              <span className="text-sm font-bold text-[#1D1D1F]/70 group-hover:text-[#1D1D1F]">{item.label}</span>
+              <item.icon className="w-4 h-4 text-[var(--text-muted)] opacity-50 group-hover:text-[var(--accent-start)] transition-colors" />
+              <span className="text-sm font-bold text-[var(--text-muted)] group-hover:text-[var(--text-primary)]">{item.label}</span>
             </Link>
           ))}
         </div>

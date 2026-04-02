@@ -81,24 +81,24 @@ export default function GlassModal({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Vidro Estático Nativo Tailwind (Sem backdrop-blur, agora que a página recua) */}
-            <div className="w-full h-full bg-white/70 border border-white/50 shadow-2xl rounded-[40px] p-8">
+            <div className="w-full h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-2xl rounded-[40px] p-8 backdrop-blur-2xl">
               {/* Header do Modal */}
               {(title || subtitle) && (
-                <div className="flex justify-between items-start mb-6">
+                <div className="flex justify-between items-start mb-6 text-left">
                   <div className="text-left">
-                    {title && <h3 className="text-xl font-black text-[#1D1D1F] leading-tight">{title}</h3>}
+                    {title && <h3 className="text-xl font-black text-[var(--text-primary)] leading-tight">{title}</h3>}
                     {subtitle && (
-                      <p className="text-[10px] font-black text-[#1D1D1F]/40 uppercase tracking-[0.2em] mt-1">
+                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1">
                         {subtitle}
                       </p>
                     )}
                   </div>
                   <button
                     onClick={onClose}
-                    className="p-3 hover:bg-black/5 rounded-2xl transition-all group"
+                    className="p-3 hover:bg-[var(--accent-soft)] rounded-2xl transition-all group"
                     aria-label="Fechar"
                   >
-                    <X className="w-5 h-5 text-[#1D1D1F]/20 group-hover:text-[#1D1D1F]/40 transition-colors" />
+                    <X className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors" />
                   </button>
                 </div>
               )}

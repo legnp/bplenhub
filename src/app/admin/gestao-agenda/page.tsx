@@ -32,17 +32,17 @@ export default function GestaoAgendaPage() {
       {/* Header do Laboratório */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent underline decoration-[#667eea]/20 underline-offset-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] bg-clip-text text-transparent underline decoration-[var(--accent-start)]/20 underline-offset-8 text-left">
             Gestão de Agenda
           </h1>
-          <p className="text-[#1D1D1F]/50 mt-2 font-medium flex items-center gap-2">
-            <Settings className="w-3.5 h-3.5" />
+          <p className="text-[var(--text-muted)] mt-2 font-medium flex items-center gap-2 text-left">
+            <Settings className="w-3.5 h-3.5 text-[var(--accent-start)]" />
             Módulo de refinamento de layout e comportamento do Calendário.
           </p>
         </div>
       </div>
 
-      <div className="bg-white/10 rounded-3xl p-1 border border-white/40 shadow-inner">
+      <div className="bg-[var(--input-bg)] rounded-3xl p-1 border border-[var(--border-primary)] shadow-inner">
         <Calendar 
           events={events} 
           isLoading={isLoading} 
@@ -52,18 +52,18 @@ export default function GestaoAgendaPage() {
       </div>
 
       {/* Meus Agendamentos (Novo Módulo) */}
-      <div className="mt-12 bg-white/10 rounded-3xl p-6 border border-white/40">
-         <div className="flex items-center gap-2 mb-6 ml-2">
-            <CalendarCheck className="w-5 h-5 text-[#667eea]" />
-            <h2 className="text-xl font-black text-[#1D1D1F]">Gestão de Meus Compromissos</h2>
+      <div className="mt-12 bg-[var(--input-bg)] rounded-3xl p-6 border border-[var(--border-primary)] shadow-sm">
+         <div className="flex items-center gap-2 mb-6 ml-2 text-left">
+            <CalendarCheck className="w-5 h-5 text-[var(--accent-start)]" />
+            <h2 className="text-xl font-black text-[var(--text-primary)]">Gestão de Meus Compromissos</h2>
          </div>
          <UserBookings refreshCounter={refreshCounter} />
       </div>
 
       {/* Info Help */}
-      <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-3 text-blue-700/70">
-        <Info className="w-4 h-4 shrink-0 mt-0.5" />
-        <p className="text-[11px] font-medium leading-relaxed italic">
+      <div className="p-4 bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-2xl flex gap-3 text-[var(--text-muted)]">
+        <Info className="w-4 h-4 shrink-0 mt-0.5 text-[var(--accent-start)]" />
+        <p className="text-[11px] font-medium leading-relaxed italic text-left">
           Nota: Este módulo está sendo utilizado como laboratório para ajustes finos de UI/UX requisitados. As alterações feitas aqui serão propagadas globalmente para todas as instâncias do Calendário no HUB.
         </p>
       </div>
