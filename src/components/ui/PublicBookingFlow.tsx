@@ -461,7 +461,7 @@ export function PublicBookingFlow() {
                   </h3>
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className="text-[10px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">AGENDA VIRTUAL 📺</p>
+                  {/* Removido: AGENDA VIRTUAL 📺 */}
                 </div>
               </div>
 
@@ -485,16 +485,16 @@ export function PublicBookingFlow() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={goToToday}
-                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest transition-all"
+                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black text-white uppercase tracking-widest transition-all"
                       >
                         Hoje
                       </button>
                       <div className="flex items-center gap-0.5">
-                        <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                          <ChevronLeft className="w-4 h-4 text-white" />
+                        <button onClick={prevMonth} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-white/60 hover:text-white">
+                          <ChevronLeft className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-xl transition-all">
-                          <ChevronRight className="w-4 h-4 text-white" />
+                        <button onClick={nextMonth} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-white/60 hover:text-white">
+                          <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -545,7 +545,7 @@ export function PublicBookingFlow() {
                               }
                               return !isAvailable && !isSelected;
                             })()}
-                            className={`relative flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-300 border
+                            className={`relative flex flex-col items-center justify-center py-2 rounded-xl transition-all duration-300 border
                                        ${isSelected
                                 ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/30 scale-105 z-10"
                                 : isToday(day)
@@ -633,7 +633,7 @@ export function PublicBookingFlow() {
                               <button
                                 key={time}
                                 onClick={() => toggleProposalOption(time)}
-                                className={`py-4 rounded-2xl text-xs font-black transition-all border
+                                className={`py-2.5 rounded-xl text-xs font-black transition-all border
                                            ${isSelectedOption
                                     ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg"
                                     : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
@@ -648,7 +648,7 @@ export function PublicBookingFlow() {
                               key={s.id}
                               disabled={!s.available}
                               onClick={() => setSelectedSlot(s.id)}
-                              className={`py-4 rounded-2xl text-xs font-black transition-all border
+                              className={`py-3 rounded-xl text-xs font-black transition-all border
                                          ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                          ${selectedSlot === s.id
                                   ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]"

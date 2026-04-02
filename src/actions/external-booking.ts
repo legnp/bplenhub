@@ -21,6 +21,9 @@ import {
 import { db } from "@/lib/firebase";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 import { bookEventAction } from "./calendar";
+import { Resend } from "resend";
+
+const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 /**
  * Interface para os slots de tempo disponíveis (Mapeada do Calendário Interno)
@@ -194,6 +197,51 @@ export async function submitBookingProposalAction(formData: {
       createdAt: new Date().toISOString(),
       type: "External_Proposal"
     });
+
+    // --- Envio de E-mail de Confirmação da Proposta (Assíncrono) ---
+    try {
+      const optionsHtml = formData.options.map(opt => {
+        const d = parseISO(opt.date);
+        return `<li style="margin-bottom: 8px;">📅 <b>${d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</b> às <b>${opt.time}h</b></li>`;
+      }).join('');
+
+      await resend.emails.send({
+        from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+        to: formData.email,
+        subject: `Recebemos sua proposta de agenda na BPlen HUB!`,
+        html: `
+          <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 20px;">
+            <h2 style="color: #ff2c8d; margin-bottom: 5px;">🧬 Proposta Recebida!</h2>
+            <p style="font-size: 16px; margin-top: 0;">Olá, <b>${formData.name}</b>!</p>
+            
+            <p style="font-size: 14px; color: #666; line-height: 1.6;">
+              Não encontramos um horário livre que se encaixasse perfeitamente no momento, mas já recebemos suas sugestões. 
+              Nossa equipe analisará a disponibilidade e entrará em contato em breve para confirmar uma das opções abaixo:
+            </p>
+
+            <div style="background: #fdfdfd; padding: 20px; border-radius: 16px; border: 1px solid #f0f0f0; margin: 20px 0;">
+              <p style="margin: 0 0 15px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;"><b>SUAS OPÇÕES SUGERIDAS</b></p>
+              <ul style="padding: 0; list-style: none; margin: 0; font-size: 14px; color: #1d1d1f;">
+                ${optionsHtml}
+              </ul>
+            </div>
+
+            <div style="background: #fff5f9; padding: 15px; border-radius: 12px; border-left: 4px solid #ff2c8d; margin: 20px 0;">
+              <p style="margin: 0; font-size: 13px; color: #ff2c8d;"><b>PRÓXIMO PASSO:</b> Fique de olho no seu WhatsApp e e-mail. Vamos te dar um retorno oficial nas próximas horas comerciais.</p>
+            </div>
+
+            <p style="font-size: 12px; color: #666; text-align: center; margin-top: 30px;">
+              Obrigado por querer descomplicar o desenvolvimento humano conosco!
+            </p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 10px; color: #999; text-align: center;">BPlen HUB — Inteligência em Gestão e Desenvolvimento</p>
+          </div>
+        `
+      });
+    } catch (emailErr) {
+      console.error("Erro ao enviar e-mail de proposta (ignorado):", emailErr);
+    }
 
     return {
       success: true,
