@@ -56,8 +56,6 @@ export function FloatingSupport() {
             className="w-16 h-16 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-[0_15px_35px_rgba(37,211,102,0.4)] hover:scale-110 active:scale-95 transition-all relative group"
             title="Falar com Especialista"
          >
-            {/* Efeito de Ondulação (Pulse) sutil */}
-            <div className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20 group-hover:opacity-40" />
             <Phone size={28} className="relative z-10" />
          </Link>
       </motion.div>
