@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { HubHeader } from "@/components/hub/HubHeader";
 import { FloatingSupport } from "@/components/layout/FloatingSupport";
