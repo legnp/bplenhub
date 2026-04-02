@@ -210,7 +210,7 @@ export async function bookEventAction(
     const eventRef = doc(db, "Calendar_Events", eventId);
     const displayName = nickname || leadInfo?.name || "Convidado BPlen";
 
-    return await runTransaction(db, async (transaction) => {
+    const trxResult = await runTransaction(db, async (transaction) => {
       const eventSnap = await transaction.get(eventRef);
       if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
 
@@ -293,7 +293,23 @@ export async function bookEventAction(
         });
       }
 
-      // 4. Enviar E-mail (Workflow Resend)
+      return { 
+        success: true, 
+        message: "Sucesso",
+        emailData: {
+          startTime,
+          summary: eventData.summary,
+          mentor: eventData.mentor,
+          theme: eventData.theme,
+          htmlLink: eventData.htmlLink
+        }
+      };
+    });
+
+    // 4. Enviar E-mail (FORA DA TRANSAÇÃO PARA EVITAR TIMEOUTS ⚡)
+    if (trxResult.success && trxResult.emailData) {
+      const { startTime, summary, mentor, theme, htmlLink } = trxResult.emailData;
+      
       try {
         const dateStr = format(startTime, "dd 'de' MMMM", { locale: ptBR });
         const timeStr = format(startTime, "HH:mm");
@@ -309,14 +325,14 @@ export async function bookEventAction(
           `;
         }
 
-        // Gerar arquivo ICS para o convite
+        // Gerar arquivo ICS
         let icsFile = null;
         try {
           const { generateIcsString } = await import("@/lib/ics-utils");
-          const endTime = new Date(startTime.getTime() + 45 * 60 * 1000); // 45 minutos de duração
+          const endTime = new Date(startTime.getTime() + 45 * 60 * 1000); 
           icsFile = generateIcsString({
             title: `BPlen | 1 to 1 (${displayName})`,
-            description: `Reunião estratégica agendada via BPlen HUB.\n\nLink da Reunião: ${eventData.htmlLink}`,
+            description: `Reunião estratégica agendada via BPlen HUB.\n\nLink da Reunião: ${htmlLink}`,
             start: startTime,
             end: endTime,
             location: "Google Meet",
@@ -326,9 +342,9 @@ export async function bookEventAction(
           console.error("Erro ao gerar ICS (ignorado):", icsErr);
         }
 
-        console.log(`[EMAIL] Tentando enviar confirmação para: ${userEmail} (Evento: ${eventData.id})`);
+        console.log(`[EMAIL] Enviando confirmação assíncrona para: ${userEmail}`);
 
-        const emailResult = await resend.emails.send({
+        await resend.emails.send({
           from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
           to: userEmail,
           subject: `${displayName}, seu 1 to 1 foi confirmado na BPlen HUB!`,
@@ -345,28 +361,28 @@ export async function bookEventAction(
               
               <div style="background: #fdfdfd; padding: 20px; border-radius: 16px; border: 1px solid #f0f0f0; margin: 20px 0;">
                 <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 1px;"><b>EVENTO</b></p>
-                <p style="margin: 5px 0 15px 0; font-size: 18px; color: #1d1d1f;"><b>${eventData.summary}</b></p>
+                <p style="margin: 5px 0 15px 0; font-size: 18px; color: #1d1d1f;"><b>${summary}</b></p>
                 
                 <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>DATA E HORA</b></p>
                 <p style="margin: 5px 0 15px 0; font-size: 14px;">${dateStr} às ${timeStr}h</p>
                 
                 <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>ORIENTADOR</b></p>
-                <p style="margin: 5px 0 0 0; font-size: 14px;">${eventData.mentor || "BPlen"}</p>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">${mentor || "BPlen"}</p>
                 
-                ${eventData.theme ? `
+                ${theme ? `
                   <p style="margin: 15px 0 0 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>TEMA</b></p>
-                  <p style="margin: 5px 0 0 0; font-size: 14px;">${eventData.theme}</p>
+                  <p style="margin: 5px 0 0 0; font-size: 14px;">${theme}</p>
                 ` : ""}
 
                 ${oneToOneInfo}
               </div>
 
               <div style="margin: 25px 0; text-align: center;">
-                <a href="${eventData.htmlLink}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">ACESSAR REUNIÃO</a>
+                <a href="${htmlLink}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">ACESSAR REUNIÃO</a>
               </div>
 
               <p style="font-size: 11px; color: #999; text-align: center; margin-bottom: 20px;">
-                * Anexamos um arquivo de calendário (.ics) a este e-mail para você salvar em sua agenda.
+                * Anexamos um arquivo de calendário (.ics) para sua facilidade.
               </p>
 
               <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
@@ -378,14 +394,12 @@ export async function bookEventAction(
             </div>
           `
         });
-
-        console.log(`[EMAIL] Resposta do Resend:`, emailResult);
       } catch (emailError) {
         console.error("Erro crítico ao enviar e-mail de confirmação:", emailError);
       }
+    }
 
-      return { success: true, message: "Sucesso" };
-    });
+    return { success: true, message: "Sucesso" };
   } catch (error: unknown) {
     const err = error as Error;
     console.error("Erro no booking:", err);
