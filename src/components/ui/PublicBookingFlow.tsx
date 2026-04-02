@@ -545,7 +545,7 @@ export function PublicBookingFlow() {
                               }
                               return !isAvailable && !isSelected;
                             })()}
-                            className={`relative flex flex-col items-center justify-center py-2 rounded-xl transition-all duration-300 border
+                            className={`relative flex flex-col items-center justify-center aspect-square rounded-xl transition-all duration-300 border
                                        ${isSelected
                                 ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/30 scale-105 z-10"
                                 : isToday(day)
@@ -633,7 +633,7 @@ export function PublicBookingFlow() {
                               <button
                                 key={time}
                                 onClick={() => toggleProposalOption(time)}
-                                className={`py-2.5 rounded-xl text-xs font-black transition-all border
+                                className={`py-4 rounded-xl text-xs font-black transition-all border flex flex-col items-center justify-center
                                            ${isSelectedOption
                                     ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg"
                                     : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
@@ -648,7 +648,7 @@ export function PublicBookingFlow() {
                               key={s.id}
                               disabled={!s.available}
                               onClick={() => setSelectedSlot(s.id)}
-                              className={`py-3 rounded-xl text-xs font-black transition-all border
+                              className={`py-4 rounded-xl text-xs font-black transition-all border flex flex-col items-center justify-center
                                          ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                          ${selectedSlot === s.id
                                   ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]"
