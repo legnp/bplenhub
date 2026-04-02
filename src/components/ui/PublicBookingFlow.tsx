@@ -17,7 +17,11 @@ import {
   parseISO,
   isToday,
   isBefore,
-  startOfDay
+  startOfDay,
+  isSaturday,
+  isSunday,
+  setHours,
+  setMinutes
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -36,6 +40,7 @@ import {
   getPublicSlotsAction, 
   bookPublicMeetingAction, 
   getPublicAvailableDaysAction,
+  submitBookingProposalAction,
   TimeSlot 
 } from "@/actions/external-booking";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
@@ -43,7 +48,9 @@ import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 type Step = "lead" | "triagem" | "calendar" | "success";
 
 export function PublicBookingFlow() {
-  const [step, setStep] = useState<Step>("lead");
+  const [step, setStep] = useState<Step>("calendar");
+  const [isProposalMode, setIsProposalMode] = useState(false);
+  const [proposalOptions, setProposalOptions] = useState<{ date: string; time: string }[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -65,6 +72,8 @@ export function PublicBookingFlow() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [showPhoneWarning, setShowPhoneWarning] = useState(false);
 
   const fetchAvailableDays = useCallback(async () => {
     try {
@@ -103,21 +112,36 @@ export function PublicBookingFlow() {
   }, [step, selectedDate, fetchSlots]);
 
   const handleBooking = async () => {
-    if (!selectedSlot) return;
+    if (!selectedSlot && proposalOptions.length === 0) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      const res = await bookPublicMeetingAction({
-        name: formData.name,
-        email: formData.email,
-        phone: `${formData.phoneDDI} ${formData.phoneDDD}${formData.phoneNumber}`,
-        screening: formData.screening,
-        slot: selectedSlot
-      });
-      if (res.success) {
-        setStep("success");
+      if (isProposalMode) {
+        const res = await submitBookingProposalAction({
+          name: formData.name,
+          email: formData.email,
+          phone: `${formData.phoneDDI} ${formData.phoneDDD}${formData.phoneNumber}`,
+          screening: formData.screening,
+          options: proposalOptions
+        });
+        if (res.success) {
+          setStep("success");
+        } else {
+          setError(res.message || "Erro ao enviar proposta.");
+        }
       } else {
-        setError(res.message || "Erro ao confirmar agendamento.");
+        const res = await bookPublicMeetingAction({
+          name: formData.name,
+          email: formData.email,
+          phone: `${formData.phoneDDI} ${formData.phoneDDD}${formData.phoneNumber}`,
+          screening: formData.screening,
+          slot: selectedSlot!
+        });
+        if (res.success) {
+          setStep("success");
+        } else {
+          setError(res.message || "Erro ao confirmar agendamento.");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -152,20 +176,50 @@ export function PublicBookingFlow() {
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
+  const proposalSlots = useMemo(() => {
+    const slots = [];
+    let current = setMinutes(setHours(selectedDate, 6), 0);
+    const end = setMinutes(setHours(selectedDate, 21), 0);
+    
+    while (current <= end) {
+      slots.push(format(current, "HH:mm"));
+      current = addDays(current, 0); // No addDays needed, just using it to increment time
+      // Wait, date-fns addMinutes or just handle it manually
+    }
+    // Re-writing loop properly
+    const result = [];
+    for(let h=6; h<=21; h++) {
+      result.push(`${h.toString().padStart(2, '0')}:00`);
+      if (h < 21) result.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    return result;
+  }, [selectedDate]);
+
+  const toggleProposalOption = (time: string) => {
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const exists = proposalOptions.find(o => o.date === dateStr && o.time === time);
+    if (exists) {
+      setProposalOptions(proposalOptions.filter(o => !(o.date === dateStr && o.time === time)));
+    } else {
+      if (proposalOptions.length >= 3) return;
+      setProposalOptions([...proposalOptions, { date: dateStr, time }]);
+    }
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto py-12 px-4">
+    <div className="w-full max-w-4xl mx-auto py-4 px-4">
       {/* 48px Header */}
-      <div className="text-center space-y-4 mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <h1 className="text-[48px] font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent leading-[1.1]">
+      <div className="text-center space-y-2 mb-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <h1 className="text-[32px] font-black tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent leading-[1.1]">
           Reserve seu Momento BPlen
         </h1>
-        <p className="text-white/60 text-lg font-medium max-w-xl mx-auto leading-relaxed">
+        <p className="text-white/60 text-sm font-medium max-w-xl mx-auto leading-relaxed">
           Que tal descomplicarmos o desenvolvimento humano no trabalho juntos? <br/>
           Escolha um slot abaixo e receba a confirmação em seu e-mail.
         </p>
       </div>
 
-      <div className={`w-full ${step === 'calendar' ? 'max-w-4xl' : 'max-w-xl'} mx-auto p-4 sm:p-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700`}>
+      <div className={`w-full ${step === 'calendar' ? 'max-w-4xl' : 'max-w-xl'} mx-auto p-4 sm:p-6 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700`}>
         
         {/* 🔮 Glow Decoration */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-[var(--accent-start)]/20 rounded-full blur-3xl group-hover:bg-[var(--accent-start)]/30 transition-all duration-700" />
@@ -204,22 +258,30 @@ export function PublicBookingFlow() {
                       const val = e.target.value;
                       setFormData({...formData, email: val});
                       
-                      // Scanner de erros de digitação para domínios populares
+                      // Scanner de erros de digitação
                       const domains = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'bplen.com'];
                       const [user, domain] = val.split('@');
                       if (domain && domain.length > 2) {
                         const suggestion = domains.find(d => d.startsWith(domain) && d !== domain);
                         if (suggestion) {
-                          setError(`Você quis dizer @${suggestion}?`);
+                          setEmailError(`Ops! Você quis dizer @${suggestion}?`);
                         } else {
-                          setError(null);
+                          setEmailError(null);
                         }
+                      } else {
+                        setEmailError(null);
                       }
                     }}
                   />
+                  {emailError && (
+                    <p className="absolute -bottom-5 left-1 text-[9px] font-bold text-[var(--accent-start)] flex items-center gap-1 animate-pulse">
+                      <AlertCircle className="w-3 h-3" />
+                      {emailError}
+                    </p>
+                  )}
                 </div>
 
-                <div className="space-y-1.5 text-left">
+                <div className="space-y-1.5 text-left relative">
                   <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] ml-1">WhatsApp / Telefone</label>
                   
                   <div className="flex gap-2">
@@ -243,7 +305,7 @@ export function PublicBookingFlow() {
                     {/* DDD Condicional */}
                     {formData.phoneDDI === "+55" ? (
                       <select 
-                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none"
+                        className="w-24 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none"
                         value={formData.phoneDDD}
                         onChange={(e) => setFormData({...formData, phoneDDD: e.target.value})}
                       >
@@ -267,16 +329,33 @@ export function PublicBookingFlow() {
                       placeholder="Número"
                       className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
                       value={formData.phoneNumber}
-                      onChange={(e) => setFormData({...formData, phoneNumber: e.target.value.replace(/\D/g, "")})}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/[^0-9]/.test(val)) {
+                          setShowPhoneWarning(true);
+                        } else {
+                          setShowPhoneWarning(false);
+                        }
+                        setFormData({...formData, phoneNumber: val.replace(/\D/g, "")});
+                      }}
                     />
                   </div>
+                  {showPhoneWarning && (
+                    <p className="absolute -bottom-5 right-1 text-[9px] font-bold text-[var(--accent-start)] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      O campo aceita somente números
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-between items-center pt-4">
+                <button onClick={() => setStep("calendar")} className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-all">
+                  Voltar ao Calendário
+                </button>
                 <NavButton 
                   onClick={() => setStep("triagem")} 
-                  disabled={!formData.name || !formData.email || !formData.phoneNumber} 
+                  disabled={!formData.name || !formData.email || !formData.phoneNumber || (formData.phoneDDI === "+55" && !formData.phoneDDD)} 
                 />
               </div>
             </motion.div>
@@ -332,27 +411,39 @@ export function PublicBookingFlow() {
                 <p className="text-[9px] text-white/20 uppercase font-black tracking-widest italic">
                   Sua resposta nos ajuda a preparar o melhor material 🧪
                 </p>
-                <NavButton 
-                  onClick={() => setStep("calendar")} 
-                  disabled={!formData.screening.objetivo} 
-                />
+                <button
+                   onClick={handleBooking}
+                   disabled={!formData.screening.objetivo || isSubmitting}
+                   className="h-12 px-8 bg-[var(--accent-start)] text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {isSubmitting ? "PROCESSANDO..." : "FINALIZAR AGENDAMENTO"}
+                </button>
               </div>
             </motion.div>
           )}
 
           {step === "calendar" && (
-            <motion.div key="calendar" {...containerVariants} className="space-y-8 relative z-10 text-left">
+            <motion.div key="calendar" {...containerVariants} className="space-y-6 relative z-10 text-left">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setStep("triagem")} className="p-2 hover:bg-white/5 rounded-full transition-all">
-                    <ChevronLeft className="w-5 h-5 text-white/40" />
-                  </button>
-                  <h3 className="text-xl font-black text-white">Escolha um Horário</h3>
+                  <h3 className="text-xl font-black text-white">
+                    {isProposalMode ? "Propor Novos Horários" : "Escolha um Horário"}
+                  </h3>
                 </div>
                 <div className="flex items-center gap-4">
                    <p className="text-[10px] font-black text-[#ff2c8d] uppercase tracking-[0.2em]">AGENDA VIRTUAL 📺</p>
                 </div>
               </div>
+
+              {isProposalMode && (
+                <div className="p-4 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
+                  <p className="text-xs text-white/80 leading-relaxed font-medium">
+                    <Sparkles className="w-4 h-4 inline-block mr-2 text-[var(--accent-start)]" />
+                    <b>Não encontrou uma boa agenda?</b> Sugira até 3 opções de datas e horários (apenas dias úteis) e entraremos em contato para confirmar!
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-8">
                 
@@ -393,16 +484,27 @@ export function PublicBookingFlow() {
                             </div>
                           )}
                           <button
-                            onClick={() => isAvailable && setSelectedDate(day)}
-                            disabled={!isAvailable && !isSelected}
+                            onClick={() => {
+                              if (isProposalMode) {
+                                // Em modo proposta, apenas dias úteis
+                                if (!isSaturday(day) && !isSunday(day)) setSelectedDate(day);
+                              } else {
+                                if (isAvailable) setSelectedDate(day);
+                              }
+                            }}
+                            disabled={isProposalMode ? (isSaturday(day) || isSunday(day)) : (!isAvailable && !isSelected)}
                             className={`relative flex flex-col items-center justify-center py-3 rounded-2xl transition-all duration-300 border
                                        ${isSelected 
                                          ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/30 scale-105 z-10" 
                                          : isToday(day) 
                                            ? "bg-[var(--accent-start)]/10 border-white/5 text-[var(--accent-start)] font-bold" 
-                                           : isAvailable 
-                                             ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
-                                             : "text-white/10 border-transparent cursor-default"
+                                           : isProposalMode
+                                             ? (!isSaturday(day) && !isSunday(day))
+                                                ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
+                                                : "opacity-10 cursor-not-allowed"
+                                             : isAvailable 
+                                               ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
+                                               : "text-white/10 border-transparent cursor-default"
                                        }`}
                           >
                             <span className="text-xs font-bold">{format(day, "d")}</span>
@@ -428,33 +530,67 @@ export function PublicBookingFlow() {
                         <Loader2 className="w-8 h-8 animate-spin text-white" />
                         <span className="text-[9px] font-black uppercase tracking-widest">Calculando Slots...</span>
                       </div>
-                    ) : slots.length === 0 ? (
+                    ) : (isProposalMode ? proposalSlots : slots).length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center py-20">
                         <CalendarIcon className="w-6 h-6 text-white/10 mb-4" />
                         <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Nenhum horário livre.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
-                        {slots.map((s) => (
-                          <button
-                            key={s.id}
-                            disabled={!s.available}
-                            onClick={() => setSelectedSlot(s.id)}
-                            className={`py-4 rounded-2xl text-xs font-black transition-all border
-                                       ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
-                                       ${selectedSlot === s.id 
-                                         ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]" 
-                                         : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
-                          >
-                            <div className="flex items-center justify-center gap-2">
-                               <Clock className="w-3 h-3 opacity-30" />
-                               {format(parseISO(s.start), "HH:mm")}
-                            </div>
-                          </button>
-                        ))}
+                        {isProposalMode ? (
+                          proposalSlots.map((time) => {
+                            const dateStr = format(selectedDate, "yyyy-MM-dd");
+                            const isSelectedOption = proposalOptions.some(o => o.date === dateStr && o.time === time);
+                            return (
+                              <button
+                                key={time}
+                                onClick={() => toggleProposalOption(time)}
+                                className={`py-4 rounded-2xl text-xs font-black transition-all border
+                                           ${isSelectedOption 
+                                             ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg" 
+                                             : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
+                              >
+                                {time}
+                              </button>
+                            );
+                          })
+                        ) : (
+                          slots.map((s) => (
+                            <button
+                              key={s.id}
+                              disabled={!s.available}
+                              onClick={() => setSelectedSlot(s.id)}
+                              className={`py-4 rounded-2xl text-xs font-black transition-all border
+                                         ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
+                                         ${selectedSlot === s.id 
+                                           ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]" 
+                                           : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                 <Clock className="w-3 h-3 opacity-30" />
+                                 {format(parseISO(s.start), "HH:mm")}
+                              </div>
+                            </button>
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
+
+                  {!isProposalMode && (
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-center">
+                      <p className="text-[10px] text-white/40 font-medium mb-2">Não encontrou uma boa agenda?</p>
+                      <button 
+                        onClick={() => {
+                          setIsProposalMode(true);
+                          setSelectedSlot(null);
+                        }}
+                        className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest hover:underline"
+                      >
+                        Faça uma proposta de agenda
+                      </button>
+                    </div>
+                  )}
 
                   {error && (
                     <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-[10px] font-black">
@@ -463,14 +599,30 @@ export function PublicBookingFlow() {
                     </div>
                   )}
 
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-col gap-3">
+                    {isProposalMode && (
+                      <div className="flex items-center justify-between px-2">
+                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                          {proposalOptions.length}/3 OPÇÕES SELECIONADAS
+                        </p>
+                        <button 
+                          onClick={() => {
+                            setIsProposalMode(false);
+                            setProposalOptions([]);
+                          }}
+                          className="text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest"
+                        >
+                          Voltar ao Padrão
+                        </button>
+                      </div>
+                    )}
                     <button
-                      onClick={handleBooking}
-                      disabled={!selectedSlot || isSubmitting}
+                      onClick={() => setStep("lead")}
+                      disabled={!isProposalMode ? !selectedSlot : proposalOptions.length === 0}
                       className="w-full h-14 bg-white text-black rounded-[24px] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                      {isSubmitting ? "PROCESSANDO..." : "CONFIRMAR E AGENDAR"}
+                      CONTINUAR PARA DADOS
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -480,30 +632,36 @@ export function PublicBookingFlow() {
           )}
 
           {step === "success" && (
-            <motion.div key="success" {...containerVariants} className="text-center py-12 space-y-6 relative z-10">
-              <div className="w-16 h-16 bg-[var(--accent-start)]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--accent-start)]/20 shadow-[0_0_40px_var(--accent-start)]/20">
+            <motion.div key="success" {...containerVariants} className="text-center py-6 space-y-4 relative z-10">
+              <div className="w-16 h-16 bg-[var(--accent-start)]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--accent-start)]/20 shadow-[0_0_40px_var(--accent-start)]/20">
                 <CheckCircle2 className="w-8 h-8 text-[var(--accent-start)] stroke-[1.5]" />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-4xl font-black text-white tracking-tighter inline-flex items-center">
-                  Que alegria! <Sparkles className="w-8 h-8 text-[var(--accent-start)] ml-3 animate-pulse" />
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white tracking-tighter inline-flex items-center">
+                  {isProposalMode ? "Proposta Enviada!" : "Que alegria!"} <Sparkles className="w-6 h-6 text-[var(--accent-start)] ml-3 animate-pulse" />
                 </h3>
-                <p className="text-white/60 text-base font-medium leading-relaxed">
-                  Tudo pronto para nossa conversa. <br/>
-                  Enviamos os detalhes do acesso para <br/>
+                <p className="text-white/60 text-sm font-medium leading-relaxed">
+                  {isProposalMode 
+                    ? "Recebemos sua sugestão de horários. Nossa equipe analisará e entrará em contato em breve para confirmar." 
+                    : "Tudo pronto para nossa conversa. Enviamos os detalhes do acesso para seu e-mail."}
+                  <br/>
                   <span className="text-[var(--accent-start)] font-black">{formData.email}</span>
                 </p>
               </div>
-              <div className="p-5 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-2 text-left">
-                <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">📍 Confirmação Imediata</p>
-                <p className="text-xs text-white/60 leading-relaxed">
-                  Verifique sua caixa de entrada e spam. O link do Google Meet e o convite de calendário já estão a caminho.
+              <div className="p-4 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-1 text-left">
+                <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">
+                  {isProposalMode ? "📍 Próximos Passos" : "📍 Confirmação Imediata"}
+                </p>
+                <p className="text-[11px] text-white/60 leading-relaxed">
+                  {isProposalMode 
+                    ? "Fique atento ao seu e-mail e WhatsApp. Confirmaremos uma das opções sugeridas ou proporemos um ajuste rápido."
+                    : "Verifique sua caixa de entrada e spam. O link do Google Meet e o convite de calendário já estão a caminho."}
                 </p>
               </div>
-              <div className="pt-6">
+              <div className="pt-4">
                 <button
                   onClick={() => window.location.href = "/"}
-                  className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[var(--accent-start)]/40"
+                  className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[var(--accent-start)]/40"
                 >
                   Retornar ao HUB
                 </button>

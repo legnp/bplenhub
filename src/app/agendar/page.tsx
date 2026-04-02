@@ -21,7 +21,7 @@ export default function AgendarPage() {
       {/* 🌌 Camada Global de Partículas (Herança da Home) */}
       <ParticleNexus />
 
-      <div className="z-10 w-full max-w-4xl mx-auto py-24 flex flex-col items-center justify-center min-h-[80vh]">
+      <div className="z-10 w-full max-w-4xl mx-auto py-8 flex flex-col items-center justify-center min-h-[50vh]">
          {/* 📅 O Motor de Agendamento (Centralizado) */}
          <div className="w-full px-4">
             <PublicBookingFlow />

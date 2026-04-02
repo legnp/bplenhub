@@ -14,7 +14,9 @@ import {
   getDocs,
   query,
   where,
-  orderBy
+  orderBy,
+  doc,
+  setDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
@@ -133,9 +135,11 @@ export async function bookPublicMeetingAction(formData: {
 export async function getPublicAvailableDaysAction(): Promise<string[]> {
   try {
     const now = new Date();
-    const timeMin = formatISO(startOfDay(now));
-    // Buscar disponibilidade para os próximos 60 dias
-    const timeMax = formatISO(addDays(now, 60));
+    const minAllowedDate = addDays(startOfDay(now), CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
+    const maxAllowedDate = addDays(startOfDay(now), CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.maxDaysInFuture);
+
+    const timeMin = formatISO(minAllowedDate);
+    const timeMax = formatISO(maxAllowedDate);
 
     const eventsQuery = query(
       collection(db, "Calendar_Events"),
@@ -167,5 +171,39 @@ export async function getPublicAvailableDaysAction(): Promise<string[]> {
   } catch (error) {
     console.error("Erro ao buscar dias disponíveis:", error);
     return [];
+  }
+}
+
+/**
+ * Submete uma proposta de agenda (Especial: Quando não encontra horários livres no 1to1)
+ * Salva na coleção Booking_Proposals com status 'pending'.
+ */
+export async function submitBookingProposalAction(formData: {
+  name: string;
+  email: string;
+  phone: string;
+  screening: Record<string, string>;
+  options: { date: string; time: string }[];
+}) {
+  try {
+    const proposalId = `prop_${Date.now()}_${Buffer.from(formData.email).toString('base64').substring(0, 5)}`;
+    
+    await setDoc(doc(db, "Booking_Proposals", proposalId), {
+      ...formData,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      type: "External_Proposal"
+    });
+
+    return {
+      success: true,
+      message: "Proposta enviada com sucesso! Entraremos em contato em breve."
+    };
+  } catch (error) {
+    console.error("Erro ao submeter proposta:", error);
+    return {
+      success: false,
+      message: "Erro ao enviar proposta. Tente novamente."
+    };
   }
 }

@@ -24,8 +24,15 @@ export const CALENDAR_CONFIG = {
     workingHours: { start: "08:00", end: "18:00" },
     defaultDuration: 45, // minutos — reunião 1 to 1
     bufferBetweenMeetings: 15, // minutos
-    maxDaysInFuture: 15, // Quantos dias à frente o cliente pode ver
-    minDaysInFuture: 1, // Mínimo de 1 dia de antecedência
+    maxDaysInFuture: 33, // Quantos dias à frente o cliente pode ver
+    minDaysInFuture: 3, // Mínimo de 3 dias de antecedência
+  },
+
+  // Configurações para Proposta de Agenda (Caso não encontre horário)
+  PROPOSAL_SETTINGS: {
+    start: "06:00",
+    end: "21:00",
+    intervalMinutes: 30,
   },
 
   // Configurações do evento no Google Calendar
