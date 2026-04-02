@@ -177,23 +177,14 @@ export function PublicBookingFlow() {
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
   const proposalSlots = useMemo(() => {
-    const slots = [];
-    let current = setMinutes(setHours(selectedDate, 6), 0);
-    const end = setMinutes(setHours(selectedDate, 21), 0);
-    
-    while (current <= end) {
-      slots.push(format(current, "HH:mm"));
-      current = addDays(current, 0); // No addDays needed, just using it to increment time
-      // Wait, date-fns addMinutes or just handle it manually
-    }
-    // Re-writing loop properly
+    // Gerar slots de 30 minutos entre 06:00 e 21:00
     const result = [];
     for(let h=6; h<=21; h++) {
       result.push(`${h.toString().padStart(2, '0')}:00`);
       if (h < 21) result.push(`${h.toString().padStart(2, '0')}:30`);
     }
     return result;
-  }, [selectedDate]);
+  }, []);
 
   const toggleProposalOption = (time: string) => {
     const dateStr = format(selectedDate, "yyyy-MM-dd");
