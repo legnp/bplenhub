@@ -6,34 +6,39 @@
    ============================================ */
 
 :root {
-  /* [Modo BPlen Claro] - Paleta Apple IOS */
-  --bg-primary: #F5F7FA;
-  --text-primary: #1D1D1F;
-  --text-secondary: #6E6E73;
+  /* ============================================
+     [Design Center: Hub & Admin - Modo Claro]
+     Foco em contraste máximo e legibilidade.
+     ============================================ */
+  --bg-primary: #EEF2F6; /* Levemente mais cinza para destacar cards brancos */
+  --text-primary: #0A0A0B; 
+  --text-secondary: #3F3F46; /* Contraste 7:1 para leitura editorial */
   --accent-start: #ff2c8d;
   --accent-end: #ff006e;
-  --accent-soft: rgba(255, 44, 141, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
-  --glass-blur: 40px;
-  --glass-shadow: 0 20px 50px 0 rgba(0, 0, 0, 0.1);
+  --accent-soft: rgba(255, 44, 141, 0.12);
+  
+  /* Glassmorphism Refinado para Modo Claro */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: 1.5px solid rgba(0, 0, 0, 0.08);
+  --glass-blur: 24px;
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
 
   /* Dimensões Globais */
   --radius: 20px;
   --font-size-base: 15px;
 }
 
-/* [Modo BPlen Escuro] */
+/* [Modo BPlen Escuro] - Design Center Privado */
 .theme-dark {
   --bg-primary: #000000;
   --text-primary: #FFFFFF;
-  --text-secondary: #8E8E93;
+  --text-secondary: #A1A1AA;
   --accent-start: #ff2c8d;
   --accent-end: #ff006e;
   --accent-soft: rgba(255, 44, 141, 0.15);
-  --glass-bg: rgba(28, 28, 30, 0.6);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(18, 18, 18, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* [Modo Rosa Pitaya] */
@@ -42,8 +47,10 @@
   --accent-end: #7928ca;
   --accent-soft: rgba(255, 0, 128, 0.1);
   --bg-primary: #FFF0F6;
-  --glass-bg: rgba(255, 192, 203, 0.3);
-  --glass-border: 1px solid rgba(255, 0, 128, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: 1.5px solid rgba(255, 0, 128, 0.15);
+  --text-primary: #34001c;
+  --text-secondary: #702d4f;
 }
 
 /* [Modo Lavanda Azulado] */
@@ -52,19 +59,22 @@
   --accent-end: #4f46e5;
   --accent-soft: rgba(167, 139, 250, 0.1);
   --bg-primary: #F5F3FF;
-  --glass-bg: rgba(237, 233, 254, 0.4);
-  --glass-border: 1px solid rgba(139, 92, 246, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.5);
+  --glass-border: 1.5px solid rgba(79, 70, 229, 0.1);
+  --text-primary: #1e1b4b;
+  --text-secondary: #4338ca;
 }
 
 /* [Modo Amarelo Sol] */
 .theme-amarelo-sol {
-  --accent-start: #fde047;
+  --accent-start: #fbbf24;
   --accent-end: #f97316;
   --accent-soft: rgba(253, 224, 71, 0.15);
   --bg-primary: #FFFBEB;
   --text-primary: #451a03;
-  --glass-bg: rgba(254, 243, 199, 0.5);
-  --glass-border: 1px solid rgba(245, 158, 11, 0.3);
+  --text-secondary: #92400e;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: 1.5px solid rgba(245, 158, 11, 0.2);
 }
 
 /* [Modo Cinza Nublado] */
@@ -73,22 +83,17 @@
   --accent-end: #475569;
   --accent-soft: rgba(148, 163, 184, 0.1);
   --bg-primary: #F1F5F9;
-  --glass-bg: rgba(226, 232, 240, 0.4);
-  --glass-border: 1px solid rgba(148, 163, 184, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.5);
+  --glass-border: 1.5px solid rgba(71, 85, 105, 0.2);
 }
 
-/* [Modo Inclusivo / Daltonismo] */
-.theme-daltonico {
-  --accent-start: #005AB5;
-  /* Azul Contraste */
-  --accent-end: #DC3220;
-  /* Vermelho Contraste */
-  --bg-primary: #FFFFFF;
-  --text-primary: #000000;
-  --text-secondary: #333333;
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-border: 2px solid #000000;
-}
+/* [Governança Visual BPlen HUB]
+   1. Proibição de emojis em interface pública e privada.
+   2. Herança obrigatória do ThemeContext em toda a área logada.
+   3. Contraste mínimo 4.5:1 exigido para todos os textos.
+*/
 
 @theme inline {
   --color-background: var(--bg-primary);
@@ -105,9 +110,10 @@ body {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: var(--font-size-base);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Glassmorphism Card (Padrão) */
+/* Glassmorphism Card (Padrão HUB) */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -115,6 +121,7 @@ body {
   border: var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--glass-shadow);
+  transition: all 0.3s ease;
 }
 
 /* Glassmorphism Cristal (O Verdadeiro Desfoque - Glass Apple) */

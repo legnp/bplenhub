@@ -1,5 +1,5 @@
 /**
- * Tipos centrais do Ecossistema BPlen HUB 🧬
+ * Tipos centrais do Ecossistema BPlen HUB
  */
 
 export interface BPlenService {

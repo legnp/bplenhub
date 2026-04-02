@@ -56,7 +56,7 @@ export default function ServicesPage() {
   return (
     <main className="min-h-screen bg-black text-white relative isolate overflow-x-hidden theme-dark">
       
-      {/* 🔮 Glows Decorativos */}
+      {/* Glows Decorativos */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#ff0080] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 
@@ -129,7 +129,7 @@ export default function ServicesPage() {
             
             <div className="max-w-xl space-y-6 relative z-10 text-center md:text-left">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold tracking-widest text-gray-400 border border-white/10 uppercase">
-                🚀 Comece por aqui
+                Comece por aqui
               </span>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Você já conhece sua <span className="text-[#ff0080]">proposta de valor?</span>

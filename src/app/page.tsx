@@ -12,7 +12,7 @@ import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
 
 /**
- * HOME DA CONSULTORIA BPLEN 🚀
+ * HOME DA CONSULTORIA BPLEN
  * Landing Page de entrada com estilo Dark Premium fixo.
  */
 export default function Home() {
@@ -53,13 +53,13 @@ export default function Home() {
       {/* 8. Rodapé Minimalista (Final da Jornada) */}
       <HomeFooter />
 
-      {/* 🛰️ Menu de Ações Fixo (Global Top Right) */}
+      {/* Menu de Ações Fixo (Global Top Right) */}
       <FloatingCTAs />
 
-      {/* 👻 Sidebar de Redes Sociais (Global Left) */}
+      {/* Sidebar de Redes Sociais (Global Left) */}
       <SocialSidebar />
 
-      {/* 🌌 Camada Global de Partículas (Revelação por Mouse) */}
+      {/* Camada Global de Partículas (Revelação por Mouse) */}
       <ParticleNexus />
       
     </main>

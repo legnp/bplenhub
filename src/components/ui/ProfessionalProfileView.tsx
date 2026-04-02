@@ -45,7 +45,7 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
   return (
     <div className="relative isolate">
       
-      {/* 🔮 Glows Decorativos de Fundo */}
+      {/* Glows Decorativos de Fundo */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#ff0080] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 

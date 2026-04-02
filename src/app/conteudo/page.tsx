@@ -22,7 +22,7 @@ export default function ContentPage() {
   return (
     <main className="min-h-screen bg-[#F5F7FA] text-[#1D1D1F] relative isolate overflow-x-hidden transition-colors duration-500">
       
-      {/* 🔮 Glows Decorativos (Suaves para modo claro) */}
+      {/* Glows Decorativos (Suaves para modo claro) */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#ff0080] rounded-full blur-[180px] opacity-[0.03] pointer-events-none -z-10" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.03] pointer-events-none -z-10" />
 

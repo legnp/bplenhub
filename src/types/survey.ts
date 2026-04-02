@@ -1,5 +1,5 @@
 /**
- * BPlen HUB — Central de Tipos (Governança de Dados) 🛡️
+ * BPlen HUB — Central de Tipos (Governança de Dados)
  * Todas as estruturas de dados de Formulários devem ser registradas aqui.
  */
 

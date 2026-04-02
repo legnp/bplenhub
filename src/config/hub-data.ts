@@ -1,7 +1,7 @@
 import { BPlenService, BPlenContent, BPlenTool, BPlenSurvey } from "@/types/hub";
 
 /**
- * MOCK DATA: SERVIÇOS (JORNADA) 🛤️
+ * MOCK DATA: SERVIÇOS (JORNADA)
  */
 export const MOCK_SERVICES: BPlenService[] = [
   {
@@ -34,7 +34,7 @@ export const MOCK_SERVICES: BPlenService[] = [
 ];
 
 /**
- * MOCK DATA: ÚLTIMOS CONTEÚDOS 📚
+ * MOCK DATA: ÚLTIMOS CONTEÚDOS
  */
 export const MOCK_CONTENTS: BPlenContent[] = [
   {
@@ -64,7 +64,7 @@ export const MOCK_CONTENTS: BPlenContent[] = [
 ];
 
 /**
- * MOCK DATA: FERRAMENTAS 🛠️
+ * MOCK DATA: FERRAMENTAS
  */
 export const MOCK_TOOLS: BPlenTool[] = [
   {
@@ -97,7 +97,7 @@ export const MOCK_TOOLS: BPlenTool[] = [
 ];
 
 /**
- * MOCK DATA: PESQUISAS 🗳️
+ * MOCK DATA: PESQUISAS
  */
 export const MOCK_SURVEYS: BPlenSurvey[] = [
   {

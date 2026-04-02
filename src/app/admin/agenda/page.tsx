@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { getOneToOneTypes, updateOneToOneTypes } from "@/actions/OneToOneActions";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, addDays, isBefore, parseISO } from "date-fns";
+import { format, addDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import GlassModal from "@/components/ui/GlassModal";
 
@@ -158,7 +158,7 @@ export default function AgendaManagementPage() {
       const limit = addDays(now, parseInt(dateRange));
       result = result.filter(ev => {
         const date = ev.start ? parseISO(ev.start) : new Date();
-        return isBefore(date, limit);
+        return date.getTime() < limit.getTime();
       });
     }
 
@@ -178,111 +178,111 @@ export default function AgendaManagementPage() {
   }, [syncedEvents, searchTerm, dateRange, sortBy]);
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-20 animate-fade-in">
       {/* Header & Main Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-            Sincronizar Agenda
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+             Sincronizar <span className="text-accent-start italic">Agenda</span>
           </h1>
-          <p className="text-[#1D1D1F]/60 mt-2 font-medium">
+          <p className="text-secondary text-sm font-medium opacity-70">
             Interface de controle operacional e auditoria de serviços.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setIsConfigModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm bg-white border border-black/5 text-[#1D1D1F]/60 transition-all shadow-sm hover:bg-white/80 active:scale-[0.98]"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest bg-white/5 border border-white/10 text-secondary transition-all hover:bg-white/10 hover:text-foreground active:scale-[0.98]"
           >
             <Settings2 className="w-4 h-4" />
-            CONFIGURAR 1 TO 1
+            Configurar 1 to 1
           </button>
 
           <button
             onClick={handleSync}
             disabled={isSyncing}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] shrink-0 ${isSyncing
-                ? "bg-[#1D1D1F]/5 text-[#1D1D1F]/40 cursor-not-allowed"
-                : "bg-gradient-to-tr from-[#667eea] to-[#764ba2] text-white shadow-[#667eea]/20"
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all shadow-lg hover:translate-y-[-2px] active:scale-[0.98] shrink-0 ${isSyncing
+                ? "bg-white/5 text-secondary cursor-not-allowed"
+                : "bg-gradient-to-tr from-accent-start to-accent-end text-white shadow-accent-start/20"
               }`}
           >
             {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            {isSyncing ? "SINCRONIZANDO..." : "SINCRONIZAR AGORA"}
+            {isSyncing ? "Sincronizando..." : "Sincronizar Agora"}
           </button>
         </div>
       </div>
 
       {/* Stats Cards Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm transition-all hover:bg-white/60">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 shadow-2xl transition-all hover:bg-white/[0.08]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#667eea]/10 rounded-xl text-[#667eea]">
+            <div className="p-2 bg-accent-start/10 rounded-xl text-accent-start">
               <LayoutDashboard className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Total na Base</span>
+            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Total na Base</span>
           </div>
-          <div className="text-4xl font-black text-[#1D1D1F]">{stats.total}</div>
-          <p className="text-[10px] text-[#1D1D1F]/50 mt-1 font-medium italic">Eventos mapeados no ecossistema</p>
+          <div className="text-4xl font-black text-foreground">{stats.total}</div>
+          <p className="text-[10px] text-secondary mt-2 font-bold uppercase tracking-widest opacity-40">Eventos mapeados</p>
         </div>
 
-        <div className="p-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm transition-all hover:bg-white/60">
+        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 shadow-2xl transition-all hover:bg-white/[0.08]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#764ba2]/10 rounded-xl text-[#764ba2]">
+            <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
               <Activity className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Status Sincronizado</span>
+            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Status Sincronizado</span>
           </div>
-          <div className="text-4xl font-black text-[#1D1D1F]">{stats.status.sync}</div>
+          <div className="text-4xl font-black text-foreground">{stats.status.sync}</div>
           <div className="flex items-center gap-1.5 mt-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-green-600 uppercase">Operacional</span>
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+            <span className="text-[10px] font-bold text-green-500 uppercase">Operacional</span>
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-2 p-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#667eea]/10 rounded-xl text-[#667eea]">
+        <div className="col-span-1 md:col-span-2 p-7 bg-white/5 rounded-3xl border border-white/5 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-accent-end/10 rounded-xl text-accent-end">
               <TrendingUp className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-bold text-[#1D1D1F]/40 uppercase tracking-widest leading-none">Principais Tipos / Serviços (Top 5)</span>
+            <span className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] leading-none">Principais Tipos / Serviços (Top 5)</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {stats.types.map((t, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-xl border border-white/80 shadow-sm">
-                <span className="text-[10px] font-bold text-[#1D1D1F] line-clamp-1 max-w-[150px]">{t.name}</span>
-                <span className="text-[10px] font-black text-[#667eea] bg-[#667eea]/10 px-1.5 rounded-lg">{t.count}</span>
+              <div key={i} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/10 shadow-sm hover:border-accent-start/30 transition-all">
+                <span className="text-[10px] font-bold text-foreground line-clamp-1 max-w-[150px]">{t.name}</span>
+                <span className="text-[10px] font-black text-accent-start bg-accent-start/10 px-1.5 rounded-lg border border-accent-start/10">{t.count}</span>
               </div>
             ))}
-            {stats.types.length === 0 && <span className="text-[10px] text-[#1D1D1F]/40 italic">Aguardando dados...</span>}
+            {stats.types.length === 0 && <span className="text-[10px] text-secondary italic">Aguardando dados...</span>}
           </div>
         </div>
       </div>
 
       {/* Controls Bar (Filter/Sort/Search) */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl sticky top-4 z-10 shadow-[0_8px_32px_0_rgba(31,38,135,0.02)]">
+      <div className="flex flex-wrap items-center gap-4 p-5 bg-white/5 border border-white/10 rounded-[2rem] sticky top-4 z-10 shadow-2xl backdrop-blur-3xl">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1D1D1F]/30" />
+        <div className="relative flex-1 min-w-[250px]">
+          <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary opacity-40" />
           <input
             type="text"
             placeholder="Filtrar por título..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/60 border border-white/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#667eea]/30 transition-all placeholder:text-[#1D1D1F]/30"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 py-3.5 text-sm font-medium text-foreground focus:outline-none focus:border-accent-start/50 transition-all placeholder:text-secondary placeholder:opacity-40"
           />
         </div>
 
         {/* Date Filters */}
-        <div className="flex items-center bg-white/60 p-1.5 rounded-2xl border border-white/80 shadow-sm gap-1">
+        <div className="flex items-center bg-white/5 p-1.5 rounded-2xl border border-white/10 gap-1">
           {(["all", "15", "30"] as DateRangeOption[]).map((opt) => (
             <button
               key={opt}
               onClick={() => setDateRange(opt)}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-tight ${dateRange === opt
-                  ? "bg-[#1D1D1F] text-white shadow-md shadow-[#1D1D1F]/20"
-                  : "text-[#1D1D1F]/40 hover:text-[#1D1D1F]"
+              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest ${dateRange === opt
+                  ? "bg-accent-start text-white shadow-xl shadow-accent-start/20"
+                  : "text-secondary hover:text-foreground"
                 }`}
             >
               {opt === "all" ? "Todos" : `Próx. ${opt} Dias`}
@@ -291,98 +291,107 @@ export default function AgendaManagementPage() {
         </div>
 
         {/* Sorting Dropdown */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-white/60 rounded-2xl border border-white/80 shadow-sm">
-          <ArrowUpDown className="w-3.5 h-3.5 text-[#1D1D1F]/40" />
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-white/5 rounded-2xl border border-white/10">
+          <ArrowUpDown className="w-3.5 h-3.5 text-accent-start" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="bg-transparent text-[10px] font-bold text-[#1D1D1F] focus:outline-none cursor-pointer uppercase tracking-tight"
+            className="bg-transparent text-[9px] font-black text-secondary focus:outline-none cursor-pointer uppercase tracking-widest hover:text-foreground transition-colors"
           >
-            <option value="date">Ordenar por Data</option>
-            <option value="name">Ordenar por Nome</option>
-            <option value="status">Ordenar por Status</option>
+            <option value="date" className="bg-black">Ordenar por Data</option>
+            <option value="name" className="bg-black">Ordenar por Nome</option>
+            <option value="status" className="bg-black">Ordenar por Status</option>
           </select>
         </div>
       </div>
 
       {/* Sync Feedback Alerts */}
-      {lastSyncResult && (
-        <div className="flex items-center gap-4 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-700 animate-in fade-in zoom-in-95">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <div className="text-sm">
-            <span className="font-bold">Dashboard Atualizado:</span> {lastSyncResult.count} eventos capturados em {format(new Date(lastSyncResult.timestamp), "HH:mm:ss")}.
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {lastSyncResult && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 p-5 bg-green-500/10 border border-green-500/10 rounded-2xl text-green-500"
+          >
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <div className="text-[11px] font-bold uppercase tracking-widest">
+              Dashboard Atualizado: {lastSyncResult.count} eventos capturados em {format(new Date(lastSyncResult.timestamp), "HH:mm:ss")}.
+            </div>
+          </motion.div>
+        )}
 
-      {error && (
-        <div className="flex items-center gap-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-700">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <div className="text-sm">
-            <p className="font-bold">Falha na Sincronização</p>
-            <p className="opacity-80">{error}</p>
-          </div>
-        </div>
-      )}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 p-5 bg-red-500/10 border border-red-500/10 rounded-2xl text-red-500"
+          >
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <div className="text-[11px] font-bold uppercase tracking-widest">
+              Falha na Sincronização: {error}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Events Grid */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {isLoadingList ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-44 bg-white/20 animate-pulse rounded-3xl border border-white/40"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-64 bg-white/5 animate-pulse rounded-[2.5rem] border border-white/5"></div>
             ))}
           </div>
         ) : processedEvents.length === 0 ? (
-          <div className="p-20 text-center border-2 border-dashed border-[#1D1D1F]/10 rounded-3xl bg-white/30 backdrop-blur-sm">
-            <CalendarIcon className="w-12 h-12 text-[#1D1D1F]/10 mx-auto mb-4" />
-            <p className="text-sm text-[#1D1D1F]/50 font-bold uppercase tracking-widest">Nenhum evento encontrado</p>
-            <p className="text-xs text-[#1D1D1F]/30 mt-2">Ajuste os filtros ou realize uma nova sincronização.</p>
+          <div className="p-24 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] backdrop-blur-sm">
+            <CalendarIcon className="w-16 h-16 text-secondary opacity-10 mx-auto mb-6" />
+            <p className="text-[10px] text-secondary font-black uppercase tracking-[0.3em]">Nenhum evento encontrado</p>
+            <p className="text-[11px] text-secondary opacity-40 mt-3 max-w-xs mx-auto">Ajuste os filtros ou realize uma nova sincronização.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {processedEvents.map(event => (
               <div
                 key={event.id}
-                className="group relative p-6 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl hover:bg-white hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]"
+                className="group relative p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] hover:bg-white/[0.08] hover:border-white/10 transition-all duration-500 hover:translate-y-[-4px]"
               >
-                {/* Status Indicator Dot (Requested Adjustment) */}
-                <div className="absolute top-6 left-6 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-black/[0.03] shadow-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                  <span className="text-[9px] font-black text-[#1D1D1F]/60 uppercase tracking-tighter">Sincronizado</span>
+                {/* Status Indicator Dot */}
+                <div className="absolute top-8 left-8 flex items-center gap-2 bg-white/5 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-2xl">
+                  <div className="w-1.5 h-1.5 rounded-full bg-accent-start shadow-[0_0_10px_rgba(255,44,141,0.5)]" />
+                  <span className="text-[8px] font-black text-secondary uppercase tracking-widest">Sincronizado</span>
                 </div>
 
-                <div className="flex justify-end items-start mb-6">
+                <div className="flex justify-end items-start mb-8">
                   <a
                     href={event.htmlLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2.5 bg-white shadow-sm border border-black/5 rounded-2xl text-[#1D1D1F]/20 hover:text-[#667eea] hover:border-[#667eea]/30 transition-all hover:scale-110"
+                    className="p-3 bg-white/5 shadow-xl border border-white/10 rounded-xl text-secondary hover:text-accent-start hover:border-accent-start/30 transition-all hover:scale-110"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
 
-                <h4 className="font-bold text-lg text-[#1D1D1F] line-clamp-2 leading-tight min-h-[56px]">{event.summary}</h4>
+                <h4 className="font-bold text-xl text-foreground group-hover:text-accent-start transition-colors line-clamp-2 leading-tight min-h-[56px]">{event.summary}</h4>
 
-                <div className="mt-6 space-y-3 pt-6 border-t border-black/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#667eea]/5 flex items-center justify-center text-[#667eea]">
+                <div className="mt-8 space-y-4 pt-8 border-t border-white/5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-accent-start/5 flex items-center justify-center text-accent-start border border-accent-start/10">
                       <CalendarIcon className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-[#1D1D1F]/30 uppercase tracking-widest">Data do Serviço</p>
-                      <p className="text-xs font-bold text-[#1D1D1F]">{event.start && format(new Date(event.start), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
+                      <p className="text-[9px] font-black text-secondary uppercase tracking-[0.2em] opacity-40">Data do Serviço</p>
+                      <p className="text-xs font-bold text-foreground">{event.start && format(new Date(event.start), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#764ba2]/5 flex items-center justify-center text-[#764ba2]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-accent-end/5 flex items-center justify-center text-accent-end border border-accent-end/10">
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-[#1D1D1F]/30 uppercase tracking-widest">Horário Previsto</p>
-                      <p className="text-xs font-bold text-[#1D1D1F]">
+                      <p className="text-[9px] font-black text-secondary uppercase tracking-[0.2em] opacity-40">Horário Previsto</p>
+                      <p className="text-xs font-bold text-foreground">
                         {event.start && format(new Date(event.start), "HH:mm")} - {event.end && format(new Date(event.end), "HH:mm")}
                       </p>
                     </div>
@@ -390,8 +399,8 @@ export default function AgendaManagementPage() {
                 </div>
 
                 {event.description && (
-                  <div className="mt-6 p-4 rounded-2xl bg-black/[0.02] border border-black/[0.03]">
-                    <p className="text-[10px] text-[#1D1D1F]/60 line-clamp-2 italic leading-relaxed">
+                  <div className="mt-8 p-5 rounded-2xl bg-white/[0.01] border border-white/5">
+                    <p className="text-[10px] text-secondary line-clamp-2 italic leading-relaxed opacity-60">
                       &quot;{event.description}&quot;
                     </p>
                   </div>
@@ -403,14 +412,17 @@ export default function AgendaManagementPage() {
       </div>
 
       {/* Info Logic Box */}
-      <div className="p-4 bg-white/40 backdrop-blur-md border border-white/60 rounded-3xl shadow-sm">
-        <div className="flex gap-4">
-          <div className="p-2 bg-[#667eea]/10 rounded-xl shrink-0">
-            <AlertCircle className="w-4 h-4 text-[#667eea]" />
+      <div className="p-6 bg-accent-start/[0.02] border border-accent-start/10 rounded-[2.5rem] shadow-2xl">
+        <div className="flex gap-5">
+          <div className="p-3 bg-accent-start/10 rounded-2xl shrink-0 h-fit">
+            <AlertCircle className="w-5 h-5 text-accent-start" />
           </div>
-          <p className="text-[11px] text-[#1D1D1F]/60 leading-relaxed font-medium">
-            <span className="font-bold text-[#1D1D1F]">Governança BPlen (90 Dias):</span> Este dashboard utiliza uma base sincronizada incremental. Eventos passados são arquivados automaticamente para atribuição de Auditoria e Atas, enquanto eventos futuros são atualizados a cada sincronização. A ordenação e agrupamento por título auxiliam na identificação rápida de gargalos de portfólio.
-          </p>
+          <div className="space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-foreground">Governança BPlen (90 Dias Audit)</p>
+            <p className="text-[11px] text-secondary leading-relaxed font-medium opacity-60">
+              Este dashboard utiliza uma base sincronizada incremental. Eventos passados são arquivados automaticamente para atribuição de Auditoria e Atas, enquanto eventos futuros são atualizados a cada sincronização. A ordenação e agrupamento por título auxiliam na identificação rápida de gargalos de portfólio.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -421,50 +433,58 @@ export default function AgendaManagementPage() {
         title="Configuração de 1-to-1"
         subtitle="Gerencie os tipos de reunião disponíveis na plataforma."
       >
-        <div className="space-y-6">
+        <div className="space-y-6 p-2">
           <div className="flex gap-3">
             <input
               type="text"
               value={newType}
               onChange={(e) => setNewType(e.target.value)}
               placeholder="Ex: Alinhamento Estratégico"
-              className="flex-1 px-5 py-4 bg-white/40 border border-white/60 rounded-2xl text-sm font-medium text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#667eea]/20 transition-all"
+              className="flex-1 px-6 py-4.5 bg-white/5 border border-white/10 rounded-2xl text-sm font-bold text-foreground focus:outline-none focus:border-accent-start/30 transition-all placeholder:text-secondary placeholder:opacity-40"
               onKeyDown={(e) => e.key === "Enter" && handleAddType()}
             />
             <button
               onClick={handleAddType}
-              className="px-6 py-4 bg-[#667eea] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#5a6fd6] transition-all"
+              className="px-6 py-4 bg-accent-start text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-accent-end transition-all shadow-xl shadow-accent-start/20"
             >
               Adicionar
             </button>
           </div>
 
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-3 custom-scrollbar">
             {oneToOneTypes.length === 0 ? (
-              <p className="text-[10px] text-center text-[#1D1D1F]/30 py-10 font-bold uppercase tracking-widest">Nenhum tipo cadastrado.</p>
+              <div className="py-16 text-center space-y-3 opacity-20">
+                 <Settings2 size={32} className="mx-auto" />
+                 <p className="text-[10px] font-black uppercase tracking-widest">Nenhum tipo cadastrado</p>
+              </div>
             ) : (
               oneToOneTypes.map((type, index) => (
-                <div key={index} className="flex justify-between items-center p-4 bg-white/40 border border-white/60 rounded-2xl group hover:bg-white/60 transition-all">
-                  <span className="text-sm font-bold text-[#1D1D1F]">{type}</span>
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  key={index} 
+                  className="flex justify-between items-center p-5 bg-white/5 border border-white/5 rounded-2xl group hover:border-white/20 transition-all"
+                >
+                  <span className="text-sm font-bold text-foreground">{type}</span>
                   <button
                     onClick={() => handleRemoveType(type)}
-                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-500 rounded-xl transition-all"
+                    className="p-2.5 opacity-0 group-hover:opacity-100 bg-red-500/10 text-red-500 rounded-xl transition-all hover:bg-red-500 hover:text-white"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </div>
+                </motion.div>
               ))
             )}
           </div>
 
-          <div className="pt-4 border-t border-black/5 flex justify-end">
+          <div className="pt-6 border-t border-white/10 flex justify-end">
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-8 py-4 bg-[#1D1D1F] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-50"
+              className="flex items-center gap-3 px-10 py-4.5 bg-foreground text-background rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
-              {isSaving ? "SALVANDO..." : "SALVAR ALTERAÇÕES"}
+              {isSaving ? "Salvando..." : "Salvar Alterações"}
             </button>
           </div>
         </div>

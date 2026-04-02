@@ -4,16 +4,28 @@ import React from "react";
 import Link from "next/link";
 import { useAuthContext } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
+import { useTheme } from "@/context/ThemeContext";
+import { 
+  Calendar, 
+  Settings, 
+  FileText, 
+  Briefcase, 
+  Users, 
+  ArrowLeft,
+  LayoutDashboard,
+  ShieldCheck
+} from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuthContext();
+  const { theme } = useTheme();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#F5F7FA]">
+      <div className="flex h-screen items-center justify-center bg-background text-foreground">
         <div className="animate-pulse flex flex-col items-center">
-          <div className="h-10 w-10 border-4 border-t-[#667eea] border-[#667eea]/20 rounded-full animate-spin"></div>
-          <p className="mt-4 text-[#1D1D1F] font-medium tracking-wide">Autenticando Acesso...</p>
+          <div className="h-10 w-10 border-4 border-t-accent-start border-accent-soft rounded-full animate-spin"></div>
+          <p className="mt-4 text-secondary font-medium tracking-wide text-xs uppercase">Autenticando Acesso...</p>
         </div>
       </div>
     );
@@ -24,49 +36,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F5F7FA] text-[#1D1D1F]">
-      {/* Ghost Sidebar */}
-      <aside className="w-64 fixed h-full bg-white/40 backdrop-blur-md border-r border-white/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] p-6 flex flex-col z-20">
-        <div className="mb-10">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
-            BPlen HUB
-          </h2>
-          <p className="text-xs uppercase tracking-wider text-[#1D1D1F]/60 mt-1 font-semibold">
-            Admin Dashboard
-          </p>
+    <div className={`flex min-h-screen bg-background text-foreground transition-all duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
+      
+      {/* 🔮 Ghost Sidebar Dashboard */}
+      <aside className="w-68 fixed h-full bg-white/5 backdrop-blur-3xl border-r border-white/5 shadow-2xl p-8 flex flex-col z-20">
+        <div className="mb-12 space-y-2">
+           <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-accent-start to-accent-end rounded-xl shadow-lg shadow-accent-start/20">
+                 <ShieldCheck size={20} className="text-white" />
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-white group">
+                BPlen <span className="text-accent-start italic">Admin</span>
+              </h2>
+           </div>
+           <p className="text-[9px] uppercase tracking-[0.3em] text-secondary font-black opacity-60">Control Center</p>
         </div>
 
-        <nav className="flex-1 space-y-2">
-          <Link href="/admin/agenda" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
-            📅 Sincronizar Agenda
-          </Link>
-          <Link href="/admin/gestao-agenda" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
-            ⚙️ Gestão de Agenda
-          </Link>
-          <Link href="/admin/forms" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
-            📝 Gestão de Formulários
-          </Link>
-          <Link href="/admin/portfolio" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
-            💼 Gestão de Portfólio
-          </Link>
-          <Link href="/admin/users" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
-            👥 Gestão de Usuários
-          </Link>
+        <nav className="flex-1 space-y-1.5">
+          <NavLink href="/admin/agenda" icon={<Calendar size={18} />}>Agenda Hub</NavLink>
+          <NavLink href="/admin/gestao-agenda" icon={<Settings size={18} />}>Gestão de Agenda</NavLink>
+          <NavLink href="/admin/forms" icon={<FileText size={18} />}>Gestão de Formulários</NavLink>
+          <NavLink href="/admin/portfolio" icon={<Briefcase size={18} />}>Gestão de Portfólio</NavLink>
+          <NavLink href="/admin/users" icon={<Users size={18} />}>Gestão de Usuários</NavLink>
+          <NavLink href="/admin/pesquisas" icon={<LayoutDashboard size={18} />}>Pesquisas Interativas</NavLink>
         </nav>
 
-        <div className="mt-auto">
-          <Link href="/" className="block px-4 py-2.5 rounded-2xl text-sm font-medium bg-[#1D1D1F]/5 hover:bg-[#1D1D1F]/10 transition-all text-center">
-            Voltar ao Início
+        <div className="mt-auto space-y-4">
+          <Link href="/hub" className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group">
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            Voltar ao Hub
           </Link>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 ml-64 p-10 max-w-7xl relative z-10 transition-all duration-300">
-        <div className="bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.05)] rounded-2xl p-8 h-[1000px] overflow-y-auto custom-scrollbar">
+      {/* Main Content Area Admin */}
+      <main className="flex-1 ml-68 p-12 max-w-[1400px] relative z-10 transition-all duration-300">
+        <div className="glass p-10 min-h-[calc(100vh-6rem)] relative overflow-hidden">
           {children}
+          
+          {/* Subtle Ambient Glows */}
+          <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-accent-start rounded-full blur-[100px] opacity-[0.03] pointer-events-none" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-accent-end rounded-full blur-[100px] opacity-[0.03] pointer-events-none" />
         </div>
       </main>
     </div>
+  );
+}
+
+function NavLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Link 
+      href={href} 
+      className="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[11px] font-bold text-secondary uppercase tracking-widest hover:bg-white/5 hover:text-white transition-all hover:translate-x-1 active:scale-95 group"
+    >
+      <span className="text-gray-500 group-hover:text-accent-start transition-colors">{icon}</span>
+      {children}
+    </Link>
   );
 }
