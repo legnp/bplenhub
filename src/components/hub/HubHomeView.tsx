@@ -258,19 +258,6 @@ export function HubHomeView() {
          </div>
       </footer>
 
-      {/* 🛰️ REDES SOCIAIS E BOTÕES FLUTUANTES DO HUB */}
-      <div className="fixed bottom-8 right-8 z-[200] flex flex-col items-end gap-4">
-         {/* Suporte WhatsApp */}
-         <Link 
-            href="https://wa.me/5511945152088" 
-            target="_blank"
-            className="w-14 h-14 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-[0_10px_30px_rgba(37,211,102,0.3)] hover:scale-110 active:scale-95 transition-all"
-            title="Falar com Especialista"
-         >
-            <Phone size={24} />
-         </Link>
-      </div>
-
     </div>
   );
 }

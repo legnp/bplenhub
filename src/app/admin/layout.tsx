@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuthContext } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
+import { FloatingSupport } from "@/components/layout/FloatingSupport";
 import { 
   Calendar, 
   Settings, 
@@ -79,6 +80,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="absolute bottom-[-10%] left-[-10%] w-64 h-64 bg-accent-end rounded-full blur-[100px] opacity-[0.03] pointer-events-none" />
         </div>
       </main>
+
+      {/* Suporte & Redes Fixa */}
+      <FloatingSupport />
     </div>
   );
 }

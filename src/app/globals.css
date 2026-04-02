@@ -89,6 +89,18 @@
   --glass-border: 1.5px solid rgba(71, 85, 105, 0.2);
 }
 
+/* [Modo Daltônico - Alto Contraste] */
+.theme-daltonico {
+  --accent-start: #fbbf24; /* Amber 400 */
+  --accent-end: #d97706;   /* Amber 600 */
+  --accent-soft: rgba(251, 191, 36, 0.2);
+  --bg-primary: #0f172a;   /* Slate 900 */
+  --text-primary: #FFFFFF;
+  --text-secondary: #CBD5E1; /* Slate 300 */
+  --glass-bg: rgba(15, 23, 42, 0.8);
+  --glass-border: 2px solid #fbbf24;
+}
+
 /* [Governança Visual BPlen HUB]
    1. Proibição de emojis em interface pública e privada.
    2. Herança obrigatória do ThemeContext em toda a área logada.
