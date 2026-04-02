@@ -263,7 +263,8 @@ ${Object.entries(request.screening || {}).map(([q, a]) => `• ${q}: ${a}`).join
         description: eventDescription,
         start: { dateTime: formatISO(startTime) },
         end: { dateTime: formatISO(endTime) },
-        attendees: [{ email: request.email }],
+        // Removido attendees para evitar erro 403 de Domain-Wide Delegation.
+        // O convite é enviado via arquivo .ics no email do Resend.
         conferenceData: {
           createRequest: {
             requestId: `bplen-${requestId}`,
