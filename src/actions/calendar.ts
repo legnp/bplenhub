@@ -309,10 +309,35 @@ export async function bookEventAction(
           `;
         }
 
-        await resend.emails.send({
+        // Gerar arquivo ICS para o convite
+        let icsFile = null;
+        try {
+          const { generateIcsString } = await import("@/lib/ics-utils");
+          const endTime = new Date(startTime.getTime() + 45 * 60 * 1000); // 45 minutos de duração
+          icsFile = generateIcsString({
+            title: `BPlen | 1 to 1 (${displayName})`,
+            description: `Reunião estratégica agendada via BPlen HUB.\n\nLink da Reunião: ${eventData.htmlLink}`,
+            start: startTime,
+            end: endTime,
+            location: "Google Meet",
+            uid: `bplen-${eventId}-${userId}`
+          });
+        } catch (icsErr) {
+          console.error("Erro ao gerar ICS (ignorado):", icsErr);
+        }
+
+        console.log(`[EMAIL] Tentando enviar confirmação para: ${userEmail} (Evento: ${eventData.id})`);
+
+        const emailResult = await resend.emails.send({
           from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
           to: userEmail,
           subject: `${displayName}, seu 1 to 1 foi confirmado na BPlen HUB!`,
+          attachments: icsFile ? [
+            {
+              filename: 'convite_bplen.ics',
+              content: Buffer.from(icsFile),
+            }
+          ] : [],
           html: `
             <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 20px;">
               <h2 style="color: #667eea; margin-bottom: 5px;">📍 Agendamento Confirmado!</h2>
@@ -340,6 +365,10 @@ export async function bookEventAction(
                 <a href="${eventData.htmlLink}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">ACESSAR REUNIÃO</a>
               </div>
 
+              <p style="font-size: 11px; color: #999; text-align: center; margin-bottom: 20px;">
+                * Anexamos um arquivo de calendário (.ics) a este e-mail para você salvar em sua agenda.
+              </p>
+
               <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
               
               <p style="font-size: 12px; color: #666; text-align: center; line-height: 1.5;">
@@ -349,8 +378,10 @@ export async function bookEventAction(
             </div>
           `
         });
+
+        console.log(`[EMAIL] Resposta do Resend:`, emailResult);
       } catch (emailError) {
-        console.error("Erro ao enviar e-mail de confirmação:", emailError);
+        console.error("Erro crítico ao enviar e-mail de confirmação:", emailError);
       }
 
       return { success: true, message: "Sucesso" };
