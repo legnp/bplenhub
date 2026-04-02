@@ -13,15 +13,22 @@
   --bg-primary: #EEF2F6; /* Levemente mais cinza para destacar cards brancos */
   --text-primary: #0A0A0B; 
   --text-secondary: #3F3F46; /* Contraste 7:1 para leitura editorial */
+  --text-muted: #52525B;    /* Zinc 600 - Contraste 5.5:1 no bg-primary */
   --accent-start: #ff2c8d;
   --accent-end: #ff006e;
   --accent-soft: rgba(255, 44, 141, 0.12);
   
   /* Glassmorphism Refinado para Modo Claro */
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: 1.5px solid rgba(0, 0, 0, 0.08);
+  --glass-border: 1.5px solid rgba(0, 0, 0, 0.1);
   --glass-blur: 24px;
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+
+  /* Tokens de Input e Bordas */
+  --border-primary: rgba(0, 0, 0, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.6);
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-placeholder: rgba(0, 0, 0, 0.45);
 
   /* Dimensões Globais */
   --radius: 20px;
@@ -32,13 +39,19 @@
 .theme-dark {
   --bg-primary: #000000;
   --text-primary: #FFFFFF;
-  --text-secondary: #A1A1AA;
+  --text-secondary: #D1D5DB; /* Gray 300 - Contraste 10:1 (Alto Contraste Dark) */
+  --text-muted: #9CA3AF;     /* Gray 400 - Contraste 6:1 (Safe Reading) */
   --accent-start: #ff2c8d;
   --accent-end: #ff006e;
   --accent-soft: rgba(255, 44, 141, 0.15);
-  --glass-bg: rgba(18, 18, 18, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(18, 18, 18, 0.75);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
   --glass-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.6);
+
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.15);
+  --input-placeholder: rgba(255, 255, 255, 0.4);
 }
 
 /* [Modo Rosa Pitaya] */
@@ -47,10 +60,16 @@
   --accent-end: #7928ca;
   --accent-soft: rgba(255, 0, 128, 0.1);
   --bg-primary: #FFF0F6;
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: 1.5px solid rgba(255, 0, 128, 0.15);
+  --glass-bg: rgba(255, 255, 255, 0.5);
+  --glass-border: 1.5px solid rgba(255, 0, 128, 0.2);
   --text-primary: #34001c;
   --text-secondary: #702d4f;
+  --text-muted: #9d174d; /* Mais escuro para contraste no rosa claro */
+
+  --border-primary: rgba(157, 23, 77, 0.15);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --input-border: rgba(157, 23, 77, 0.2);
+  --input-placeholder: rgba(157, 23, 77, 0.5);
 }
 
 /* [Modo Lavanda Azulado] */
@@ -59,10 +78,16 @@
   --accent-end: #4f46e5;
   --accent-soft: rgba(167, 139, 250, 0.1);
   --bg-primary: #F5F3FF;
-  --glass-bg: rgba(255, 255, 255, 0.5);
-  --glass-border: 1.5px solid rgba(79, 70, 229, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: 1.5px solid rgba(79, 70, 229, 0.15);
   --text-primary: #1e1b4b;
   --text-secondary: #4338ca;
+  --text-muted: #6366f1;
+
+  --border-primary: rgba(67, 56, 202, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(67, 56, 202, 0.15);
+  --input-placeholder: rgba(67, 56, 202, 0.5);
 }
 
 /* [Modo Amarelo Sol] */
@@ -73,8 +98,14 @@
   --bg-primary: #FFFBEB;
   --text-primary: #451a03;
   --text-secondary: #92400e;
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-border: 1.5px solid rgba(245, 158, 11, 0.2);
+  --text-muted: #b45309;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: 1.5px solid rgba(245, 158, 11, 0.25);
+
+  --border-primary: rgba(146, 64, 14, 0.15);
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --input-border: rgba(146, 64, 14, 0.2);
+  --input-placeholder: rgba(146, 64, 14, 0.5);
 }
 
 /* [Modo Cinza Nublado] */
@@ -84,9 +115,15 @@
   --accent-soft: rgba(148, 163, 184, 0.1);
   --bg-primary: #F1F5F9;
   --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --glass-bg: rgba(255, 255, 255, 0.5);
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-border: 1.5px solid rgba(71, 85, 105, 0.2);
+
+  --border-primary: rgba(71, 85, 105, 0.15);
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(71, 85, 105, 0.2);
+  --input-placeholder: rgba(71, 85, 105, 0.55);
 }
 
 /* [Modo Daltônico - Alto Contraste] */
@@ -96,9 +133,15 @@
   --accent-soft: rgba(251, 191, 36, 0.2);
   --bg-primary: #0f172a;   /* Slate 900 */
   --text-primary: #FFFFFF;
-  --text-secondary: #CBD5E1; /* Slate 300 */
-  --glass-bg: rgba(15, 23, 42, 0.8);
-  --glass-border: 2px solid #fbbf24;
+  --text-secondary: #FFFF00; /* Texto secundário amarelo vivo para alto contraste */
+  --text-muted: #FFFFFF;
+  --glass-bg: #000000;
+  --glass-border: 2px solid #FFFF00;
+
+  --border-primary: #FFFF00;
+  --input-bg: #000000;
+  --input-border: #FFFF00;
+  --input-placeholder: rgba(255, 255, 255, 0.8);
 }
 
 /* [Governança Visual BPlen HUB]

@@ -122,7 +122,7 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
       question: `${displayName}, quais temas podemos te oferecer aqui na BPlen HUB?`,
       content: (
         <div className="flex flex-col gap-2 relative">
-          <span className="text-[10px] text-gray-500 mb-1">Selecione uma ou mais opções</span>
+          <span className="text-[10px] text-[var(--text-muted)] mb-1">Selecione uma ou mais opções</span>
           {[
             "Melhorar meu currículo",
             "Transição de carreira",
@@ -211,7 +211,7 @@ export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: Welc
           transition={{ duration: 0.4 }}
           className="h-[600px] flex flex-col justify-start relative pt-4"
         >
-          <div className="mb-6 text-[#1D1D1F] text-[20px] font-medium leading-relaxed">
+          <div className="mb-6 text-[var(--text-primary)] text-[20px] font-medium leading-relaxed">
             <TypedText
               text={currentStep.question}
               onComplete={() => setTypedComplete(true)}

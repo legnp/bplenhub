@@ -55,7 +55,7 @@ export function HubHeader() {
   const isSubPage = pathname !== "/hub" && pathname !== "/admin";
 
   return (
-    <header className="sticky top-0 z-[100] w-full px-6 py-4 flex items-center justify-between backdrop-blur-xl border-b border-white/5 bg-black/40">
+    <header className="sticky top-0 z-[100] w-full px-6 py-4 flex items-center justify-between backdrop-blur-xl border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/80">
       
       {/* Esquerda: Navegação & Logo */}
       <div className="flex items-center gap-4">
@@ -69,7 +69,7 @@ export function HubHeader() {
               >
                 <Link 
                   href={pathname.startsWith("/admin") ? "/admin" : "/hub"} 
-                  className="p-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all hover:bg-white/10 flex items-center gap-2 group"
+                  className="p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all hover:bg-[var(--accent-soft)] flex items-center gap-2 group"
                 >
                   <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
                   <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Voltar</span>
@@ -78,7 +78,7 @@ export function HubHeader() {
             )}
          </AnimatePresence>
 
-         <Link href="/hub" className="text-lg font-bold tracking-tighter text-white">
+         <Link href="/hub" className="text-lg font-bold tracking-tighter text-[var(--text-primary)]">
             BPlen <span className="gradient-accent bg-clip-text text-transparent italic text-lg">HUB</span>
          </Link>
       </div>
@@ -92,8 +92,8 @@ export function HubHeader() {
               onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
               className={`p-3 rounded-2xl transition-all border flex items-center gap-2
                 ${isThemeMenuOpen 
-                  ? "bg-white/10 border-white/20 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
-                  : "bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10"}`}
+                  ? "bg-[var(--accent-soft)] border-[var(--accent-start)] text-[var(--accent-start)] shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
+                  : "bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)]"}`}
               title="Personalizar Interface"
             >
                <Palette size={18} />
@@ -106,7 +106,7 @@ export function HubHeader() {
                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
                    animate={{ opacity: 1, y: 0, scale: 1 }}
                    exit={{ opacity: 0, y: 12, scale: 0.95 }}
-                   className="absolute top-16 right-0 p-3 bg-black/90 border border-white/10 rounded-3xl shadow-2xl w-64 backdrop-blur-2xl z-[200] overflow-hidden"
+                   className="absolute top-16 right-0 p-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-3xl shadow-2xl w-64 backdrop-blur-2xl z-[200] overflow-hidden"
                  >
                     <div className="space-y-1">
                        <p className="px-3 py-2 text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Escolha sua Imersão</p>
@@ -118,18 +118,18 @@ export function HubHeader() {
                               setIsThemeMenuOpen(false);
                             }}
                             className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all group
-                              ${theme === opt.id ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"}`}
+                              ${theme === opt.id ? "bg-[var(--accent-start)]/20 text-[var(--accent-start)]" : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]"}`}
                           >
                              <div className="flex items-center gap-3">
                                 <div 
-                                  className="w-4 h-4 rounded-full border border-white/20 shadow-sm"
+                                  className="w-4 h-4 rounded-full border border-[var(--border-primary)] shadow-sm"
                                   style={{ backgroundColor: opt.color }}
                                 />
-                                <span className={`text-xs font-bold ${theme === opt.id ? "text-white" : "text-gray-400"}`}>
+                                <span className={`text-xs font-bold ${theme === opt.id ? "text-[var(--accent-start)]" : "text-[var(--text-secondary)]"}`}>
                                    {opt.label}
                                 </span>
                              </div>
-                             {theme === opt.id && <Check size={14} className="text-accent-start" />}
+                             {theme === opt.id && <Check size={14} className="text-[var(--accent-start)]" />}
                           </button>
                        ))}
                     </div>
@@ -138,7 +138,7 @@ export function HubHeader() {
             </AnimatePresence>
          </div>
 
-         <div className="hidden lg:flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
+         <div className="hidden lg:flex items-center gap-3 px-4 py-2.5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
             Sincronizado
          </div>

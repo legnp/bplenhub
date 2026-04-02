@@ -31,7 +31,7 @@ export function AboutSection() {
               Quem Somos
             </span>
             <h2 className={LANDING_TOKENS.header.title}>
-              Somos o seu HRBP que te ajuda a <span className="text-gray-400">descomplicar o desenvolvimento humano</span> no trabalho.
+              Somos o seu HRBP que te ajuda a <span className="text-[var(--text-secondary)]">descomplicar o desenvolvimento humano</span> no trabalho.
             </h2>
             <p className={LANDING_TOKENS.header.description}>
               Somos uma consultoria de negócios com foco em Desenvolvimento Humano, nascida da experiência holística de sua fundadora em grandes multinacionais e empreendedorismo.
@@ -39,19 +39,19 @@ export function AboutSection() {
 
             {/* "Para Quem" Badges */}
             <div className="pt-4 space-y-4">
-              <h4 className={LANDING_TOKENS.header.kicker + " text-gray-500 mb-0"}>Para quem</h4>
+              <h4 className={LANDING_TOKENS.header.kicker + " text-[var(--text-muted)] mb-0"}>Para quem</h4>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#ff0080]" />
-                  <p className="text-sm md:text-base text-gray-300"><strong className="text-white">Pessoas:</strong> Gestão de Carreira Completa</p>
+                  <p className="text-sm md:text-base text-[var(--text-secondary)]"><strong className="text-[var(--text-primary)]">Pessoas:</strong> Gestão de Carreira Completa</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#ff0080]" />
-                  <p className="text-sm md:text-base text-gray-300"><strong className="text-white">Empresas:</strong> HRBP como um serviço</p>
+                  <p className="text-sm md:text-base text-[var(--text-secondary)]"><strong className="text-[var(--text-primary)]">Empresas:</strong> HRBP como um serviço</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#ff0080]" />
-                  <p className="text-sm md:text-base text-gray-300"><strong className="text-white">Parceiros:</strong> Projetos e ativações de negócio em conjunto</p>
+                  <p className="text-sm md:text-base text-[var(--text-secondary)]"><strong className="text-[var(--text-primary)]">Parceiros:</strong> Projetos e ativações de negócio em conjunto</p>
                 </div>
               </div>
             </div>
@@ -97,7 +97,7 @@ export function AboutSection() {
               transition={{ duration: 1.2, ease: "easeOut" }}
               className="lg:col-span-4 flex flex-col"
             >
-              <span className={LANDING_TOKENS.header.kicker + " text-gray-500 mb-8"}>
+            <span className={LANDING_TOKENS.header.kicker + " text-[var(--text-muted)] mb-8"}>
                 A Fundadora
               </span>
               
@@ -112,15 +112,15 @@ export function AboutSection() {
                  />
               </div>
               
-              <h3 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Lisandra Lencina</h3>
-              <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6">
+              <h3 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight text-[var(--text-primary)]">Lisandra Lencina</h3>
+              <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed mb-6">
                 Vive o empreendedorismo desde a juventude e há 10 anos ajuda pessoas e negócios a alinharem seus interesses e resultados.
               </p>
 
-              <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-                <GraduationCap className="text-gray-400 mb-2" size={20} />
-                <p className="text-xs text-gray-300 leading-relaxed">
-                  <strong className="text-white block mb-1">Formações:</strong> 
+              <div className="p-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--input-border)]">
+                <GraduationCap className="text-[var(--text-muted)] mb-2" size={20} />
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                  <strong className="text-[var(--text-primary)] block mb-1">Formações:</strong> 
                   Administração de Empresas, MBA em Gestão de Negócios, Especialização em RH e Coaching.
                 </p>
               </div>
@@ -136,7 +136,7 @@ export function AboutSection() {
             >
                <h4 className="text-2xl font-semibold text-white">Linha do Tempo e Experiência</h4>
                
-               <div className="relative border-l border-white/10 ml-3 space-y-12 pb-4">
+               <div className="relative border-l border-[var(--border-primary)] ml-3 space-y-12 pb-4">
                  
                  {/* Event 1 */}
                  <div className="relative pl-8">

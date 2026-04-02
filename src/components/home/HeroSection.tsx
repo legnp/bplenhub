@@ -19,7 +19,7 @@ export function HeroSection() {
 
       {/* Mobile Top Right Hash (for small screens) */}
       <div className="absolute top-6 right-6 z-50 sm:hidden flex flex-col items-end gap-2">
-         <Link href="/hub" className="text-[10px] text-gray-500 hover:text-white border border-white/10 rounded px-2 py-1">HUB</Link>
+         <Link href="/hub" className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] rounded px-2 py-1 transition-colors">HUB</Link>
       </div>
 
       {/* 🏔️ Content */}
@@ -37,7 +37,7 @@ export function HeroSection() {
             className="group flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-[1.02]"
             aria-label="Clique aqui para descomplicar o desenvolvimento humano no trabalho"
           >
-            <span className="text-gray-400 text-xs tracking-widest lowercase mb-1 group-hover:text-white transition-colors">
+            <span className="text-[var(--text-muted)] text-xs tracking-widest lowercase mb-1 group-hover:text-[var(--text-primary)] transition-colors">
               clique aqui para
             </span>
             <span className="text-white text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight block -mb-2 z-10">
@@ -52,7 +52,7 @@ export function HeroSection() {
             >
               humano
             </span>
-            <span className="text-gray-400 text-xl md:text-2xl font-medium tracking-tight mt-1 group-hover:text-white transition-colors">
+            <span className="text-[var(--text-secondary)] text-xl md:text-2xl font-medium tracking-tight mt-1 group-hover:text-[var(--text-primary)] transition-colors">
               no trabalho
             </span>
           </button>
