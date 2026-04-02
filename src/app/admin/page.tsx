@@ -13,7 +13,7 @@ import {
   Loader2
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { getBookingRequestsAction } from "@/actions/external-booking";
+import { getSyncedEvents } from "@/actions/calendar";
 
 export default function AdminDashboardPage() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
@@ -22,8 +22,13 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const requests = await getBookingRequestsAction("pending");
-        setPendingCount(requests.length);
+        const events = await getSyncedEvents();
+        // Filtra apenas os agendamentos 1 to 1 que têm participantes
+        const count = events.filter(ev => 
+          ev.summary.toLowerCase().includes("1 to 1") && 
+          (ev.registeredCount || 0) > 0
+        ).length;
+        setPendingCount(count);
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error);
       } finally {
@@ -35,13 +40,13 @@ export default function AdminDashboardPage() {
 
   const stats = [
     {
-      title: "Reuniões 1:1",
+      title: "Agendamentos 1:1",
       value: loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (pendingCount ?? 0),
-      label: "pendentes de aprovação",
+      label: "cliques diretos nesta semana",
       icon: Handshake,
       color: "text-[#667eea]",
       bg: "bg-[#667eea]/10",
-      link: "/admin/reunioes",
+      link: "/admin/gestao-agenda",
       highlight: (pendingCount ?? 0) > 0
     },
     {

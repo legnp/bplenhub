@@ -37,9 +37,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 space-y-2">
-          <Link href="/admin/reunioes" className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold bg-gradient-to-r from-[#667eea]/10 to-[#764ba2]/10 border border-[#667eea]/20 hover:from-[#667eea]/20 hover:to-[#764ba2]/20 transition-all">
-            🤝 Reuniões 1:1
-          </Link>
           <Link href="/admin/agenda" className="block px-4 py-2.5 rounded-2xl text-sm font-medium hover:bg-white/60 transition-all hover:scale-[1.01] hover:shadow-[0_4px_16px_0_rgba(31,38,135,0.05)]">
             📅 Sincronizar Agenda
           </Link>
