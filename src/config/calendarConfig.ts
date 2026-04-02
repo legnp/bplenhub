@@ -22,9 +22,16 @@ export const CALENDAR_CONFIG = {
   // Configurações para Agendamento Público (Landing Page)
   PUBLIC_BOOKING_SETTINGS: {
     workingHours: { start: "08:00", end: "18:00" },
-    defaultDuration: 30, // minutos
+    defaultDuration: 45, // minutos — reunião 1 to 1
     bufferBetweenMeetings: 15, // minutos
     maxDaysInFuture: 15, // Quantos dias à frente o cliente pode ver
     minDaysInFuture: 1, // Mínimo de 1 dia de antecedência
+  },
+
+  // Configurações do evento no Google Calendar
+  MEETING_SETTINGS: {
+    title: "BPlen | 1 to 1",
+    duration: 45, // minutos
+    conferenceType: "hangoutsMeet" as const,
   }
 };

@@ -387,23 +387,29 @@ export function PublicBookingFlow() {
 
         {step === "success" && (
           <motion.div key="success" {...containerVariants} className="text-center py-12 space-y-6 relative z-10">
-            <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20 shadow-[0_0_50px_rgba(34,197,94,0.1)]">
-              <CheckCircle2 className="w-12 h-12 text-green-500" />
+            <div className="w-24 h-24 bg-[#667eea]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#667eea]/20 shadow-[0_0_50px_rgba(102,126,234,0.1)]">
+              <CheckCircle2 className="w-12 h-12 text-[#667eea]" />
             </div>
             <div className="space-y-3">
-              <h3 className="text-4xl font-black text-white tracking-tighter">Confirmado!</h3>
-              <p className="text-white/60 text-base font-medium">
-                Enviamos o convite do Google Calendar para <br/> 
+              <h3 className="text-4xl font-black text-white tracking-tighter">Solicitação Recebida!</h3>
+              <p className="text-white/60 text-base font-medium leading-relaxed">
+                Enviamos um e-mail de confirmação para <br/>
                 <span className="text-[#667eea] font-black">{formData.email}</span>
               </p>
             </div>
+            <div className="p-5 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-2 text-left">
+              <p className="text-[10px] font-black text-[#667eea] uppercase tracking-[0.2em]">⚡ Próximos Passos</p>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Nossa equipe vai analisar sua solicitação e confirmar o agendamento em breve. Você receberá um e-mail com o link do Google Meet e o convite de calendário.
+              </p>
+            </div>
             <p className="text-xs text-white/30 leading-relaxed max-w-[300px] mx-auto italic">
-              Obrigado por confiar na BPlen. <br/> 
+              Obrigado por confiar na BPlen. <br/>
               Verifique sua caixa de entrada e spam.
             </p>
             <div className="pt-6">
-              <button 
-                onClick={() => window.location.href = "/"} 
+              <button
+                onClick={() => window.location.href = "/"}
                 className="px-10 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all"
               >
                 Retornar ao HUB
