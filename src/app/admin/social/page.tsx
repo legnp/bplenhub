@@ -21,8 +21,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SocialPost, SocialPlatform } from "@/types/social";
-import { getSocialPosts, deleteSocialPost, togglePostStatus } from "@/actions/social";
-import { deleteStorageFile } from "@/lib/storage-utils";
+import { 
+  getSocialPosts, 
+  deleteSocialPost, 
+  togglePostStatus 
+} from "@/actions/social";
+import { deleteSocialThumbnailFromDrive } from "@/actions/social-drive";
 import { SocialPostForm } from "@/components/admin/SocialPostForm";
 import Link from "next/link";
 
@@ -63,8 +67,8 @@ export default function SocialManagementPage() {
   const handleDelete = async (post: SocialPost) => {
     if (confirm("Tem certeza que deseja excluir esta postagem permanentemente?")) {
       try {
-        // 1. Apagar imagem do Storage se for do Firebase
-        await deleteStorageFile(post.thumbnail);
+        // 1. Apagar imagem do Drive se for uma URL do Drive
+        await deleteSocialThumbnailFromDrive(post.thumbnail);
         
         // 2. Apagar documento do Firestore
         await deleteSocialPost(post.id);
