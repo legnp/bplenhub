@@ -14,6 +14,7 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { SocialPost } from "@/types/social";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-guards";
 
