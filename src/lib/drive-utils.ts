@@ -8,19 +8,21 @@ import { serverEnv } from "@/env";
  */
 
 // ──────────────────────────────
-12: export function checkKeySignature() {
-13:   const key = serverEnv.FIREBASE_PRIVATE_KEY;
-14:   if (!key.includes("-----BEGIN PRIVATE KEY-----") || !key.includes("-----END PRIVATE KEY-----")) {
-15:     throw new Error("Chave Privada malformada detectada. Verifique as variáveis de ambiente.");
-16:   }
-17: }
+// 1. Diagnóstico de Chave Privada
+// ──────────────────────────────
+export function checkKeySignature() {
+  const key = serverEnv.FIREBASE_PRIVATE_KEY;
+  if (!key.includes("-----BEGIN PRIVATE KEY-----") || !key.includes("-----END PRIVATE KEY-----")) {
+    throw new Error("Chave Privada malformada detectada. Verifique as variáveis de ambiente.");
+  }
+}
 
 // ──────────────────────────────
-21: // 2. Navegador de Pastas Inteligente (Auto-Healing)
-22: // ──────────────────────────────
-23: /**
-24:  * Garante que uma pasta existe. Se não existir, ela será criada.
-25:  */
+// 2. Navegador de Pastas Inteligente (Auto-Healing)
+// ──────────────────────────────
+/**
+ * Garante que uma pasta existe. Se não existir, ela será criada.
+ */
 export async function ensureFolder(
   drive: drive_v3.Drive,
   parentFolderId: string,
@@ -52,11 +54,11 @@ export async function ensureFolder(
 }
 
 // ──────────────────────────────
-56: // 3. Gerenciador de Planilhas
-57: // ──────────────────────────────
-58: /**
-59:  * Cria uma planilha do Google Sheets dentro de uma pasta específica.
-60:  */
+// 3. Gerenciador de Planilhas
+// ──────────────────────────────
+/**
+ * Cria uma planilha do Google Sheets dentro de uma pasta específica.
+ */
 export async function createSpreadsheet(
   drive: drive_v3.Drive,
   parentFolderId: string,
