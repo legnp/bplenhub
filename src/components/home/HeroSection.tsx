@@ -17,10 +17,6 @@ export function HeroSection() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white rounded-full blur-[120px] opacity-[0.05] pointer-events-none -z-10" />
 
 
-      {/* Mobile Top Right Hash (for small screens) */}
-      <div className="absolute top-6 right-6 z-50 sm:hidden flex flex-col items-end gap-2">
-         <Link href="/hub" className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] rounded px-2 py-1 transition-colors">HUB</Link>
-      </div>
 
       {/* 🏔️ Content */}
       <div className="relative z-10 max-w-5xl mx-auto space-y-8">
