@@ -27,20 +27,11 @@ const COLLECTION_NAME = "social_posts";
 export async function getSocialPosts(onlyActive: boolean = false) {
   try {
     const postsRef = collection(db, COLLECTION_NAME);
-    let q;
-    
-    if (onlyActive) {
-      q = query(
-        postsRef, 
-        where("isActive", "==", true),
-        orderBy("publishedAt", "desc")
-      );
-    } else {
-      q = query(postsRef, orderBy("publishedAt", "desc"));
-    }
+    // Simplificamos a query para evitar a exigência de índices compostos no Firestore durante o build
+    const q = query(postsRef);
 
     const querySnapshot = await getDocs(q);
-    const posts: SocialPost[] = [];
+    let posts: SocialPost[] = [];
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
@@ -50,6 +41,16 @@ export async function getSocialPosts(onlyActive: boolean = false) {
         createdAt: data.createdAt as Timestamp,
         updatedAt: data.updatedAt as Timestamp,
       } as SocialPost);
+    });
+
+    // Filtramos e ordenamos em memória (Seguro para bases pequenas/médias)
+    if (onlyActive) {
+      posts = posts.filter(p => p.isActive);
+    }
+
+    // Ordenação por data (descendente)
+    posts.sort((a, b) => {
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
 
     return posts;
