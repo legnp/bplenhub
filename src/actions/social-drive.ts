@@ -16,8 +16,11 @@ const SOCIAL_FOLDER_NAME = "Social_Media";
  * Realiza o upload da miniatura para o Google Drive.
  * Configura permissões públicas e retorna a URL de visualização direta.
  */
-export async function uploadSocialThumbnailToDrive(file: File) {
+export async function uploadSocialThumbnailToDrive(formData: FormData) {
   try {
+    const file = formData.get("file") as File;
+    if (!file) throw new Error("Nenhum arquivo enviado para upload.");
+
     const drive = await getDriveClient();
 
     // 1. Garantir que a pasta Social_Media existe dentro de Portfólio
