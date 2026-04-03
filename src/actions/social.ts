@@ -20,7 +20,7 @@ import { revalidatePath } from "next/cache";
 const COLLECTION_NAME = "content_posts";
 
 /**
- * BPlen HUB — Social Media Actions 📡
+ * BPlen HUB — Social Media Actions
  * Gerencia o CRUD de postagens manuais para a vitrine de conteúdo.
  */
 

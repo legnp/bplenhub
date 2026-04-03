@@ -2,7 +2,7 @@ import { drive_v3, sheets_v4 } from "googleapis";
 import { serverEnv } from "@/env";
 
 /**
- * BPlen HUB — Drive Utilities (Espinha Dorsal 🛡️)
+ * BPlen HUB — Drive Utilities (Espinha Dorsal)
  * Centralização de operações Google Workspace para escala e resiliência.
  * Sincronizado com o Laboratório de Testes para suporte total a Drives Compartilhados.
  */

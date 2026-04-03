@@ -12,7 +12,7 @@ import { ContentEvaluationModal } from "./ContentEvaluationModal";
 import { ThemeSuggestionModal } from "./ThemeSuggestionModal";
 
 /**
- * FeedbackSection — Componente de captação de voz do usuário 📡🗳️
+ * FeedbackSection — Componente de captação de voz do usuário
  * Gerencia a lógica de abertura dos modais de avaliação e sugestão.
  */
 export function FeedbackSection() {

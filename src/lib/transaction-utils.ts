@@ -2,7 +2,7 @@ import { doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
 /**
- * BPlen HUB — Transactional Utilities (Blindagem 🛡️)
+ * BPlen HUB — Transactional Utilities (Blindagem)
  * Gerenciamento atômico de sequências e contadores globais.
  */
 
@@ -39,7 +39,7 @@ export async function getNextUserSequence(): Promise<number> {
       return nextCount;
     });
   } catch (error) {
-    console.error("❌ Erro ao gerar sequência atômica (getNextUserSequence):", error);
+    console.error("Erro ao gerar sequência atômica (getNextUserSequence):", error);
     throw new Error("Falha ao gerar identificador único de usuário.");
   }
 }

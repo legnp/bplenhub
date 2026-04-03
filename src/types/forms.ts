@@ -1,5 +1,5 @@
 /**
- * BPlen HUB — Forms Platform Schema (V1.0) 🧠🧱
+ * BPlen HUB — Forms Platform Schema (V1.0)
  * Definições universais para renderização dinâmica de formulários.
  */
 

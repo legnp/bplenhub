@@ -131,7 +131,7 @@ export function ContentEvaluationModal({ isOpen, onClose, uid, matricula }: Cont
             <div className="p-8 border-b border-[var(--border-primary)] flex justify-between items-center bg-[var(--input-bg)]/50 shrink-0">
               <div className="space-y-1 text-left">
                 <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">
-                  Avaliar Conteúdos 📡🗳️
+                  Avaliar Conteúdos
                 </h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">
                   Sua opinião ajuda a moldar o editorial BPlen

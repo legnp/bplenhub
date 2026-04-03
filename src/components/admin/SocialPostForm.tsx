@@ -148,7 +148,7 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
               {post ? "Editar Postagem" : "Nova Postagem Social"}
             </h2>
             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">
-              Gestão de Conteúdo via Drive 📁🛡️
+              Gestão de Conteúdo via Drive
             </p>
           </div>
           <button 

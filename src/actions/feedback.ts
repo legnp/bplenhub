@@ -8,7 +8,7 @@ import {
 import { db } from "@/lib/firebase";
 
 /**
- * BPlen HUB — Feedback Actions 📡🗳️
+ * BPlen HUB — Feedback Actions
  * Gerencia a captação de voz do usuário (Avaliações e Sugestões).
  */
 
