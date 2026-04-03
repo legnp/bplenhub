@@ -4,31 +4,46 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Users, 
   Search, 
-  Filter, 
   ShieldCheck, 
   ShieldOff, 
   UserCircle, 
   Mail, 
   Fingerprint, 
-  Calendar,
   Loader2,
-  AlertCircle,
-  MoreVertical,
   Activity,
   Layers,
   CheckCircle2,
-  ArrowRight
+  ChevronDown,
+  Settings,
+  X,
+  CreditCard,
+  Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AdminUser } from "@/types/users";
-import { getAdminUsersList, toggleUserAdminStatus } from "@/actions/users-admin";
+import { AdminUser, UserRole, UserServices } from "@/types/users";
+import { getAdminUsersList, updateUserPermissions } from "@/actions/users-admin";
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
 
 /**
- * BPlen HUB — Gestão de Usuários (Admin 👥🛡️)
- * Controle de permissões, perfis e futura governança de serviços por usuário.
+ * BPlen HUB — Gestão de Usuários e Governança 👥🏗️🛡️
+ * Fundação para controle de papéis e produtos/serviços granulares.
  */
+
+const ROLE_OPTIONS: { id: UserRole; label: string; icon: any }[] = [
+  { id: "admin", label: "Administrador", icon: ShieldCheck },
+  { id: "member", label: "Membro", icon: Users },
+  { id: "visitor", label: "Visitante", icon: UserCircle },
+];
+
+const PREDEFINED_SERVICES = [
+  { id: "hub_community", label: "Comunidade HUB" },
+  { id: "survey_welcome", label: "Dossiê de Boas-Vindas" },
+  { id: "content_premium", label: "Conteúdos Premium" },
+  { id: "mentoria_1to1", label: "Mentoria 1-to-1" },
+  { id: "career_planning", label: "Planejamento de Carreira" },
+  { id: "behavioral_analysis", label: "Análise Comportamental" },
+];
 
 export default function UsersManagementPage() {
   const { isAdmin: currentAdminStatus, loading: authLoading } = useAuthContext();
@@ -36,8 +51,11 @@ export default function UsersManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "member">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [processingUser, setProcessingUser] = useState<string | null>(null);
+  
+  // Modal de Serviços
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -63,29 +81,40 @@ export default function UsersManagementPage() {
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
         user.matricula.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesRole = 
-        roleFilter === "all" || 
-        (roleFilter === "admin" && user.isAdmin) || 
-        (roleFilter === "member" && !user.isAdmin);
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
         
       return matchesSearch && matchesRole;
     });
   }, [users, searchTerm, roleFilter]);
 
-  const handleToggleAdmin = async (targetMatricula: string, currentStatus: boolean) => {
-    if (!confirm(`Tem certeza que deseja ${currentStatus ? "REMOVER" : "CONCEDER"} o status de administrador para este usuário?`)) return;
-
+  const handleUpdateRole = async (targetMatricula: string, newRole: UserRole) => {
     setProcessingUser(targetMatricula);
     try {
       const token = await auth.currentUser?.getIdToken();
-      await toggleUserAdminStatus(targetMatricula, !currentStatus, token);
+      await updateUserPermissions(targetMatricula, { role: newRole }, token);
       
-      // Atualizar localmente para feedback instantâneo
       setUsers(prev => prev.map(u => 
-        u.matricula === targetMatricula ? { ...u, isAdmin: !currentStatus } : u
+        u.matricula === targetMatricula ? { ...u, role: newRole, isAdmin: newRole === 'admin' } : u
       ));
     } catch (err: any) {
-      alert(err.message || "Erro ao atualizar permissão.");
+      alert(err.message || "Erro ao atualizar perfil.");
+    } finally {
+      setProcessingUser(null);
+    }
+  };
+
+  const handleUpdateServices = async (targetMatricula: string, services: UserServices) => {
+    setProcessingUser(targetMatricula);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      await updateUserPermissions(targetMatricula, { services }, token);
+      
+      setUsers(prev => prev.map(u => 
+        u.matricula === targetMatricula ? { ...u, services } : u
+      ));
+      setSelectedUser(null);
+    } catch (err: any) {
+      alert(err.message || "Erro ao atualizar serviços.");
     } finally {
       setProcessingUser(null);
     }
@@ -97,38 +126,19 @@ export default function UsersManagementPage() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1 text-left">
           <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">
-            Gestão de <span className="text-[var(--accent-start)] italic">Usuários</span>
+            Gestão & <span className="text-[var(--accent-start)] italic">Governança</span>
           </h1>
           <p className="text-[var(--text-muted)] text-sm font-medium opacity-60">
-            Administração central de perfis, permissões e ecossistema BPlen.
+            Fundação arquitetural para Papéis e Entitlements de serviços.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 glass px-6 py-3 border-emerald-500/10 bg-emerald-500/5">
-           <Activity size={16} className="text-emerald-500 animate-pulse" />
-           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
-              Sincronizado com Firestore
+        <div className="flex items-center gap-3 glass px-6 py-3 border-blue-500/10 bg-blue-500/5">
+           <Activity size={16} className="text-blue-500 animate-pulse" />
+           <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+              Role/Service Engine Active
            </span>
         </div>
-      </div>
-
-      {/* Estatísticas Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { label: "Total de Membros", value: users.length, icon: Users, color: "var(--accent-start)" },
-            { label: "Administradores", value: users.filter(u => u.isAdmin).length, icon: ShieldCheck, color: "emerald-500" },
-            { label: "Novos Enviados", value: users.filter(u => u.onboardStatus === "pending").length, icon: UserCircle, color: "blue-500" }
-          ].map((stat, i) => (
-            <div key={i} className="p-6 bg-[var(--input-bg)] rounded-[2rem] border border-[var(--border-primary)] shadow-sm text-left">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`p-2 rounded-xl text-white`} style={{ backgroundColor: stat.color === "var(--accent-start)" ? stat.color : undefined, background: stat.color !== "var(--accent-start)" ? `rgba(${stat.color === 'emerald-500' ? '16, 185, 129' : '59, 130, 246'}, 0.1)` : undefined, color: stat.color !== "var(--accent-start)" ? `var(--${stat.color.split('-')[0]})` : undefined }}>
-                   <stat.icon size={18} />
-                </div>
-                <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">{stat.label}</span>
-              </div>
-              <div className="text-4xl font-black text-[var(--text-primary)] tracking-tighter">{stat.value}</div>
-            </div>
-          ))}
       </div>
 
       {/* Barra de Busca e Filtros */}
@@ -145,7 +155,7 @@ export default function UsersManagementPage() {
         </div>
 
         <div className="flex items-center bg-[var(--bg-primary)]/50 p-1.5 rounded-2xl border border-[var(--input-border)] gap-1">
-          {['all', 'admin', 'member'].map((role) => (
+          {['all', 'admin', 'member', 'visitor'].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role as any)}
@@ -167,25 +177,19 @@ export default function UsersManagementPage() {
             <thead>
               <tr className="bg-[var(--input-bg)]/80 border-b border-[var(--border-primary)]">
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Identidade / Membro</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Papel & Acesso</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Serviços Liberados</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Status Onboard</th>
-                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Gerenciar</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Papel (Role)</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Acessos Granulares</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Onboard</th>
+                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-primary)]">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-8 py-10 bg-white/5 opacity-50">Carregando dados estruturais...</td>
+                    <td colSpan={5} className="px-8 py-10 bg-white/5 opacity-50 italic text-[10px] uppercase font-bold tracking-widest">Sincronizando governança...</td>
                   </tr>
                 ))
-              ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-bold uppercase text-xs tracking-widest bg-gray-50/50">
-                    Nenhum usuário encontrado na base atual.
-                  </td>
-                </tr>
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.matricula} className="hover:bg-white/[0.02] transition-colors group">
@@ -203,74 +207,72 @@ export default function UsersManagementPage() {
                           <p className="text-[10px] text-[var(--text-muted)] font-medium flex items-center gap-1.5 mt-1">
                              <Mail size={10} /> {user.email}
                           </p>
-                          <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest mt-1.5 flex items-center gap-1.5 opacity-60">
-                             <Fingerprint size={10} /> {user.matricula}
-                          </p>
                         </div>
                       </div>
                     </td>
 
-                    {/* Papel & Acesso */}
+                    {/* Papel (Role) - Seletor Estrutural */}
                     <td className="px-8 py-6">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest ${
-                        user.isAdmin 
-                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 shadow-sm" 
-                        : "bg-gray-500/5 border-gray-500/10 text-gray-400"
-                      }`}>
-                         {user.isAdmin ? <ShieldCheck size={12} /> : <ShieldOff size={12} />}
-                         {user.isAdmin ? "Administrador" : "Membro"}
+                      <div className="relative group/role inline-block">
+                        <select 
+                          value={user.role}
+                          onChange={(e) => handleUpdateRole(user.matricula, e.target.value as UserRole)}
+                          disabled={processingUser === user.matricula}
+                          className={`appearance-none font-black text-[9px] uppercase tracking-widest pl-3 pr-8 py-2 rounded-xl border transition-all cursor-pointer focus:outline-none ${
+                            user.role === 'admin' 
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" 
+                            : user.role === 'member'
+                            ? "bg-blue-500/10 border-blue-500/20 text-blue-600"
+                            : "bg-gray-500/10 border-gray-500/20 text-gray-500"
+                          } disabled:opacity-30`}
+                        >
+                          <option value="visitor">Visitante</option>
+                          <option value="member">Membro</option>
+                          <option value="admin">Administrador</option>
+                        </select>
+                        <ChevronDown size={10} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40" />
                       </div>
                     </td>
 
-                    {/* Serviços (Espaço Preparado para o Futuro 🚀) */}
+                    {/* Acessos (Destaque para Entitlements) */}
                     <td className="px-8 py-6">
-                      <div className="flex flex-wrap gap-1.5">
-                         <div className="px-2 py-1 bg-blue-500/5 border border-blue-500/10 rounded-lg text-[8px] font-black text-blue-500/70 uppercase tracking-tighter">Ecossistema BPlen</div>
-                         <div className="px-2 py-1 bg-gray-500/5 border border-gray-500/10 rounded-lg text-[8px] font-black text-gray-400/40 uppercase tracking-tighter italic">
-                            + Aguardando Produtos
-                         </div>
-                      </div>
+                      <button 
+                        onClick={() => setSelectedUser(user)}
+                        className="flex flex-wrap gap-1.5 hover:scale-[1.02] transition-transform text-left"
+                      >
+                         {Object.values(user.services).filter(v => v === true).length > 0 ? (
+                            Object.entries(user.services)
+                              .filter(([_, active]) => active)
+                              .map(([id]) => (
+                                <div key={id} className="px-2 py-1 bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 rounded-lg text-[8px] font-black text-[var(--accent-start)]/70 uppercase tracking-tighter">
+                                   {PREDEFINED_SERVICES.find(s => s.id === id)?.label || id}
+                                </div>
+                              ))
+                         ) : (
+                            <div className="px-2 py-1 bg-gray-500/5 border border-dashed border-gray-500/20 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-tighter">
+                               Acesso Padrão (Sem Serviços)
+                            </div>
+                         )}
+                      </button>
                     </td>
 
                     {/* Status Onboard */}
                     <td className="px-8 py-6">
-                      {user.onboardStatus === "completed" ? (
-                        <div className="flex items-center gap-2 text-green-500 text-[10px] font-bold uppercase tracking-widest">
-                           <CheckCircle2 size={14} /> Ativo
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest italic opacity-60">
-                           <Loader2 size={12} className="animate-spin" /> Pendente
-                        </div>
-                      )}
+                      <div className={`text-[10px] font-bold uppercase tracking-widest ${user.onboardStatus === 'completed' ? 'text-green-500' : 'text-amber-500 opacity-60'}`}>
+                         {user.onboardStatus === 'completed' ? <CheckCircle2 size={14} className="inline mr-1" /> : <Loader2 size={12} className="inline mr-1 animate-spin" />}
+                         {user.onboardStatus === 'completed' ? "Ativo" : "Pendente"}
+                      </div>
                     </td>
 
-                    {/* Ações */}
+                    {/* Ações Granulares */}
                     <td className="px-8 py-6 text-right">
-                       <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={() => handleToggleAdmin(user.matricula, user.isAdmin)}
-                            disabled={processingUser === user.matricula}
-                            className={`p-2.5 rounded-xl transition-all border ${
-                              user.isAdmin 
-                              ? "bg-red-500/5 border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
-                              : "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-start)] hover:text-white"
-                            } disabled:opacity-30 disabled:pointer-events-none`}
-                            title={user.isAdmin ? "Remover Privilégios Admin" : "Conceder Privilégios Admin"}
-                          >
-                             {processingUser === user.matricula ? (
-                               <Loader2 size={16} className="animate-spin" />
-                             ) : user.isAdmin ? (
-                               <ShieldOff size={16} />
-                             ) : (
-                               <ShieldCheck size={16} />
-                             )}
-                          </button>
-                          
-                          <button className="p-2.5 rounded-xl bg-gray-500/5 border border-transparent text-[var(--text-muted)] hover:bg-white/10 transition-all opacity-40 group-hover:opacity-100">
-                             <MoreVertical size={16} />
-                          </button>
-                       </div>
+                       <button 
+                         onClick={() => setSelectedUser(user)}
+                         className="p-3 rounded-xl bg-black text-white hover:bg-[var(--accent-start)] transition-all shadow-lg shadow-black/10 flex items-center gap-2 ml-auto"
+                       >
+                          <Settings size={14} />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Gerenciar Serviços</span>
+                       </button>
                     </td>
                   </tr>
                 ))
@@ -280,19 +282,112 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
+      {/* Modal de Gestão de Serviços (Entitlements) */}
+      <AnimatePresence>
+        {selectedUser && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setSelectedUser(null)}
+               className="absolute inset-0 bg-black/80 backdrop-blur-md"
+             />
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95, y: 20 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.95, y: 20 }}
+               className="relative w-full max-w-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] overflow-hidden shadow-2xl"
+             >
+                {/* Modal Header */}
+                <div className="p-8 border-b border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-between items-center text-left">
+                   <div className="space-y-1">
+                      <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest">Acessos Granulares</p>
+                      <h3 className="text-xl font-black text-[var(--text-primary)]">{selectedUser.name}</h3>
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight opacity-60">Configuração de Produtos & Serviços</p>
+                   </div>
+                   <button onClick={() => setSelectedUser(null)} className="p-3 rounded-2xl hover:bg-white/10 transition-all text-gray-500">
+                      <X size={20} />
+                   </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                   <div className="grid grid-cols-1 gap-4">
+                      {PREDEFINED_SERVICES.map((service) => {
+                         const isActive = selectedUser.services[service.id];
+                         return (
+                            <button 
+                              key={service.id}
+                              onClick={() => {
+                                 const newServices = { ...selectedUser.services, [service.id]: !isActive };
+                                 setSelectedUser({ ...selectedUser, services: newServices });
+                              }}
+                              className={`p-6 border rounded-[1.5rem] flex items-center justify-between transition-all group ${
+                                isActive 
+                                ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/30" 
+                                : "bg-[var(--input-bg)] border-[var(--border-primary)]"
+                              }`}
+                            >
+                               <div className="flex items-center gap-4 text-left">
+                                  <div className={`p-3 rounded-xl border transition-all ${
+                                     isActive ? "bg-[var(--accent-start)] text-white border-[var(--accent-start)]" : "bg-white/5 border-[var(--border-primary)] text-gray-500"
+                                  }`}>
+                                     {isActive ? <Rocket size={18} /> : <Layers size={18} />}
+                                  </div>
+                                  <div>
+                                     <h5 className={`font-black text-sm transition-colors ${isActive ? "text-[var(--accent-start)]" : "text-[var(--text-primary)]"}`}>
+                                        {service.label}
+                                     </h5>
+                                     <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
+                                        Liberação de trilha & Hub
+                                     </p>
+                                  </div>
+                               </div>
+                               <div className={`w-10 h-5 rounded-full relative transition-all ${isActive ? "bg-[var(--accent-start)]" : "bg-gray-700"}`}>
+                                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? "left-6" : "left-1"}`} />
+                               </div>
+                            </button>
+                         );
+                      })}
+                   </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-8 border-t border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-end gap-4">
+                   <button 
+                     onClick={() => setSelectedUser(null)}
+                     className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-all"
+                   >
+                      Cancelar
+                   </button>
+                   <button 
+                     onClick={() => handleUpdateServices(selectedUser.matricula, selectedUser.services)}
+                     disabled={processingUser === selectedUser.matricula}
+                     className="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
+                   >
+                      {processingUser === selectedUser.matricula ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                      {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Acessos"}
+                   </button>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Rodapé Informativo */}
       <div className="p-8 glass bg-[var(--input-bg)]/50 rounded-[2.5rem] border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
           <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--accent-start)]/5 blur-3xl rounded-full -mr-16 -mt-16" />
           <div className="space-y-1 text-left relative z-10">
-              <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Governança Corporativa</h5>
+              <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Entitlements Framework v1.0</h5>
               <p className="text-[10px] text-[var(--text-muted)] opacity-60">
-                 As permissões administrativas conferem acesso total a este painel e às coleções sensíveis do Firestore.
+                 Os papéis definem permissões de plataforma, enquanto os acessos granulares liberam produtos e conteúdos específicos.
               </p>
           </div>
           <div className="flex items-center gap-4 relative z-10 shrink-0">
               <div className="text-right">
-                  <p className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-widest">Base de Dados</p>
-                  <p className="text-[10px] font-bold text-[var(--text-primary)]">Central Project BPlen v3</p>
+                  <p className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-widest">Base de Governança</p>
+                  <p className="text-[10px] font-bold text-[var(--text-primary)]">User_Permissions/access</p>
               </div>
               <div className="w-10 h-10 rounded-2xl bg-[var(--accent-start)]/10 flex items-center justify-center text-[var(--accent-start)]">
                   <Layers size={18} />

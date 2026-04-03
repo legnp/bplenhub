@@ -7,22 +7,20 @@ import {
   doc, 
   serverTimestamp,
   collectionGroup,
-  query,
-  getDoc
+  revalidatePath
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { requireAdmin } from "@/lib/auth-guards";
-import { AdminUser } from "@/types/users";
-import { revalidatePath } from "next/cache";
+import { AdminUser, UserRole, UserServices } from "@/types/users";
 
 /**
- * BPlen HUB — User Management Actions (Seguro e Otimizado ⚡)
- * Centraliza a administração de perfis e acessos administrativos.
+ * BPlen HUB — User Management Actions (Governança 👥🏗️)
+ * Controle centralizado de Papéis (Roles) e Serviços (Entitlements).
  */
 
 /**
  * Retorna a lista completa de usuários para o painel administrativo.
- * Resolve permissões via Collection Group para eficiência (Apenas 2 queries ao banco).
+ * Resolve permissões via Collection Group e normaliza papéis.
  */
 export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[]> {
   try {
@@ -34,18 +32,16 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
     const usersSnap = await getDocs(usersRef);
 
     // 2. Puxar todas as permissões administrativas via Collection Group
-    // Isso busca todos os docs chamados 'access' dentro de qualquer subcoleção 'User_Permissions'
     const permissionsRef = collectionGroup(db, "User_Permissions");
     const permissionsSnap = await getDocs(permissionsRef);
 
-    // Mapear administradores por matrícula para busca O(1)
-    const adminMap = new Set<string>();
+    // Mapear dados de permissão por matrícula para busca O(1)
+    const permissionsMap = new Map<string, { role?: UserRole; services?: UserServices; admin?: boolean }>();
     permissionsSnap.forEach(docSnap => {
-       if (docSnap.id === "access" && docSnap.data().admin === true) {
-          // O path do doc no Collection Group é User/{matricula}/User_Permissions/access
+       if (docSnap.id === "access") {
           const pathSegments = docSnap.ref.path.split('/');
-          const matricula = pathSegments[1]; // Pegamos a matrícula da URL do documento
-          adminMap.add(matricula);
+          const matricula = pathSegments[1];
+          permissionsMap.set(matricula, docSnap.data() as any);
        }
     });
 
@@ -55,27 +51,29 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
     usersSnap.forEach(docSnap => {
       const data = docSnap.data();
       const matricula = docSnap.id;
-      const welcome = data.User_Welcome || {};
+      const perm = permissionsMap.get(matricula) || {};
       
-      // Resolução de Nome/Nickname conforme hierarquia de governança
+      const welcome = data.User_Welcome || {};
       const name = welcome.Authentication_Name || data.User_Name || data.Authentication_Name || "Membro BPlen";
       const nickname = welcome.User_Nickname || data.User_Nickname;
+
+      // Normalização de Papel (Role)
+      // Se não houver 'role' definido, inferimos 'admin' se flagLegacyAdmin for true, senão 'member'.
+      let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
 
       adminUsers.push({
         matricula,
         name,
         nickname,
         email: data.User_Email || welcome.User_Email || "",
-        isAdmin: adminMap.has(matricula),
+        isAdmin: resolvedRole === "admin",
+        role: resolvedRole,
+        services: perm.services || {},
         onboardStatus: data.User_Welcome ? "completed" : "pending",
         createdAt: data.createdAt || null,
-        // Espaço para evolução futura
-        role: adminMap.has(matricula) ? "Admin" : "Membro",
-        services: data.User_Services || {} 
       });
     });
 
-    // Ordenar por nome
     return adminUsers.sort((a, b) => a.name.localeCompare(b.name));
 
   } catch (error: any) {
@@ -85,33 +83,40 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
 }
 
 /**
- * Concede ou remove o status de Administrador de um usuário.
+ * Atualiza permissões granulares de um usuário (Papel e Serviços).
  */
-export async function toggleUserAdminStatus(
+export async function updateUserPermissions(
   targetMatricula: string, 
-  newStatus: boolean, 
+  updates: { role?: UserRole; services?: UserServices },
   adminToken?: string
 ) {
   try {
     // 🛡️ Segurança Real no Servidor
     await requireAdmin(adminToken);
 
-    // Referência oficial do documento de permissões
     const permissionsRef = doc(db, "User", targetMatricula, "User_Permissions", "access");
     
-    await setDoc(permissionsRef, {
-      admin: newStatus,
+    // Preparar dados para salvar
+    const dataToSave: any = {
+      ...updates,
       updatedAt: serverTimestamp(),
-      updatedBy: "ADMIN_CONSOLE"
-    }, { merge: true });
+      updatedBy: "ADMIN_GOVERNANCE"
+    };
+
+    // Manter compatibilidade com a flag legado 'admin'
+    if (updates.role) {
+      dataToSave.admin = updates.role === "admin";
+    }
+
+    await setDoc(permissionsRef, dataToSave, { merge: true });
 
     revalidatePath("/admin/users");
     
-    console.log(`✅ [Users Admin] Permissão alterada para ${targetMatricula}: Admin=${newStatus}`);
+    console.log(`✅ [Governance Admin] Permissões atualizadas para ${targetMatricula}: Role=${updates.role || 'unchanged'}`);
     return { success: true };
 
   } catch (error: any) {
-    console.error("❌ [Users Admin] Falha ao alterar permissão:", error.message);
-    throw new Error(error.message || "Falha ao atualizar permissões do usuário.");
+    console.error("❌ [Governance Admin] Falha ao atualizar permissões:", error.message);
+    throw new Error(error.message || "Falha ao atualizar governança do usuário.");
   }
 }

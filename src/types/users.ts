@@ -1,10 +1,29 @@
 import { Timestamp } from "firebase/firestore";
 
 /**
+ * BPlen HUB — User Permissions & Roles (Governança 👥🛡️)
+ */
+
+export type UserRole = "visitor" | "member" | "admin";
+
+/**
+ * Catálogo de Serviços/Produtos BPlen (Foundation)
+ * Chaves padronizadas para controle granular de acesso.
+ */
+export interface UserServices {
+  hub_community?: boolean;
+  survey_welcome?: boolean;
+  content_premium?: boolean;
+  mentoria_1to1?: boolean;
+  career_planning?: boolean;
+  behavioral_analysis?: boolean;
+  [key: string]: boolean | undefined; // Permite expansão dinâmica
+}
+
+/**
  * BPlen HUB — User Admin Schema (Segurança e Operação 🛡️)
  * Estrutura consolidada para exibição no painel administrativo.
  */
-
 export interface AdminUser {
   matricula: string;
   uid?: string;
@@ -16,7 +35,9 @@ export interface AdminUser {
   createdAt?: Timestamp | string;
   lastLogin?: Timestamp | string;
   
-  // 🚀 Espaço para Futura Expansão (Entitlements)
-  role?: string; 
-  services?: Record<string, boolean>;
+  // 👥 Papel/Perfil (Governança Central)
+  role: UserRole; 
+  
+  // 🏗️ Serviços/Entitlements (Acesso Granular)
+  services: UserServices;
 }
