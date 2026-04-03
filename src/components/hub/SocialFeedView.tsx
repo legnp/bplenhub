@@ -17,12 +17,12 @@ interface SocialFeedViewProps {
   posts: SocialPost[];
 }
 
-const platformIcons: Record<SocialPlatform, any> = {
-  linkedin: Share2,
-  instagram: Share2,
-  tiktok: Globe,
-  whatsapp: Phone,
-  other: Search
+const platformLogos: Record<SocialPlatform, string | null> = {
+  linkedin: "/linkedin.webp",
+  instagram: "/insta.png",
+  tiktok: "/tiktok.png",
+  whatsapp: "/whatsapp.png",
+  other: null
 };
 
 const platformNames: Record<SocialPlatform, string> = {
@@ -30,7 +30,7 @@ const platformNames: Record<SocialPlatform, string> = {
   instagram: "Instagram",
   tiktok: "TikTok",
   whatsapp: "WhatsApp",
-  other: "Canal"
+  other: "Insights"
 };
 
 export function SocialFeedView({ posts }: SocialFeedViewProps) {
@@ -129,8 +129,16 @@ export function SocialFeedView({ posts }: SocialFeedViewProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-0 group-hover:opacity-10 transition-opacity" />
                 
                 {/* Platform Icon Overlay */}
-                <div className="absolute bottom-6 left-6 p-3 bg-white/90 backdrop-blur-md rounded-2xl border border-gray-100 shadow-xl group-hover:scale-110 transition-transform">
-                  {React.createElement(platformIcons[post.platform] || Search, { size: 16, className: "text-black" })}
+                <div className="absolute bottom-6 left-6 w-10 h-10 bg-white/95 backdrop-blur-md rounded-2xl border border-gray-100 shadow-xl group-hover:scale-110 transition-transform flex items-center justify-center overflow-hidden">
+                  {platformLogos[post.platform] ? (
+                    <img 
+                      src={platformLogos[post.platform]!} 
+                      alt={post.platform} 
+                      className="w-5 h-5 object-contain"
+                    />
+                  ) : (
+                    <Sparkles size={16} className="text-black" />
+                  )}
                 </div>
               </div>
 
