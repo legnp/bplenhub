@@ -95,6 +95,9 @@ export function FloatingCTAs() {
                 <Link href="/agendar" onClick={toggleMenu} className="text-4xl font-black tracking-tighter hover:text-[var(--accent-start)] transition-colors flex items-center gap-4 group">
                   <span className="text-[var(--text-muted)] text-sm group-hover:text-[var(--accent-start)] font-mono">03.</span> Agendar
                 </Link>
+                <Link href="/conteudo" onClick={toggleMenu} className="text-4xl font-black tracking-tighter hover:text-[var(--accent-start)] transition-colors flex items-center gap-4 group">
+                  <span className="text-[var(--text-muted)] text-sm group-hover:text-[var(--accent-start)] font-mono">04.</span> Conteúdos
+                </Link>
               </nav>
 
               {/* Botão de Destaque HUB */}
@@ -181,6 +184,12 @@ export function FloatingCTAs() {
           className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
         >
           Agendar Conversa
+        </Link>
+        <Link 
+          href="/conteudo"
+          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+        >
+          Explore Conteúdos
         </Link>
         <Link 
           href="/hub"
