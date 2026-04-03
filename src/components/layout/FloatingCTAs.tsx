@@ -34,8 +34,16 @@ export function FloatingCTAs() {
       url: "https://www.instagram.com/lis_lencina", 
       name: "Instagram" 
     },
-    { icon: <Phone size={20} />, url: "https://wa.me/5511945152088", name: "WhatsApp" },
-    { icon: <Globe size={20} />, url: "https://www.tiktok.com/@lis.lencina", name: "TikTok" }, 
+    { 
+      icon: <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5 object-contain" />, 
+      url: "https://wa.me/5511945152088", 
+      name: "WhatsApp" 
+    },
+    { 
+      icon: <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />, 
+      url: "https://www.tiktok.com/@lis.lencina", 
+      name: "TikTok" 
+    }, 
   ];
 
   return (
@@ -59,7 +67,7 @@ export function FloatingCTAs() {
             exit="closed"
             variants={menuVariants}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[200] md:hidden flex flex-col p-8 bg-black/95 backdrop-blur-2xl"
+            className="fixed inset-0 z-[200] md:hidden flex flex-col p-8 bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] border-l border-[var(--glass-border)]"
           >
             <div className="flex-1 flex flex-col justify-center gap-12 mt-10">
               {/* Branding no Menu */}
