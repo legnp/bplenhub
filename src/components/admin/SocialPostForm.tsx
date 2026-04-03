@@ -268,8 +268,23 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
             </div>
           </div>
 
-          {/* Legenda e Links */}
+          {/* Título, Legenda e Links */}
           <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Título da Postagem</label>
+              <div className="relative">
+                <Type className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40 shrink-0" />
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Como o DISC transforma lideranças..."
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:opacity-30 shadow-inner"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Resumo / Legenda</label>
               <div className="relative">
