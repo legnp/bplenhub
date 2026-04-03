@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { clientEnv } from "@/env";
 
 /**
@@ -26,5 +27,8 @@ export const auth = getAuth(app);
 
 /** Instância do Banco de Dados (Firestore) */
 export const db = getFirestore(app);
+
+/** Instância de Armazenamento de Arquivos (Storage) */
+export const storage = getStorage(app);
 
 export default app;

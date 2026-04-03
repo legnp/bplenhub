@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { SocialPost, SocialPlatform } from "@/types/social";
 import { getSocialPosts, deleteSocialPost, togglePostStatus } from "@/actions/social";
+import { deleteStorageFile } from "@/lib/storage-utils";
 import { SocialPostForm } from "@/components/admin/SocialPostForm";
 import Link from "next/link";
 
@@ -59,10 +60,14 @@ export default function SocialManagementPage() {
     });
   }, [posts, searchTerm, platformFilter]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (post: SocialPost) => {
     if (confirm("Tem certeza que deseja excluir esta postagem permanentemente?")) {
       try {
-        await deleteSocialPost(id);
+        // 1. Apagar imagem do Storage se for do Firebase
+        await deleteStorageFile(post.thumbnail);
+        
+        // 2. Apagar documento do Firestore
+        await deleteSocialPost(post.id);
         fetchPosts();
       } catch (error) {
         alert("Erro ao excluir post.");
@@ -260,7 +265,7 @@ export default function SocialManagementPage() {
                       <Edit3 size={14} className="group-hover/btn:scale-110 transition-transform" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => handleDelete(post)}
                       className="p-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[var(--text-muted)] hover:text-red-500 transition-all hover:bg-red-500/5 group/btn"
                     >
                       <Trash2 size={14} className="group-hover/btn:scale-110 transition-transform" />

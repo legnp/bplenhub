@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   X, 
   Save, 
@@ -13,11 +13,14 @@ import {
   Image as ImageIcon, 
   Calendar as CalendarIcon,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SocialPost, SocialPlatform } from "@/types/social";
 import { createSocialPost, updateSocialPost } from "@/actions/social";
+import { uploadSocialThumbnail, deleteStorageFile } from "@/lib/storage-utils";
 
 interface SocialPostFormProps {
   post?: SocialPost | null;
@@ -35,7 +38,9 @@ const PLATFORMS: { id: SocialPlatform; label: string; icon: any }[] = [
 
 export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<Omit<SocialPost, 'id' | 'createdAt' | 'updatedAt'>>({
     platform: 'linkedin',
@@ -62,6 +67,31 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
       });
     }
   }, [post]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // 1. Upload da nova imagem
+      const downloadURL = await uploadSocialThumbnail(file);
+      
+      // 2. Se estiver editando e já houver uma imagem do Firebase, apagar a antiga
+      if (post && post.thumbnail && post.thumbnail !== downloadURL) {
+         await deleteStorageFile(post.thumbnail);
+      }
+
+      setFormData(prev => ({ ...prev, thumbnail: downloadURL }));
+    } catch (err: any) {
+      setError(err.message || "Erro no upload.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,7 +137,7 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
               {post ? "Editar Postagem" : "Nova Postagem Social"}
             </h2>
             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">
-              Gestão Manual de Conteúdo 📡
+              Gestão de Conteúdo & Mídia 📁
             </p>
           </div>
           <button 
@@ -182,51 +212,98 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
             </div>
           </div>
 
-          {/* Resumo */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Resumo / Legenda</label>
-            <div className="relative">
-              <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-[var(--text-muted)] opacity-40" />
-              <textarea
-                required
-                rows={3}
-                placeholder="Breve descrição do post para atrair o clique..."
-                value={formData.summary}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-30 resize-none"
-              />
+          {/* Seção de Mídia (Thumbnail) */}
+          <div className="space-y-4 p-6 bg-[var(--accent-start)]/[0.02] border border-[var(--border-primary)] rounded-[2rem]">
+            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1 flex items-center gap-2">
+              <ImageIcon size={14} className="text-[var(--accent-start)]" /> Miniatura (Thumbnail)
+            </label>
+            
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Preview */}
+              <div className="w-full md:w-32 h-32 rounded-2xl bg-[var(--input-bg)] border border-[var(--border-primary)] overflow-hidden flex items-center justify-center shrink-0 group relative text-left">
+                {formData.thumbnail ? (
+                  <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                ) : (
+                  <ImageIcon size={24} className="text-[var(--text-muted)] opacity-20" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                    <Loader2 size={24} className="text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              {/* Controles de Upload/URL */}
+              <div className="flex-1 space-y-4">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    Fazer Upload (Máx 2MB)
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    className="hidden" 
+                    accept="image/*"
+                  />
+                </div>
+                
+                <div className="relative">
+                  <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ou cole a URL da imagem aqui..."
+                    value={formData.thumbnail}
+                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                    className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-3.5 text-[11px] font-bold text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:opacity-30"
+                  />
+                </div>
+                {formData.thumbnail.includes("firebasestorage") && (
+                   <div className="flex items-center gap-2 text-[9px] text-green-500 font-bold uppercase tracking-widest">
+                      <CheckCircle2 size={12} /> Imagem salva no BPlen HUB
+                   </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* URL do Post */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Link do Post Original</label>
-            <div className="relative">
-              <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
-              <input
-                type="url"
-                required
-                placeholder="https://www.linkedin.com/posts/..."
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-30"
-              />
+          {/* Legenda e Links */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Resumo / Legenda</label>
+              <div className="relative">
+                <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-[var(--text-muted)] opacity-40" />
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Breve descrição do post..."
+                  value={formData.summary}
+                  onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:opacity-30 resize-none"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Thumbnail URL */}
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">URL da Imagem (Thumbnail)</label>
-            <div className="relative">
-              <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
-              <input
-                type="text"
-                required
-                placeholder="Pressione o botão direito na imagem do post e selecione 'Copiar endereço da imagem'"
-                value={formData.thumbnail}
-                onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-30"
-              />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">Link do Post Original</label>
+              <div className="relative">
+                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
+                <input
+                  type="url"
+                  required
+                  placeholder="https://..."
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-6 py-3.5 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all placeholder:opacity-30"
+                />
+              </div>
             </div>
           </div>
 
@@ -261,7 +338,7 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
             >
               <div className="text-left">
                 <p className="text-xs font-black uppercase tracking-widest">Destaque</p>
-                <p className="text-[10px] font-medium opacity-60">{formData.isFeatured ? "Topo da Lista" : "Ordenação Normal"}</p>
+                <p className="text-[10px] font-medium opacity-60">{formData.isFeatured ? "Topo" : "Normal"}</p>
               </div>
               <div className={`w-10 h-5 rounded-full relative transition-colors ${formData.isFeatured ? "bg-[var(--accent-start)]" : "bg-gray-400"}`}>
                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.isFeatured ? "left-6" : "left-1"}`} />
@@ -281,7 +358,7 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSaving}
+            disabled={isSaving || isUploading}
             className="flex items-center gap-3 px-10 py-4.5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-[var(--accent-start)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
