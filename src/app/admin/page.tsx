@@ -10,7 +10,8 @@ import {
   Handshake, 
   ChevronRight,
   Clock,
-  Loader2
+  Loader2,
+  Globe
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getSyncedEvents } from "@/actions/calendar";
@@ -136,9 +137,9 @@ export default function AdminDashboardPage() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
+            { label: "Gestão Social", icon: Globe, href: "/admin/social" },
             { label: "Novo Portfólio", icon: Briefcase, href: "/admin/portfolio" },
             { label: "Ver Formulários", icon: FileText, href: "/admin/forms" },
-            { label: "Usuários", icon: Users, href: "/admin/users" },
             { label: "Ajustar Agenda", icon: Calendar, href: "/admin/agenda" },
           ].map((item) => (
             <Link

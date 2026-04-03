@@ -1,0 +1,17 @@
+import { Timestamp } from "firebase/firestore";
+
+export type SocialPlatform = 'linkedin' | 'instagram' | 'tiktok' | 'whatsapp' | 'other';
+
+export interface SocialPost {
+  id: string;
+  platform: SocialPlatform;
+  url: string;
+  title: string;
+  summary: string;
+  thumbnail: string;
+  publishedAt: string; // ISO date or formatted string from input
+  isActive: boolean;
+  isFeatured: boolean;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}

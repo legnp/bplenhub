@@ -5,8 +5,8 @@ import {
   Sparkles, 
   ArrowRight 
 } from "lucide-react";
-import { ContentListView } from "@/components/hub/ContentListView";
-import { MOCK_CONTENTS } from "@/config/hub-data";
+import { SocialFeedView } from "@/components/hub/SocialFeedView";
+import { getSocialPosts } from "@/actions/social";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   description: "Explore os últimos artigos, vídeos e reflexões da BPlen sobre Desenvolvimento Humano.",
 };
 
-export default function ContentPage() {
+export default async function ContentPage() {
+  const posts = await getSocialPosts(true); // Apenas ativos
+  
   return (
     <main className="min-h-screen bg-[#F5F7FA] text-[#1D1D1F] relative isolate overflow-x-hidden transition-colors duration-500">
       
@@ -43,9 +45,9 @@ export default function ContentPage() {
       </section>
 
       {/* Content Explorer Container */}
-      <section className="px-6">
+      <section className="px-6 pb-24">
         <div className={LANDING_TOKENS.container}>
-          <ContentListView contents={MOCK_CONTENTS} />
+          <SocialFeedView posts={posts} />
         </div>
       </section>
 
