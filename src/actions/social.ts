@@ -17,7 +17,7 @@ import { db } from "@/lib/firebase";
 import { SocialPost } from "@/types/social";
 import { revalidatePath } from "next/cache";
 
-const COLLECTION_NAME = "social_posts";
+const COLLECTION_NAME = "content_posts";
 
 /**
  * BPlen HUB — Social Media Actions 📡

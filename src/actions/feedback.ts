@@ -55,7 +55,7 @@ export async function submitThemeSuggestion(data: {
   matricula?: string | null;
 }) {
   try {
-    const suggestionRef = collection(db, "theme_suggestions");
+    const suggestionRef = collection(db, "content_suggestions");
     await addDoc(suggestionRef, {
       ...data,
       timestamp: serverTimestamp(),
