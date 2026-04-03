@@ -34,7 +34,7 @@ export function FloatingCTAs() {
               className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center shadow-2xl cursor-pointer gap-2"
             >
               <Home size={14} />
-              VOLTAR AO INÍCIO
+              HOME
             </Link>
           </motion.div>
         )}
