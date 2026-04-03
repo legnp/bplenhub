@@ -65,7 +65,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
         matricula,
         name,
         nickname,
-        email: data.User_Email || welcome.User_Email || "",
+        email: data.email || data.User_Email || welcome.email || welcome.User_Email || data.User_Welcome?.email || "",
         isAdmin: resolvedRole === "admin",
         role: resolvedRole,
         services: perm.services || {},
