@@ -28,6 +28,7 @@ import {
 } from "@/actions/social";
 import { deleteSocialThumbnailFromDrive } from "@/actions/social-drive";
 import { SocialPostForm } from "@/components/admin/SocialPostForm";
+import { auth } from "@/lib/firebase";
 import Link from "next/link";
 
 export default function SocialManagementPage() {
@@ -67,24 +68,30 @@ export default function SocialManagementPage() {
   const handleDelete = async (post: SocialPost) => {
     if (confirm("Tem certeza que deseja excluir esta postagem permanentemente?")) {
       try {
+        // 🛡️ Segurança: Obter Token p/ Deleção
+        const adminToken = await auth.currentUser?.getIdToken();
+
         // 1. Apagar imagem do Drive se for uma URL do Drive
-        await deleteSocialThumbnailFromDrive(post.thumbnail);
+        await deleteSocialThumbnailFromDrive(post.thumbnail, adminToken);
         
         // 2. Apagar documento do Firestore
-        await deleteSocialPost(post.id);
+        await deleteSocialPost(post.id, adminToken);
         fetchPosts();
-      } catch (error) {
-        alert("Erro ao excluir post.");
+      } catch (error: any) {
+        alert(error.message || "Erro ao excluir post.");
       }
     }
   };
 
   const handleToggle = async (id: string, field: 'isActive' | 'isFeatured', current: boolean) => {
     try {
-      await togglePostStatus(id, field, current);
+      // 🛡️ Segurança: Obter Token p/ Toggle
+      const adminToken = await auth.currentUser?.getIdToken();
+
+      await togglePostStatus(id, field, current, adminToken);
       fetchPosts();
-    } catch (error) {
-      alert("Erro ao atualizar status.");
+    } catch (error: any) {
+      alert(error.message || "Erro ao atualizar status.");
     }
   };
 

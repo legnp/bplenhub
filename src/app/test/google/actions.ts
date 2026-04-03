@@ -15,6 +15,7 @@ import {
 } from "@/lib/google-auth";
 import { db } from "@/lib/firebase";
 import { serverEnv } from "@/env";
+import { requireAdmin } from "@/lib/auth-guards";
 
 /**
  * Utilitário de Diagnóstico Silencioso 🛡️
@@ -37,8 +38,11 @@ function checkKeySignature() {
 // ──────────────────────────────
 // 1. Teste de Agenda
 // ──────────────────────────────
-export async function testCalendar() {
+export async function testCalendar(adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     checkKeySignature();
     const calendar = await getCalendarClient();
     const res = await calendar.events.list({
@@ -65,8 +69,11 @@ export async function testCalendar() {
 // ──────────────────────────────
 // 2. Teste de Pastas (Drive)
 // ──────────────────────────────
-export async function testDriveFolders() {
+export async function testDriveFolders(adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     checkKeySignature();
     const drive = await getDriveClient();
     const domains = [
@@ -98,8 +105,11 @@ export async function testDriveFolders() {
 // ──────────────────────────────
 // 3. Teste de Sheets (Escrita)
 // ──────────────────────────────
-export async function testSheets() {
+export async function testSheets(adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     checkKeySignature();
     const sheets = await getSheetsClient();
     const drive = await getDriveClient();
@@ -142,8 +152,11 @@ export async function testSheets() {
 // ──────────────────────────────
 // 4. Teste de Upload (Drive)
 // ──────────────────────────────
-export async function testUpload() {
+export async function testUpload(adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     checkKeySignature();
     const drive = await getDriveClient();
     const fileName = `TESTE_UPLOAD_${new Date().getTime()}.txt`;
@@ -179,8 +192,11 @@ const ALIAS_DISPLAY_NAMES: Record<string, string> = {
   "lisandra.lencina": "Lisandra Lencina (BPlen)",
 };
 
-export async function testEmail(alias: string) {
+export async function testEmail(alias: string, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const resend = new Resend(serverEnv.RESEND_API_KEY);
     
     const displayName = ALIAS_DISPLAY_NAMES[alias] || "BPlen HUB";
@@ -221,8 +237,11 @@ export async function testEmail(alias: string) {
 // 6. Teste de Banco de Dados (Firestore)
 // ──────────────────────────────
 
-export async function testFirestore() {
+export async function testFirestore(adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const testData = {
       timestamp: new Date().toISOString(),
       status: "validating_infrastructure",

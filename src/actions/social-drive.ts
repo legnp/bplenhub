@@ -4,6 +4,7 @@ import { getDriveClient } from "@/lib/google-auth";
 import { ensureFolder } from "@/lib/drive-utils";
 import { serverEnv } from "@/env";
 import { Readable } from "stream";
+import { requireAdmin } from "@/lib/auth-guards";
 
 /**
  * BPlen HUB — Social Drive Engine 📁🧬
@@ -16,8 +17,11 @@ const SOCIAL_FOLDER_NAME = "Social_Media";
  * Realiza o upload da miniatura para o Google Drive.
  * Configura permissões públicas e retorna a URL de visualização direta.
  */
-export async function uploadSocialThumbnailToDrive(formData: FormData) {
+export async function uploadSocialThumbnailToDrive(formData: FormData, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const file = formData.get("file") as File;
     if (!file) throw new Error("Nenhum arquivo enviado para upload.");
 
@@ -86,8 +90,11 @@ export async function uploadSocialThumbnailToDrive(formData: FormData) {
 /**
  * Remove um arquivo do Google Drive.
  */
-export async function deleteSocialThumbnailFromDrive(urlOrId: string) {
+export async function deleteSocialThumbnailFromDrive(urlOrId: string, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     if (!urlOrId) return;
 
     // Extrair ID se for uma URL do lh3

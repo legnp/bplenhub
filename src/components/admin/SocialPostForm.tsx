@@ -19,6 +19,7 @@ import {
   HardDrive
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { auth } from "@/lib/firebase";
 import { SocialPost, SocialPlatform } from "@/types/social";
 import { createSocialPost, updateSocialPost } from "@/actions/social";
 import { uploadSocialThumbnailToDrive, deleteSocialThumbnailFromDrive } from "@/actions/social-drive";
@@ -83,16 +84,19 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
     setError(null);
 
     try {
+      // 🛡️ Segurança: Obter Token p/ Upload
+      const adminToken = await auth.currentUser?.getIdToken();
+
       // 1. Criar FormData para a Server Action
       const driveFormData = new FormData();
       driveFormData.append("file", file);
 
       // 2. Upload para o Google Drive
-      const result = await uploadSocialThumbnailToDrive(driveFormData);
+      const result = await uploadSocialThumbnailToDrive(driveFormData, adminToken);
       
       // 3. Se estiver editando e já houver uma imagem no Drive, apagar a antiga
       if (post && post.thumbnail && post.thumbnail !== result.url) {
-         await deleteSocialThumbnailFromDrive(post.thumbnail);
+         await deleteSocialThumbnailFromDrive(post.thumbnail, adminToken);
       }
 
       setFormData(prev => ({ ...prev, thumbnail: result.url }));
@@ -110,10 +114,13 @@ export function SocialPostForm({ post, onClose, onSuccess }: SocialPostFormProps
     setError(null);
 
     try {
+      // 🛡️ Segurança: Obter Token p/ CRUD
+      const adminToken = await auth.currentUser?.getIdToken();
+
       if (post) {
-        await updateSocialPost(post.id, formData);
+        await updateSocialPost(post.id, formData, adminToken);
       } else {
-        await createSocialPost(formData);
+        await createSocialPost(formData, adminToken);
       }
       onSuccess();
     } catch (err: any) {

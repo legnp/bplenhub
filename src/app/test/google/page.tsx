@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   testCalendar, 
   testDriveFolders, 
@@ -21,10 +21,14 @@ import {
   Zap,
   Mail,
   ChevronDown,
-  Database
+  Database,
+  Lock,
+  AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { auth } from "@/lib/firebase";
+import { useAuthContext } from "@/context/AuthContext";
 
 /**
  * BPlen HUB — Laboratório de Testes Google APIs e Resend 🧪
@@ -40,14 +44,27 @@ const ALIASES = [
 ];
 
 export default function GoogleTestLab() {
+  const { user, isAdmin, loading: authLoading } = useAuthContext();
   const [results, setResults] = useState<Record<string, { success: boolean, message?: string, data?: unknown, id?: string, from?: string }>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [selectedAlias, setSelectedAlias] = useState(ALIASES[0].id);
+  const [isProduction, setIsProduction] = useState(false);
 
-  const runTest = async (testId: string, testFn: (arg?: unknown) => Promise<{ success: boolean, message?: string }>, arg?: unknown) => {
+  useEffect(() => {
+    // Verificação de ambiente no cliente (apenas para UI)
+    // A proteção real ocorre no servidor via requireAdmin()
+    if (process.env.NODE_ENV === "production") {
+      setIsProduction(true);
+    }
+  }, []);
+
+  const runTest = async (testId: string, testFn: (arg?: any, token?: string) => Promise<{ success: boolean, message?: string }>, arg?: unknown) => {
     setLoading(prev => ({ ...prev, [testId]: true }));
     try {
-      const res = await (arg !== undefined ? testFn(arg) : testFn());
+      // 🛡️ Obtendo ID Token para validação real no servidor
+      const token = await auth.currentUser?.getIdToken();
+      
+      const res = await (arg !== undefined ? testFn(arg, token) : testFn(undefined, token));
       setResults(prev => ({ ...prev, [testId]: res }));
     } catch (err: unknown) {
       const error = err as Error;
@@ -57,8 +74,52 @@ export default function GoogleTestLab() {
     }
   };
 
+  // Bloqueio de Segurança para Produção (UI)
+  if (isProduction) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-6">
+        <div className="max-w-md w-full glass p-12 text-center space-y-6 border-red-500/20">
+          <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center text-red-500 mx-auto">
+            <Lock size={40} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight text-red-600">Acesso Restrito</h1>
+            <p className="text-gray-500 text-sm">
+              O Laboratório de Testes está desativado em ambiente de produção por motivos de segurança.
+            </p>
+          </div>
+          <Link href="/" className="inline-block px-10 py-4 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:scale-105 transition-all">
+            Voltar para Início
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Verificação de Admin (UI)
+  if (!authLoading && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center p-6">
+        <div className="max-w-md w-full glass p-12 text-center space-y-6 border-amber-500/20">
+          <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-amber-500 mx-auto">
+            <AlertTriangle size={40} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight text-amber-600">Apenas para Administradores</h1>
+            <p className="text-gray-500 text-sm">
+              Você não possui permissões administrativas para acessar as ferramentas de laboratório.
+            </p>
+          </div>
+          <Link href="/" className="inline-block px-10 py-4 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:scale-105 transition-all">
+            Voltar para Início
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const TestCard = ({ id, title, description, icon: Icon, testFn, children }: { id: string; title: string; description: string; icon: React.ElementType; testFn: (arg?: any) => Promise<any>; children?: React.ReactNode }) => {
+  const TestCard = ({ id, title, description, icon: Icon, testFn, children }: { id: string; title: string; description: string; icon: React.ElementType; testFn: (arg?: any, token?: string) => Promise<any>; children?: React.ReactNode }) => {
     const res = results[id];
     const isLoading = loading[id];
 
@@ -140,7 +201,9 @@ export default function GoogleTestLab() {
                 Service Account Connected
              </span>
           </div>
-        </div>        {/* Grid de Testes */}
+        </div>
+
+        {/* Grid de Testes */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           
           <TestCard 

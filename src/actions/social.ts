@@ -14,8 +14,8 @@ import {
   Timestamp
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { SocialPost } from "@/types/social";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth-guards";
 
 const COLLECTION_NAME = "content_posts";
 
@@ -60,8 +60,11 @@ export async function getSocialPosts(onlyActive: boolean = false) {
   }
 }
 
-export async function createSocialPost(data: Omit<SocialPost, "id" | "createdAt" | "updatedAt">) {
+export async function createSocialPost(data: Omit<SocialPost, "id" | "createdAt" | "updatedAt">, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const postsRef = collection(db, COLLECTION_NAME);
     const docRef = await addDoc(postsRef, {
       ...data,
@@ -73,14 +76,17 @@ export async function createSocialPost(data: Omit<SocialPost, "id" | "createdAt"
     revalidatePath("/conteudo");
     
     return { success: true, id: docRef.id };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao criar post social:", error);
-    throw new Error("Falha ao salvar postagem.");
+    throw new Error(error.message || "Falha ao salvar postagem.");
   }
 }
 
-export async function updateSocialPost(id: string, data: Partial<SocialPost>) {
+export async function updateSocialPost(id: string, data: Partial<SocialPost>, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const postRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(postRef, {
       ...data,
@@ -91,14 +97,17 @@ export async function updateSocialPost(id: string, data: Partial<SocialPost>) {
     revalidatePath("/conteudo");
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao atualizar post social:", error);
-    throw new Error("Falha ao atualizar postagem.");
+    throw new Error(error.message || "Falha ao atualizar postagem.");
   }
 }
 
-export async function deleteSocialPost(id: string) {
+export async function deleteSocialPost(id: string, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const postRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(postRef);
     
@@ -106,14 +115,17 @@ export async function deleteSocialPost(id: string) {
     revalidatePath("/conteudo");
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao deletar post social:", error);
-    throw new Error("Falha ao remover postagem.");
+    throw new Error(error.message || "Falha ao remover postagem.");
   }
 }
 
-export async function togglePostStatus(id: string, field: "isActive" | "isFeatured", currentValue: boolean) {
+export async function togglePostStatus(id: string, field: "isActive" | "isFeatured", currentValue: boolean, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(adminToken);
+
     const postRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(postRef, {
       [field]: !currentValue,
@@ -124,8 +136,8 @@ export async function togglePostStatus(id: string, field: "isActive" | "isFeatur
     revalidatePath("/conteudo");
     
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao alternar status do post:", error);
-    throw new Error("Falha ao alterar visibilidade/destaque.");
+    throw new Error(error.message || "Falha ao alterar visibilidade/destaque.");
   }
 }
