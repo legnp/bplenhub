@@ -1,12 +1,11 @@
 import React from "react";
 import { Metadata } from "next";
 import { 
-  MessageSquareText, 
-  Sparkles, 
   ArrowRight 
 } from "lucide-react";
 import { SocialFeedView } from "@/components/hub/SocialFeedView";
 import { getSocialPosts } from "@/actions/social";
+import { FeedbackSection } from "@/components/hub/FeedbackSection";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
@@ -51,35 +50,8 @@ export default async function ContentPage() {
         </div>
       </section>
 
-      {/* Feedback / Survey Section (Mockup) */}
-      <section className="py-24 px-6 bg-white border-t border-gray-100">
-        <div className={LANDING_TOKENS.container}>
-          <div className="max-w-4xl mx-auto p-12 rounded-[3rem] bg-gray-50 border border-gray-100 flex flex-col md:flex-row items-center gap-12">
-            <div className="space-y-6 text-center md:text-left flex-grow">
-              <div className="flex items-center justify-center md:justify-start gap-2 text-[#ff0080] font-bold text-xs uppercase tracking-widest">
-                <Sparkles size={16} />
-                Sua Opinião Importa
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-black tracking-tight">
-                O que você gostaria de <br /> ver por aqui?
-              </h2>
-              <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
-                Estamos sempre evoluindo nosso ecossistema de conteúdo. 
-                Deixe seu feedback para nos ajudar a priorizar novos temas.
-              </p>
-            </div>
-            
-            <div className="w-full md:max-w-xs space-y-4">
-              <button className="w-full py-4 px-6 rounded-2xl bg-white border border-gray-200 text-black font-bold text-xs tracking-widest uppercase hover:border-[#ff0080] transition-all flex items-center justify-between group">
-                Avaliar Conteúdos <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="w-full py-4 px-6 rounded-2xl bg-black text-white font-bold text-xs tracking-widest uppercase hover:scale-[1.02] transition-all flex items-center justify-between group">
-                Sugerir Temas <MessageSquareText size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Fluxo de Feedback e Sugestão 📡🗳️ */}
+      <FeedbackSection />
 
       {/* Elementos Institucionais (Ajustados para o fundo claro do rodapé ou mantendo o dark original) */}
       <div className="bg-black text-white pt-2">
