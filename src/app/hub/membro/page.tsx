@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
-import { Loader2, ShieldCheck, Lock } from "lucide-react";
+import { ShieldCheck, Lock } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { validateMemberAreaAccess } from "@/actions/member-area";
 
 /**
  * BPlen HUB — Área de Membro (Shell Foundation 🏗️🔒)
- * Página restrita a usuários com entitlement 'member_area_access'.
+ * Governança: Servidor como autoridade final de acesso.
  */
 
 export default function MemberAreaPage() {
@@ -19,40 +19,38 @@ export default function MemberAreaPage() {
 
   useEffect(() => {
     async function performServerValidation() {
-      // Se não houver usuário ou o client já sabe que não tem acesso, não precisamos validar no server
+      // 1. Diagnóstico de Estado no Cliente
+      console.log(`🔍 [MemberArea] Estado Client: isAdmin=${isAdmin}, Entitlement=${services?.member_area_access ? 'ATIVO' : 'INATIVO'}`);
+
       if (!user) return;
-      if (!isAdmin && !services?.member_area_access) {
-          setIsServerAuthorized(false);
-          return;
-      }
 
       setValidating(true);
       try {
         const token = await auth.currentUser?.getIdToken();
+        
+        // 2. Validação Server-Side (Soberana 🛡️)
         const result = await validateMemberAreaAccess(token);
         
-        setIsServerAuthorized(result.authorized);
+        console.log(`📡 [MemberArea] Resultado Servidor: Authorized=${result.authorized}`, result.error ? `| Erro: ${result.error}` : "");
         
-        if (!result.authorized) {
-          console.error("❌ [Member Area] Autorização negada no servidor.");
-        }
-      } catch (err) {
-        console.error("❌ [Member Area] Erro na validação:", err);
+        setIsServerAuthorized(result.authorized);
+      } catch (err: any) {
+        console.error("❌ [MemberArea] Falha crítica na validação:", err.message);
         setIsServerAuthorized(false);
       } finally {
         setValidating(false);
       }
     }
 
-    if (!loading) {
+    if (!loading && user) {
       performServerValidation();
     }
   }, [user, loading, services, isAdmin]);
 
-  // Redirecionamento em caso de falha de autorização persistente
+  // Redirecionamento baseado exclusivamente na decisão final do servidor
   useEffect(() => {
      if (isServerAuthorized === false) {
-        // Bloqueio definitivo se o servidor recusar a entrada
+        console.warn("🚫 [MemberArea] Bloqueio definitivo aplicado via Servidor. Redirecionando...");
         redirect("/hub");
      }
   }, [isServerAuthorized]);
@@ -72,7 +70,7 @@ export default function MemberAreaPage() {
     );
   }
 
-  // Shell Vazia Autenticada
+  // Shell Vazia Autenticada e Autorizada
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-20 space-y-12 min-h-[70vh] flex flex-col items-center justify-center">
       
@@ -87,7 +85,7 @@ export default function MemberAreaPage() {
                Área de Membro <span className="text-[var(--accent-start)] italic">BPlen</span>
             </h1>
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">
-               Foundation Shell v1.0 — Restrita & Autorizada
+               Foundation Shell v1.1 — Reatividade Full & Auth Sincronizada
             </p>
          </div>
 
@@ -99,7 +97,7 @@ export default function MemberAreaPage() {
       <div className="fixed bottom-12 right-12 p-4 glass bg-emerald-500/5 border-emerald-500/10 rounded-2xl hidden md:block">
          <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60">Server-Side Authorization Active</span>
+            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600/60">Server-Side Authorization Sovereignty</span>
          </div>
       </div>
     </div>

@@ -1,12 +1,11 @@
-"use server";
-
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { adminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { UserRole, UserServices } from "@/types/users";
 
 /**
  * BPlen HUB — Auth Permissions Action (Segurança 🛡️)
  * Verifica permissões e garante automação de "Admin" para conta Master.
+ * Transição para Firebase Admin SDK (Node.js) para governança soberana.
  */
 
 // Email Master que recebe a Flag de Admin automaticamente
@@ -14,83 +13,102 @@ const MASTER_DOMAINS = ["@bplen.com"];
 const MASTER_EMAILS = ["lisandra.lencina@bplen.com", "it@bplen.com"]; // Fallback de hardcoded accounts principais
 
 export async function syncUserPermissionsOnLogin(uid: string, email: string | null) {
-  if (!email) return false;
+  if (!email) return { isAdmin: false, role: "visitor", services: {} };
 
   try {
     const isMasterEmail = MASTER_EMAILS.includes(email.toLowerCase()) || 
                           MASTER_DOMAINS.some(domain => email.toLowerCase().endsWith(domain));
 
-    // Determina o Documento de UID Mapping
-    const uidMapRef = doc(db, "_AuthMap", uid);
-    const uidMapSnap = await getDoc(uidMapRef);
+    // 1. Determina a Matrícula via UID Mapping
+    const uidMapRef = adminDb.collection("_AuthMap").doc(uid);
+    const uidMapSnap = await uidMapRef.get();
 
     let matricula = "";
-
-    // Se o usuário ainda não passou pelo Welcome (não tem Matrícula), não forçamos,
-    // mas guardaremos a permissão via UID também caso necessário,
-    // ou simplesmente aguardamos. A regra é: User > [Matricula] > User_Permissions.
-    if (uidMapSnap.exists()) {
-      matricula = uidMapSnap.data().matricula;
+    if (uidMapSnap.exists) {
+      matricula = uidMapSnap.data()?.matricula;
     }
+
+    console.log(`[Auth Sync] UID: ${uid} -> Matrícula: ${matricula || "N/A"}`);
 
     if (!matricula) {
-       // Permissão administrativa flutuante se não houver matrícula ainda.
-       // Essa permissão real será solidificada no fluxo de Onboard B2C/B2B (Welcome Survey).
-       return isMasterEmail;
+       return { 
+         isAdmin: isMasterEmail, 
+         role: isMasterEmail ? "admin" : "visitor", 
+         services: {} 
+       };
     }
 
-    // Lógica de Registro de Permissão no Banco
-    const permissionsRef = doc(db, "User", matricula, "User_Permissions", "access");
-    const permSnap = await getDoc(permissionsRef);
+    // 2. Lógica de Registro/Verificação de Permissão no Banco (Path Soberano)
+    const permissionsPath = `User/${matricula}/User_Permissions/access`;
+    const permissionsRef = adminDb.doc(permissionsPath);
+    const permSnap = await permissionsRef.get();
 
     let isAdmin = false;
+    let currentPerms = permSnap.exists ? permSnap.data() : null;
 
-    if (permSnap.exists()) {
-      isAdmin = permSnap.data().admin === true;
+    if (currentPerms) {
+      isAdmin = currentPerms.admin === true;
     }
 
-    // Se é conta Master, mas não tem Admin Flag Ativa na base, CONCEDE AUTOMATICAMENTE.
+    // 3. Auto-Grant para Master Accounts
     if (isMasterEmail && !isAdmin) {
-      await setDoc(permissionsRef, {
+      await permissionsRef.set({
         admin: true,
-        grantedAt: serverTimestamp(),
+        grantedAt: admin.firestore.FieldValue.serverTimestamp(),
         grantedReason: "SYSTEM_MASTER_AUTO_GRANT"
       }, { merge: true });
       isAdmin = true;
-      console.log(`✅ [Segurança] Permissão de Admin concedida para Master Account: ${email}`);
+      console.log(`✅ [Segurança] Admin Auto-Grant via Admin SDK: ${email}`);
+      
+      // Re-fetch para ter dados consistentes no retorno
+      const updatedSnap = await permissionsRef.get();
+      currentPerms = updatedSnap.data();
     }
 
     return {
       isAdmin,
-      role: (permSnap.exists() ? permSnap.data().role : "member") as UserRole,
-      services: (permSnap.exists() ? permSnap.data().services : {}) as UserServices
+      role: (currentPerms?.role || (isAdmin ? "admin" : "member")) as UserRole,
+      services: (currentPerms?.services || {}) as UserServices
     };
 
-  } catch (error) {
-    console.error("Erro na Sincronização de Permissões:", error);
+  } catch (error: any) {
+    console.error("❌ [Auth Sync] Erro na sincronização de permissões:", error.message);
     return { isAdmin: false, role: "visitor", services: {} };
   }
 }
 
 /**
- * Busca o Status de Permissão (Leitura em Tempo Real ou SSR)
+ * Busca o Status de Permissão (Server Authority 🛡️)
  */
 export async function fetchUserPermissionsStatus(uid: string): Promise<{ isAdmin: boolean; role: UserRole; services: UserServices }> {
-    const uidMapRef = doc(db, "_AuthMap", uid);
-    const uidMapSnap = await getDoc(uidMapRef);
+    try {
+      const uidMapRef = adminDb.collection("_AuthMap").doc(uid);
+      const uidMapSnap = await uidMapRef.get();
 
-    if (!uidMapSnap.exists()) return { isAdmin: false, role: "visitor", services: {} };
-    const matricula = uidMapSnap.data().matricula;
+      if (!uidMapSnap.exists) {
+        return { isAdmin: false, role: "visitor", services: {} };
+      }
 
-    const permissionsRef = doc(db, "User", matricula, "User_Permissions", "access");
-    const permSnap = await getDoc(permissionsRef);
+      const matricula = uidMapSnap.data()?.matricula;
+      const permissionsPath = `User/${matricula}/User_Permissions/access`;
+      const permissionsRef = adminDb.doc(permissionsPath);
+      const permSnap = await permissionsRef.get();
 
-    if (!permSnap.exists()) return { isAdmin: false, role: "member", services: {} };
-    const data = permSnap.data();
-    
-    return {
-      isAdmin: data.admin === true,
-      role: (data.role || (data.admin ? "admin" : "member")) as UserRole,
-      services: (data.services || {}) as UserServices
-    };
+      console.log(`[Auth Status] UID: ${uid} | Matrícula: ${matricula} | Path: ${permissionsPath}`);
+
+      if (!permSnap.exists) {
+        return { isAdmin: false, role: "member", services: {} };
+      }
+
+      const data = permSnap.data();
+      
+      return {
+        isAdmin: data?.admin === true,
+        role: (data?.role || (data?.admin ? "admin" : "member")) as UserRole,
+        services: (data?.services || {}) as UserServices
+      };
+    } catch (error: any) {
+      console.error("❌ [Auth Status] Falha ao buscar permissões do servidor:", error.message);
+      return { isAdmin: false, role: "visitor", services: {} };
+    }
 }

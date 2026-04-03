@@ -1,14 +1,5 @@
-"use server";
-
-import { 
-  collection, 
-  getDocs, 
-  setDoc, 
-  doc, 
-  serverTimestamp,
-  collectionGroup
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { adminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { requireAdmin } from "@/lib/auth-guards";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
 import { revalidatePath } from "next/cache";
@@ -16,6 +7,7 @@ import { revalidatePath } from "next/cache";
 /**
  * BPlen HUB — User Management Actions (Governança 👥🏗️)
  * Controle centralizado de Papéis (Roles) e Serviços (Entitlements).
+ * Migrado para Firebase Admin SDK para persistência soberana e segura.
  */
 
 /**
@@ -27,13 +19,13 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
     // 🛡️ Segurança Real no Servidor
     await requireAdmin(adminToken);
 
-    // 1. Puxar todos os usuários da base principal
-    const usersRef = collection(db, "User");
-    const usersSnap = await getDocs(usersRef);
+    // 1. Puxar todos os usuários da base principal (Node Admin SDK)
+    const usersRef = adminDb.collection("User");
+    const usersSnap = await usersRef.get();
 
     // 2. Puxar todas as permissões administrativas via Collection Group
-    const permissionsRef = collectionGroup(db, "User_Permissions");
-    const permissionsSnap = await getDocs(permissionsRef);
+    const permissionsRef = adminDb.collectionGroup("User_Permissions");
+    const permissionsSnap = await permissionsRef.get();
 
     // Mapear dados de permissão por matrícula para busca O(1)
     const permissionsMap = new Map<string, { role?: UserRole; services?: UserServices; admin?: boolean }>();
@@ -58,7 +50,6 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
       const nickname = welcome.User_Nickname || data.User_Nickname;
 
       // Normalização de Papel (Role)
-      // Se não houver 'role' definido, inferimos 'admin' se flagLegacyAdmin for true, senão 'member'.
       let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
 
       adminUsers.push({
@@ -94,12 +85,13 @@ export async function updateUserPermissions(
     // 🛡️ Segurança Real no Servidor
     await requireAdmin(adminToken);
 
-    const permissionsRef = doc(db, "User", targetMatricula, "User_Permissions", "access");
+    const permissionsPath = `User/${targetMatricula}/User_Permissions/access`;
+    const permissionsRef = adminDb.doc(permissionsPath);
     
     // Preparar dados para salvar
     const dataToSave: any = {
       ...updates,
-      updatedAt: serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: "ADMIN_GOVERNANCE"
     };
 
@@ -108,11 +100,12 @@ export async function updateUserPermissions(
       dataToSave.admin = updates.role === "admin";
     }
 
-    await setDoc(permissionsRef, dataToSave, { merge: true });
+    // Escrita Soberana via Admin SDK
+    await permissionsRef.set(dataToSave, { merge: true });
 
     revalidatePath("/admin/users");
     
-    console.log(`✅ [Governance Admin] Permissões atualizadas para ${targetMatricula}: Role=${updates.role || 'unchanged'}`);
+    console.log(`✅ [Governance Admin] Permissões atualizadas para ${targetMatricula} no path: ${permissionsPath}`);
     return { success: true };
 
   } catch (error: any) {
