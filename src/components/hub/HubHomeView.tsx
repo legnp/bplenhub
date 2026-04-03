@@ -168,7 +168,7 @@ export function HubHomeView() {
                       className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[#667eea]/5 hover:border-[#667eea]/20 transition-all group relative overflow-hidden h-full flex flex-col"
                     >
                        <div className="flex flex-col gap-4 relative z-10 flex-grow">
-                          <div className="p-3 bg-[var(--input-bg)] w-fit rounded-xl text-[var(--text-secondary)] group-hover:text-[#667eea] transition-colors">
+                          <div className="p-3 bg-[var(--input-bg)] w-fit rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-end)] transition-colors">
                              <ToolPlaceholderIcon name={tool.icon} />
                           </div>
                           <h4 className="text-sm font-bold text-[var(--text-primary)] group-hover:translate-x-1 transition-transform">{tool.title}</h4>

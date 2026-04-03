@@ -31,7 +31,7 @@ export function FloatingCTAs() {
           >
             <Link 
               href="/"
-              className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/10 border border-white/20 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-bold tracking-widest text-white hover:bg-white/20 transition-all flex items-center justify-center shadow-2xl cursor-pointer gap-2"
+              className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center shadow-2xl cursor-pointer gap-2"
             >
               <Home size={14} />
               VOLTAR AO INÍCIO
@@ -56,15 +56,15 @@ export function FloatingCTAs() {
         </Link>
       )}
 
-      <Link 
-        href="/agendar"
-        className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
-      >
+        <Link 
+          href="/agendar"
+          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+        >
         Agendar Conversa
       </Link>
       <Link 
         href="/hub"
-        className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
+        className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
       >
         Acessar BPlen HUB
       </Link>

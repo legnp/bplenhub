@@ -228,16 +228,16 @@ export function PublicBookingFlow() {
     <div className="w-full max-w-4xl mx-auto py-4 px-4">
       {/* 48px Header */}
       <div className="text-center space-y-1.5 mb-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <h1 className="text-[30px] font-black tracking-tighter text-white leading-[1.1]">
+        <h1 className="text-[30px] font-black tracking-tighter text-[var(--text-primary)] leading-[1.1]">
           Reserve seu <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)]">Momento BPlen</span>
         </h1>
-        <p className="text-white/60 text-sm font-medium max-w-xl mx-auto leading-relaxed">
+        <p className="text-[var(--text-muted)] opacity-70 text-sm font-medium max-w-xl mx-auto leading-relaxed">
           Que tal descomplicarmos o desenvolvimento humano no trabalho juntos? <br />
           Escolha um slot abaixo e receba a confirmação em seu e-mail.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto p-4 sm:p-5 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-2xl relative overflow-hidden theme-dark group transition-all duration-700 min-h-[600px] flex flex-col justify-center">
+      <div className="w-full max-w-4xl mx-auto p-4 sm:p-5 bg-[var(--glass-bg)] backdrop-blur-3xl border border-[var(--border-primary)] rounded-[40px] shadow-2xl relative overflow-hidden group transition-all duration-700 min-h-[600px] flex flex-col justify-center">
 
         {/* 🔮 Glow Decoration */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-[var(--accent-start)]/20 rounded-full blur-3xl group-hover:bg-[var(--accent-start)]/30 transition-all duration-700" />
@@ -247,8 +247,8 @@ export function PublicBookingFlow() {
 
           {step === "lead" && (
             <motion.div key="lead" {...containerVariants} className="space-y-6 relative z-10 max-w-xl mx-auto w-full">
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">
+              <div className="space-y-2 text-left">
+                <h3 className="text-2xl font-black bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-muted)] bg-clip-text text-transparent">
                   Agende sua Reunião
                 </h3>
                 <p className="text-[var(--accent-start)] text-[10px] font-black uppercase tracking-[0.2em]">
@@ -261,7 +261,7 @@ export function PublicBookingFlow() {
                   label="Nome Completo"
                   placeholder="Como devemos te chamar?"
                   value={formData.name}
-                  className="!bg-white/10 !border-white/10 !text-white text-sm"
+                  className="text-sm"
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
 
@@ -271,7 +271,7 @@ export function PublicBookingFlow() {
                     placeholder="seu@email.com"
                     type="email"
                     value={formData.email}
-                    className="!bg-white/10 !border-white/10 !text-white text-sm"
+                    className="text-sm"
                     onChange={(e) => {
                       const val = e.target.value;
                       setFormData({ ...formData, email: val });
@@ -311,36 +311,36 @@ export function PublicBookingFlow() {
                 </div>
 
                 <div className="space-y-1.5 text-left relative">
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] ml-1">WhatsApp / Telefone</label>
+                  <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">WhatsApp / Telefone</label>
 
                   <div className="flex gap-2">
                     {/* Seletor de País (DDI) */}
                     <select
-                      className="w-28 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none cursor-pointer"
+                      className="w-28 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none cursor-pointer"
                       value={formData.phoneDDI}
                       onChange={(e) => setFormData({ ...formData, phoneDDI: e.target.value, phoneDDD: "" })}
                     >
-                      <option value="+55" className="bg-[#1D1D1F]">🇧🇷 +55</option>
-                      <option value="+1" className="bg-[#1D1D1F]">🇺🇸 +1</option>
-                      <option value="+351" className="bg-[#1D1D1F]">🇵🇹 +351</option>
-                      <option value="+34" className="bg-[#1D1D1F]">🇪🇸 +34</option>
-                      <option value="+44" className="bg-[#1D1D1F]">🇬🇧 +44</option>
-                      <option value="+33" className="bg-[#1D1D1F]">🇫🇷 +33</option>
-                      <option value="+49" className="bg-[#1D1D1F]">🇩🇪 +49</option>
-                      <option value="+244" className="bg-[#1D1D1F]">🇦🇴 +244</option>
-                      <option value="+54" className="bg-[#1D1D1F]">🇦🇷 +54</option>
+                      <option value="+55" className="bg-[var(--bg-primary)]">🇧🇷 +55</option>
+                      <option value="+1" className="bg-[var(--bg-primary)]">🇺🇸 +1</option>
+                      <option value="+351" className="bg-[var(--bg-primary)]">🇵🇹 +351</option>
+                      <option value="+34" className="bg-[var(--bg-primary)]">🇪🇸 +34</option>
+                      <option value="+44" className="bg-[var(--bg-primary)]">🇬🇧 +44</option>
+                      <option value="+33" className="bg-[var(--bg-primary)]">🇫🇷 +33</option>
+                      <option value="+49" className="bg-[var(--bg-primary)]">🇩🇪 +49</option>
+                      <option value="+244" className="bg-[var(--bg-primary)]">🇦🇴 +244</option>
+                      <option value="+54" className="bg-[var(--bg-primary)]">🇦🇷 +54</option>
                     </select>
 
                     {/* DDD Condicional */}
                     {formData.phoneDDI === "+55" ? (
                       <select
-                        className="w-24 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none"
+                        className="w-24 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none"
                         value={formData.phoneDDD}
                         onChange={(e) => setFormData({ ...formData, phoneDDD: e.target.value })}
                       >
-                        <option value="" disabled className="bg-[#1D1D1F]">DDD</option>
+                        <option value="" disabled className="bg-[var(--bg-primary)]">DDD</option>
                         {[11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28, 31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69, 71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99].map(ddd => (
-                          <option key={ddd} value={ddd} className="bg-[#1D1D1F]">{ddd}</option>
+                          <option key={ddd} value={ddd} className="bg-[var(--bg-primary)]">{ddd}</option>
                         ))}
                       </select>
                     ) : (
@@ -348,7 +348,7 @@ export function PublicBookingFlow() {
                         placeholder="Cód."
                         maxLength={4}
                         value={formData.phoneDDD}
-                        className="w-20 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
+                        className="w-20 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 text-center focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
                         onChange={(e) => setFormData({ ...formData, phoneDDD: e.target.value.replace(/\D/g, "") })}
                       />
                     )}
@@ -356,7 +356,7 @@ export function PublicBookingFlow() {
                     {/* Número Blindado */}
                     <input
                       placeholder="Número"
-                      className="flex-1 bg-white/10 border border-white/10 rounded-2xl text-[11px] text-white p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
+                      className="flex-1 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)]"
                       value={formData.phoneNumber}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -379,7 +379,7 @@ export function PublicBookingFlow() {
               </div>
 
               <div className="flex justify-between items-center pt-4">
-                <button onClick={() => setStep("calendar")} className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-all">
+                <button onClick={() => setStep("calendar")} className="text-[10px] font-black text-[var(--text-muted)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] uppercase tracking-widest transition-all">
                   Voltar ao Calendário
                 </button>
                 <NavButton
@@ -393,19 +393,19 @@ export function PublicBookingFlow() {
           {step === "triagem" && (
             <motion.div key="triagem" {...containerVariants} className="space-y-6 relative z-10 text-left max-w-xl mx-auto w-full">
               <div className="flex items-center gap-2">
-                <button onClick={() => setStep("lead")} className="p-2 hover:bg-white/5 rounded-full transition-all">
-                  <ChevronLeft className="w-5 h-5 text-white/40" />
+                <button onClick={() => setStep("lead")} className="p-2 hover:bg-[var(--accent-soft)] rounded-full transition-all">
+                  <ChevronLeft className="w-5 h-5 text-[var(--text-muted)]" />
                 </button>
-                <h3 className="text-xl font-black text-white">Demanda da reunião</h3>
+                <h3 className="text-xl font-black text-[var(--text-primary)]">Demanda da reunião</h3>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] ml-1">
+                  <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">
                     Qual o objetivo da reunião?
                   </label>
                   <textarea
-                    className="w-full bg-white/10 border border-white/10 backdrop-blur-md rounded-2xl p-4 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] transition-all min-h-[120px]"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] backdrop-blur-md rounded-2xl p-4 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] transition-all min-h-[120px]"
                     placeholder="Conte um pouco sobre o que você busca..."
                     value={formData.screening.objetivo}
                     onChange={(e) => setFormData({ ...formData, screening: { ...formData.screening, objetivo: e.target.value } })}
@@ -416,28 +416,27 @@ export function PublicBookingFlow() {
                   label="Sua Profissão / Cargo"
                   placeholder="Ex: Diretor de RH, Consultor..."
                   value={formData.screening.cargo}
-                  className="!bg-white/10 !border-white/10 !text-white"
                   onChange={(e) => setFormData({ ...formData, screening: { ...formData.screening, cargo: e.target.value } })}
                 />
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] ml-1">Como conheceu a BPlen?</label>
+                  <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">Como conheceu a BPlen?</label>
                   <select
                     value={formData.screening.conheceu_como}
                     onChange={(e) => setFormData({ ...formData, screening: { ...formData.screening, conheceu_como: e.target.value } })}
-                    className="w-full bg-white/10 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none appearance-none cursor-pointer"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl p-4 text-sm text-[var(--text-primary)] focus:outline-none appearance-none cursor-pointer"
                   >
-                    <option value="" disabled className="bg-[#1D1D1F]">Selecione uma opção...</option>
-                    <option value="Linkedin" className="bg-[#1D1D1F]">LinkedIn</option>
-                    <option value="Instagram" className="bg-[#1D1D1F]">Instagram</option>
-                    <option value="Google" className="bg-[#1D1D1F]">Google</option>
-                    <option value="Lisandra Lencina" className="bg-[#1D1D1F]">Lisandra Lencina</option>
+                    <option value="" disabled className="bg-[var(--bg-primary)]">Selecione uma opção...</option>
+                    <option value="Linkedin" className="bg-[var(--bg-primary)]">LinkedIn</option>
+                    <option value="Instagram" className="bg-[var(--bg-primary)]">Instagram</option>
+                    <option value="Google" className="bg-[var(--bg-primary)]">Google</option>
+                    <option value="Lisandra Lencina" className="bg-[var(--bg-primary)]">Lisandra Lencina</option>
                   </select>
                 </div>
               </div>
 
               <div className="flex justify-between items-center pt-4">
-                <p className="text-[9px] text-white/20 uppercase font-black tracking-widest italic">
+                <p className="text-[9px] text-[var(--text-muted)] opacity-30 uppercase font-black tracking-widest italic">
                   Sua resposta nos ajuda a preparar o melhor material 🧪
                 </p>
                 <button
@@ -456,7 +455,7 @@ export function PublicBookingFlow() {
             <motion.div key="calendar" {...containerVariants} className="space-y-6 relative z-10 text-left">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-black text-white">
+                  <h3 className="text-xl font-black text-[var(--text-primary)]">
                     {isProposalMode ? "Propor Novos Horários" : "Escolha um Horário"}
                   </h3>
                 </div>
@@ -466,8 +465,8 @@ export function PublicBookingFlow() {
               </div>
 
               {isProposalMode && (
-                <div className="p-4 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
-                  <p className="text-xs text-white/80 leading-relaxed font-medium">
+                <div className="p-4 bg-[var(--accent-soft)] border border-[var(--accent-start)]/20 rounded-2xl">
+                  <p className="text-xs text-[var(--text-primary)] leading-relaxed font-medium">
                     <Sparkles className="w-4 h-4 inline-block mr-2 text-[var(--accent-start)]" />
                     <b>Não encontrou uma boa agenda?</b> Sugira até 3 opções de datas e horários e entraremos em contato para confirmar!
                   </p>
@@ -479,21 +478,21 @@ export function PublicBookingFlow() {
                 {/* --- MINI CALENDAR GRID --- */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-black text-white uppercase tracking-widest">
+                    <h4 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest">
                       {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
                     </h4>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={goToToday}
-                        className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black text-white uppercase tracking-widest transition-all"
+                        className="px-2 py-1 bg-[var(--accent-soft)] hover:opacity-80 border border-[var(--border-primary)] rounded-lg text-[9px] font-black text-[var(--accent-start)] uppercase tracking-widest transition-all"
                       >
                         Hoje
                       </button>
                       <div className="flex items-center gap-0.5">
-                        <button onClick={prevMonth} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-white/60 hover:text-white">
+                        <button onClick={prevMonth} className="p-1.5 hover:bg-[var(--accent-soft)] rounded-lg transition-all text-[var(--text-muted)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)]">
                           <ChevronLeft className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={nextMonth} className="p-1.5 hover:bg-white/10 rounded-lg transition-all text-white/60 hover:text-white">
+                        <button onClick={nextMonth} className="p-1.5 hover:bg-[var(--accent-soft)] rounded-lg transition-all text-[var(--text-muted)] opacity-50 hover:opacity-100 hover:text-[var(--text-primary)]">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -503,7 +502,7 @@ export function PublicBookingFlow() {
                   <div className="grid grid-cols-8 gap-1">
                     <div className="text-center py-2"><span className="text-[9px] font-black text-[var(--accent-end)] uppercase tracking-tighter opacity-70">SI</span></div>
                     {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
-                      <div key={i} className="text-center py-2"><span className="text-[9px] font-black text-white/30 uppercase">{d}</span></div>
+                      <div key={i} className="text-center py-2"><span className="text-[9px] font-black text-[var(--text-muted)] opacity-30 uppercase">{d}</span></div>
                     ))}
 
                     {calendarCells.map((day, idx) => {
@@ -555,12 +554,12 @@ export function PublicBookingFlow() {
                                       const dayStart = startOfDay(day);
                                       const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
                                       return (!isSaturday(day) && !isSunday(day) && !isOutsideRange)
-                                        ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
+                                        ? isCurrentMonth ? "text-[var(--text-primary)] bg-[var(--input-bg)] border-[var(--input-border)] hover:border-[var(--accent-start)]/50" : "text-[var(--text-muted)] opacity-20 border-transparent"
                                         : "opacity-10 cursor-not-allowed cursor-default";
                                     })()
                                     : isAvailable
-                                      ? isCurrentMonth ? "text-white bg-white/5 border-white/10 hover:border-white/20" : "text-white/20 border-transparent"
-                                      : "text-white/10 border-transparent cursor-default"
+                                      ? isCurrentMonth ? "text-[var(--text-primary)] bg-[var(--input-bg)] border-[var(--input-border)] hover:border-[var(--accent-start)]/50" : "text-[var(--text-muted)] opacity-20 border-transparent"
+                                      : "text-[var(--text-muted)] opacity-10 border-transparent cursor-default"
                               }`}
                           >
                             <span className="text-xs font-bold">{format(day, "d")}</span>
@@ -575,18 +574,18 @@ export function PublicBookingFlow() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="pt-6 space-y-3 border-t border-white/5"
+                      className="pt-6 space-y-3 border-t border-[var(--border-primary)]"
                     >
-                      <h5 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1">Seu roteiro sugerido:</h5>
+                      <h5 className="text-[10px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-[0.2em] px-1">Seu roteiro sugerido:</h5>
                       <div className="grid grid-cols-1 gap-1.5">
                         {proposalOptions.map((opt, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl group/item hover:border-[var(--accent-start)]/30 transition-all"
+                            className="flex items-center justify-between p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl group/item hover:border-[var(--accent-start)]/30 transition-all"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-1 h-1 rounded-full bg-[var(--accent-start)] shadow-[0_0_8px_var(--accent-start)]" />
-                              <span className="text-[11px] font-bold text-white tracking-tight uppercase">
+                              <span className="text-[11px] font-bold text-[var(--text-primary)] tracking-tight uppercase">
                                 {format(parseISO(opt.date), "dd 'de' MMM", { locale: ptBR })} — <span className="text-[var(--accent-start)]">{opt.time}</span>
                               </span>
                             </div>
@@ -607,7 +606,7 @@ export function PublicBookingFlow() {
                 <div className="flex flex-col h-full space-y-4">
                   <div className="space-y-1">
                     <h4 className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">PROGRAMAÇÃO DISPONÍVEL</h4>
-                    <p className="text-lg font-black text-white capitalize">
+                    <p className="text-lg font-black text-[var(--text-primary)] capitalize">
                       {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                     </p>
                   </div>
@@ -615,13 +614,13 @@ export function PublicBookingFlow() {
                   <div className="flex-1 min-h-[300px] max-h-[400px] overflow-y-auto pr-4 space-y-2 custom-scrollbar">
                     {isLoadingSlots ? (
                       <div className="h-full flex flex-col items-center justify-center gap-3 opacity-20 py-20">
-                        <Loader2 className="w-8 h-8 animate-spin text-white" />
-                        <span className="text-[9px] font-black uppercase tracking-widest">Calculando Slots...</span>
+                        <Loader2 className="w-8 h-8 animate-spin text-[var(--text-primary)]" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-primary)]">Calculando Slots...</span>
                       </div>
                     ) : (isProposalMode ? proposalSlots : slots).length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center py-20">
-                        <CalendarIcon className="w-6 h-6 text-white/10 mb-4" />
-                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Nenhum horário livre.</p>
+                        <CalendarIcon className="w-6 h-6 text-[var(--text-muted)] opacity-20 mb-4" />
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] opacity-30 uppercase tracking-widest">Nenhum horário livre.</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
@@ -636,7 +635,7 @@ export function PublicBookingFlow() {
                                 className={`py-2 rounded-xl text-xs font-black transition-all border flex flex-col items-center justify-center
                                            ${isSelectedOption
                                     ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg"
-                                    : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
+                                    : "bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30"}`}
                               >
                                 {time}
                               </button>
@@ -652,7 +651,7 @@ export function PublicBookingFlow() {
                                          ${!s.available ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                          ${selectedSlot === s.id
                                   ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-[0_10px_20px_rgba(var(--accent-start-rgb),0.3)] scale-[1.02]"
-                                  : "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20"}`}
+                                  : "bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30"}`}
                             >
                               <div className="flex items-center justify-center gap-2">
                                 <Clock className="w-3 h-3 opacity-30" />
@@ -666,8 +665,8 @@ export function PublicBookingFlow() {
                   </div>
 
                   {!isProposalMode && (
-                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-center">
-                      <p className="text-[10px] text-white/40 font-medium mb-2">Não encontrou uma boa agenda?</p>
+                    <div className="p-3 bg-[var(--accent-soft)] rounded-2xl border border-[var(--border-primary)] text-center">
+                      <p className="text-[10px] text-[var(--text-muted)] opacity-60 font-medium mb-2">Não encontrou uma boa agenda?</p>
                       <button
                         onClick={() => {
                           setIsProposalMode(true);
@@ -690,7 +689,7 @@ export function PublicBookingFlow() {
                   <div className="pt-2 flex flex-col gap-3">
                     {isProposalMode && (
                       <div className="flex items-center justify-between px-2">
-                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                        <p className="text-[10px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-widest">
                           {proposalOptions.length}/3 OPÇÕES SELECIONADAS
                         </p>
                         <button
@@ -721,14 +720,14 @@ export function PublicBookingFlow() {
 
           {step === "success" && (
             <motion.div key="success" {...containerVariants} className="text-center py-6 space-y-4 relative z-10">
-              <div className="w-16 h-16 bg-[var(--accent-start)]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--accent-start)]/20 shadow-[0_0_40px_var(--accent-start)]/20">
+              <div className="w-16 h-16 bg-[var(--accent-start)]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--accent-start)]/20 shadow-[0_0_40px_rgba(var(--accent-start-rgb),0.2)]">
                 <CheckCircle2 className="w-8 h-8 text-[var(--accent-start)] stroke-[1.5]" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white tracking-tighter inline-flex items-center">
+                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter inline-flex items-center">
                   {isProposalMode ? "Proposta Enviada!" : "Que alegria!"} <Sparkles className="w-6 h-6 text-[var(--accent-start)] ml-3 animate-pulse" />
                 </h3>
-                <p className="text-white/60 text-sm font-medium leading-relaxed">
+                <p className="text-[var(--text-muted)] text-sm font-medium leading-relaxed">
                   {isProposalMode
                     ? "Recebemos sua sugestão de horários. Nossa equipe analisará e entrará em contato em breve para confirmar."
                     : "Tudo pronto para nossa conversa. Enviamos os detalhes do acesso para seu e-mail."}
@@ -736,11 +735,11 @@ export function PublicBookingFlow() {
                   <span className="text-[var(--accent-start)] font-black">{formData.email}</span>
                 </p>
               </div>
-              <div className="p-4 bg-white/5 border border-white/10 rounded-2xl max-w-[320px] mx-auto space-y-1 text-left">
+              <div className="p-4 bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-2xl max-w-[320px] mx-auto space-y-1 text-left">
                 <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">
                   {isProposalMode ? "📍 Próximos Passos" : "📍 Confirmação Imediata"}
                 </p>
-                <p className="text-[11px] text-white/60 leading-relaxed">
+                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                   {isProposalMode
                     ? "Fique atento ao seu e-mail e WhatsApp. Confirmaremos uma das opções sugeridas ou proporemos um ajuste rápido."
                     : "Verifique sua caixa de entrada e spam. O link do Google Meet e o convite de calendário já estão a caminho."}
@@ -749,7 +748,7 @@ export function PublicBookingFlow() {
               <div className="pt-4">
                 <button
                   onClick={() => window.location.href = "/"}
-                  className="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all hover:border-[var(--accent-start)]/40"
+                  className="px-8 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[var(--accent-soft)] rounded-full text-[9px] font-black uppercase tracking-[0.3em] text-[var(--text-primary)] transition-all hover:border-[var(--accent-start)]/40"
                 >
                   Retornar ao HUB
                 </button>
