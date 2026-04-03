@@ -95,7 +95,7 @@ export function SocialSidebar() {
               className="absolute inset-0 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
               style={{ background: social.color + "33" }}
             />
-            <div className="relative z-10 opacity-[var(--social-icon-opacity)] group-hover:opacity-100 transition-all duration-300 grayscale group-hover:grayscale-0 scale-90 md:scale-100">
+            <div className="relative z-10 opacity-[var(--social-icon-opacity)] group-hover:opacity-100 transition-all duration-300 scale-90 md:scale-100">
               {social.icon}
             </div>
           </motion.div>
