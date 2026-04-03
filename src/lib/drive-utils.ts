@@ -4,24 +4,23 @@ import { serverEnv } from "@/env";
 /**
  * BPlen HUB — Drive Utilities (Espinha Dorsal 🛡️)
  * Centralização de operações Google Workspace para escala e resiliência.
+ * Sincronizado com o Laboratório de Testes para suporte total a Drives Compartilhados.
  */
 
 // ──────────────────────────────
-// 1. Diagnóstico de Chave Privada
-// ──────────────────────────────
-export function checkKeySignature() {
-  const key = serverEnv.FIREBASE_PRIVATE_KEY;
-  if (!key.includes("-----BEGIN PRIVATE KEY-----") || !key.includes("-----END PRIVATE KEY-----")) {
-    throw new Error("Chave Privada malformada detectada. Verifique as variáveis de ambiente.");
-  }
-}
+12: export function checkKeySignature() {
+13:   const key = serverEnv.FIREBASE_PRIVATE_KEY;
+14:   if (!key.includes("-----BEGIN PRIVATE KEY-----") || !key.includes("-----END PRIVATE KEY-----")) {
+15:     throw new Error("Chave Privada malformada detectada. Verifique as variáveis de ambiente.");
+16:   }
+17: }
 
 // ──────────────────────────────
-// 2. Navegador de Pastas Inteligente (Auto-Healing)
-// ──────────────────────────────
-/**
- * Garante que uma pasta existe. Se não existir, ela será criada.
- */
+21: // 2. Navegador de Pastas Inteligente (Auto-Healing)
+22: // ──────────────────────────────
+23: /**
+24:  * Garante que uma pasta existe. Se não existir, ela será criada.
+25:  */
 export async function ensureFolder(
   drive: drive_v3.Drive,
   parentFolderId: string,
@@ -53,11 +52,11 @@ export async function ensureFolder(
 }
 
 // ──────────────────────────────
-// 3. Gerenciador de Planilhas
-// ──────────────────────────────
-/**
- * Cria uma planilha do Google Sheets dentro de uma pasta específica.
- */
+56: // 3. Gerenciador de Planilhas
+57: // ──────────────────────────────
+58: /**
+59:  * Cria uma planilha do Google Sheets dentro de uma pasta específica.
+60:  */
 export async function createSpreadsheet(
   drive: drive_v3.Drive,
   parentFolderId: string,
@@ -86,13 +85,10 @@ export async function syncDataToSheet(
   headers: string[],
   rowData: (string | number | boolean | null)[]
 ) {
-  // Identificar o nome da aba (Sheet1, Página1, etc)
   const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
   const sheetTitle = spreadsheet.data.sheets?.[0].properties?.title || "Sheet1";
 
-  // Se o intervalo for A1:?, ele cria cabeçalho e insere dados
-  // Aqui usamos um range flexível dependendo do número de colunas
-  const lastColLetter = String.fromCharCode(64 + headers.length); // Ex: A, B, C...
+  const lastColLetter = String.fromCharCode(64 + headers.length); 
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,

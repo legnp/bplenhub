@@ -4,91 +4,111 @@ import { getDriveClient } from "@/lib/google-auth";
 import { ensureFolder } from "@/lib/drive-utils";
 import { serverEnv } from "@/env";
 import { Readable } from "stream";
-import { revalidatePath } from "next/cache";
 
 /**
- * BPlen HUB — Google Drive Media Engine 📁
- * Gerencia o upload de imagens sociais para o Drive como alternativa gratuita ao Storage.
+ * BPlen HUB — Social Drive Engine 📁🧬
+ * Gerenciamento de ativos de mídia diretamente no Google Drive.
  */
 
 const SOCIAL_FOLDER_NAME = "Social_Media";
 
-export async function uploadSocialThumbnailToDrive(formData: FormData) {
+/**
+ * Realiza o upload da miniatura para o Google Drive.
+ * Configura permissões públicas e retorna a URL de visualização direta.
+ */
+export async function uploadSocialThumbnailToDrive(file: File) {
   try {
-    const file = formData.get("file") as File;
-    if (!file) throw new Error("Nenhum arquivo enviado.");
-
     const drive = await getDriveClient();
-    
+
     // 1. Garantir que a pasta Social_Media existe dentro de Portfólio
+    console.log(`[Drive] Buscando/Criando pasta ${SOCIAL_FOLDER_NAME} em ${serverEnv.GOOGLE_DRIVE_PORTFOLIO_ID}`);
     const socialFolderId = await ensureFolder(
       drive, 
       serverEnv.GOOGLE_DRIVE_PORTFOLIO_ID, 
       SOCIAL_FOLDER_NAME
     );
 
-    // 2. Converter File para Stream legível pela API do Google
+    // 2. Preparar o arquivo para upload
     const buffer = Buffer.from(await file.arrayBuffer());
     const media = {
       mimeType: file.type,
       body: Readable.from(buffer),
     };
 
-    // 3. Executar Upload
     const fileName = `${Date.now()}_social_${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    
+    // 3. Criar o arquivo no Drive (Sincronizado com o Lab de Testes)
+    console.log(`[Drive] Iniciando upload do arquivo: ${fileName}`);
     const driveFile = await drive.files.create({
+      supportsAllDrives: true, // Habilita suporte a Shared Drives / Pastas de Equipe
       requestBody: {
         name: fileName,
         parents: [socialFolderId],
       },
       media: media,
-      fields: "id",
+      fields: "id, webViewLink",
     });
 
     const fileId = driveFile.data.id;
-    if (!fileId) throw new Error("Falha ao obter ID do arquivo no Drive.");
+    if (!fileId) throw new Error("Falha ao obter ID do arquivo após upload.");
 
-    // 4. Configurar Permissão como Pública (Leitura para qualquer um com o link)
+    // 4. Configurar permissão pública (Leitor para qualquer pessoa com o link)
+    console.log(`[Drive] Configurando permissões públicas para o arquivo ${fileId}`);
     await drive.permissions.create({
       fileId: fileId,
+      supportsAllDrives: true,
       requestBody: {
         role: "reader",
         type: "anyone",
       },
     });
 
-    // 5. Retornar URL Otimizada para Exibição Direta (lh3.googleusercontent.com)
-    // Este padrão é excelente para tags <img> e evita bloqueios de CORS.
-    const displayURL = `https://lh3.googleusercontent.com/d/${fileId}`;
+    // 5. Retornar a URL de visualização direta (lh3.googleusercontent.com)
+    // Esse padrão ignora o visualizador do Drive e serve a imagem bruta para o site.
+    const directUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+    
+    console.log(`[Drive] Upload concluído com sucesso. URL: ${directUrl}`);
+    return { success: true, url: directUrl, fileId: fileId };
 
-    return { success: true, url: displayURL, fileId: fileId };
   } catch (error: any) {
-    console.error("❌ Erro no upload para o Drive:", error);
-    throw new Error(error.message || "Falha ao enviar imagem para o Google Drive.");
+    console.error("❌ Erro no upload para o Drive:", error?.message || error);
+    // Se for erro de permissão ou 404, logar detalhes para diagnóstico
+    if (error?.code === 404) {
+      console.error("[Drive Debug] Erro 404 pode indicar que o Service Account não tem acesso à pasta pai.");
+    }
+    throw new Error(error?.message || "Erro ao processar upload para o Google Drive.");
   }
 }
 
 /**
- * Remove um arquivo do Google Drive a partir do seu ID ou URL.
+ * Remove um arquivo do Google Drive.
  */
-export async function deleteSocialThumbnailFromDrive(urlOrId: string | null | undefined) {
-  if (!urlOrId) return;
-
+export async function deleteSocialThumbnailFromDrive(urlOrId: string) {
   try {
-    const drive = await getDriveClient();
-    
-    // Extrair ID se for uma URL (lh3.../d/ID)
+    if (!urlOrId) return;
+
+    // Extrair ID se for uma URL do lh3
     let fileId = urlOrId;
     if (urlOrId.includes("lh3.googleusercontent.com/d/")) {
       fileId = urlOrId.split("/d/")[1];
     }
 
-    // Apenas tenta apagar se tiver o formato de ID do Drive (longo alfanumérico)
-    if (fileId.length > 10) {
-      await drive.files.delete({ fileId });
-      console.log(`✅ Arquivo removido do Drive: ${fileId}`);
+    const drive = await getDriveClient();
+    console.log(`[Drive] Removendo arquivo órfão: ${fileId}`);
+    
+    await drive.files.delete({ 
+      fileId,
+      supportsAllDrives: true 
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    // Se o arquivo já não existir, ignoramos o erro (limpeza silenciosa)
+    if (error?.code === 404) {
+      console.warn(`[Drive] Arquivo ${urlOrId} já não existia para remoção.`);
+      return { success: true };
     }
-  } catch (error) {
-    console.warn(`⚠️ Falha ao remover arquivo do Drive (pode já não existir):`, error);
+    console.error("❌ Erro ao deletar do Drive:", error);
+    return { success: false, error: error.message };
   }
 }
