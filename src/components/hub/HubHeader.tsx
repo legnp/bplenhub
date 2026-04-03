@@ -184,10 +184,10 @@ export function HubHeader() {
                               key={i}
                               href={social.url}
                               target="_blank"
-                              className="p-3.5 bg-white/5 border border-white/10 rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
+                              className="p-3.5 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
                               title={social.name}
                             >
-                               <div className="opacity-[var(--social-icon-opacity)] group-hover:opacity-100 transition-opacity">
+                               <div className="opacity-100 transition-opacity">
                                   {social.icon}
                                </div>
                             </Link>
