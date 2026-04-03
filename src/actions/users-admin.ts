@@ -6,12 +6,12 @@ import {
   setDoc, 
   doc, 
   serverTimestamp,
-  collectionGroup,
-  revalidatePath
+  collectionGroup
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { requireAdmin } from "@/lib/auth-guards";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
+import { revalidatePath } from "next/cache";
 
 /**
  * BPlen HUB — User Management Actions (Governança 👥🏗️)
