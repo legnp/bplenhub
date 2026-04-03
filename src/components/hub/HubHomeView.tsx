@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { 
@@ -21,10 +21,13 @@ import {
   Moon,
   ExternalLink,
   Target,
-  Briefcase
+  Briefcase,
+  Globe
 } from "lucide-react";
-import { MOCK_SERVICES, MOCK_CONTENTS, MOCK_TOOLS, MOCK_SURVEYS } from "@/config/hub-data";
+import { MOCK_SERVICES, MOCK_TOOLS, MOCK_SURVEYS } from "@/config/hub-data";
 import { useTheme } from "@/context/ThemeContext";
+import { getSocialPosts } from "@/actions/social";
+import { SocialPost } from "@/types/social";
 
 /**
  * HUB HOME VIEW — O Coração da Experiência Privada 🧬
@@ -32,6 +35,34 @@ import { useTheme } from "@/context/ThemeContext";
  */
 
 export function HubHomeView() {
+  const [latestPosts, setLatestPosts] = useState<SocialPost[]>([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+
+  useEffect(() => {
+    async function loadPosts() {
+      try {
+        const data = await getSocialPosts(true); // Apenas ativos
+        setLatestPosts(data.slice(0, 3)); // Pegar apenas os 3 mais recentes
+      } catch (error) {
+        console.error("Erro ao carregar posts no Hub:", error);
+      } finally {
+        setIsLoadingPosts(false);
+      }
+    }
+    loadPosts();
+  }, []);
+
+  const getPlatformLabel = (platform: string) => {
+    const labels: Record<string, string> = {
+      linkedin: "LinkedIn",
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      whatsapp: "WhatsApp",
+      other: "Conteúdo"
+    };
+    return labels[platform] || "Conteúdo";
+  };
+
   return (
     <div className="w-full flex flex-col min-h-screen relative font-sans">
       
@@ -44,10 +75,10 @@ export function HubHomeView() {
               <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">
                  <Rocket size={14} /> Sua Evolução BPlen
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight text-left">
                  Como está sua <span className="text-[var(--text-secondary)] italic">Jornada BPlen?</span>
               </h2>
-              <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed">
+              <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed text-left">
                  O hub organiza sua evolução com clareza. Veja como você já avançou 
                  e descubra os próximos passos ideais para o seu sucesso.
               </p>
@@ -71,7 +102,7 @@ export function HubHomeView() {
                        <div className="flex flex-col items-center mb-8">
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
                              ${service.status === 'acquired' ? 'bg-[var(--accent-start)] border-[var(--accent-start)] shadow-[0_0_20px_rgba(255,44,141,0.4)]' : 
-                               service.status === 'available' ? 'bg-[var(--input-bg)] border-[var(--input-border)] group-hover:border-[var(--accent-start)]/50' : 'bg-transparent border-[var(--border-primary)]'}`}>
+                                service.status === 'available' ? 'bg-[var(--input-bg)] border-[var(--input-border)] group-hover:border-[var(--accent-start)]/50' : 'bg-transparent border-[var(--border-primary)]'}`}>
                              {service.status === 'acquired' ? <CheckCircle2 size={24} className="text-white" /> : 
                               service.status === 'available' ? <Sparkles size={18} className="text-[var(--text-secondary)]" /> : <Lock size={18} className="text-[var(--text-muted)]" />}
                           </div>
@@ -87,10 +118,10 @@ export function HubHomeView() {
                              {service.status === 'acquired' && <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">Ativo</span>}
                           </div>
 
-                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3 leading-tight group-hover:text-[var(--accent-start)] transition-colors">
+                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3 leading-tight group-hover:text-[var(--accent-start)] transition-colors text-left">
                              {service.title}
                           </h3>
-                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-8 flex-grow">
+                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-8 flex-grow text-left">
                              {service.description}
                           </p>
 
@@ -115,7 +146,7 @@ export function HubHomeView() {
         {/* 2. ULTIMOS CONTEÚDOS E FERRAMENTAS (GRID MISTO) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
            
-           {/* Feed de Conteúdo Preview */}
+           {/* Feed de Conteúdo Dinâmico ✨ */}
            <section className="space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-6">
                  <h3 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
@@ -127,25 +158,38 @@ export function HubHomeView() {
               </div>
 
               <div className="space-y-4">
-                 {MOCK_CONTENTS.map((content) => (
-                    <Link 
-                      key={content.id}
-                      href="/conteudo"
-                      className="p-5 block rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)] transition-all group"
-                    >
-                       <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-1">
-                             <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-2 block">{content.source}</span>
-                             <h4 className="text-sm font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-all leading-relaxed">
-                                {content.title}
-                             </h4>
+                 {isLoadingPosts ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                       <div key={i} className="h-24 bg-[var(--input-bg)] animate-pulse rounded-[1.5rem] border border-[var(--border-primary)]" />
+                    ))
+                 ) : latestPosts.length > 0 ? (
+                    latestPosts.map((post) => (
+                       <Link 
+                         key={post.id}
+                         href={post.url}
+                         target="_blank"
+                         className="p-5 block rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)] transition-all group"
+                       >
+                          <div className="flex items-start justify-between gap-4">
+                             <div className="space-y-1 text-left">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] mb-2 block">
+                                   {getPlatformLabel(post.platform)}
+                                </span>
+                                <h4 className="text-sm font-bold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-all leading-relaxed line-clamp-2">
+                                   {post.title}
+                                </h4>
+                             </div>
+                             <div className="shrink-0 p-3 bg-[var(--input-bg)] rounded-xl text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-all">
+                                <ExternalLink size={16} />
+                             </div>
                           </div>
-                          <div className="shrink-0 p-3 bg-[var(--input-bg)] rounded-xl text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-all">
-                             <ExternalLink size={16} />
-                          </div>
-                       </div>
-                    </Link>
-                 ))}
+                       </Link>
+                    ))
+                 ) : (
+                    <div className="py-12 px-6 border border-dashed border-[var(--border-primary)] rounded-[2rem] text-center">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-40">Novos conteúdos em breve</p>
+                    </div>
+                 )}
               </div>
            </section>
 
@@ -167,7 +211,7 @@ export function HubHomeView() {
                       href="/hub/ferramentas"
                       className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[#667eea]/5 hover:border-[#667eea]/20 transition-all group relative overflow-hidden h-full flex flex-col"
                     >
-                       <div className="flex flex-col gap-4 relative z-10 flex-grow">
+                       <div className="flex flex-col gap-4 relative z-10 flex-grow text-left">
                           <div className="p-3 bg-[var(--input-bg)] w-fit rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-end)] transition-colors">
                              <ToolPlaceholderIcon name={tool.icon} />
                           </div>
@@ -200,7 +244,7 @@ export function HubHomeView() {
                  </h3>
               </div>
 
-              <div className="p-10 rounded-[2.5rem] bg-[var(--input-bg)] border border-[var(--input-border)] text-left space-y-8 max-w-2xl mx-auto hover:border-[var(--accent-start)]/30 transition-all shadow-2xl backdrop-blur-xl">
+              <div className="p-10 rounded-[2.5rem] bg-[var(--input-bg)] border border-[var(--border-primary)] text-left space-y-8 max-w-2xl mx-auto hover:border-[var(--accent-start)]/30 transition-all shadow-2xl backdrop-blur-xl">
                  <p className="text-lg font-bold text-[var(--text-primary)] leading-relaxed">
                     {MOCK_SURVEYS[0].question}
                  </p>
@@ -266,46 +310,4 @@ function ToolPlaceholderIcon({ name }: { name: string }) {
    if (name === "BarChart") return <BarChart size={20} />;
    if (name === "Target") return <Target size={20} />;
    return <Layout size={20} />;
-}
-
-function LinkedinIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="currentColor" 
-      className={className}
-    >
-      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-    </svg>
-  );
-}
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-    </svg>
-  );
-}
-
-function TikTokIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="currentColor" 
-      className={className}
-    >
-      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.707 8.707 0 0 1-1.87-1.42v10.37a7.51 7.51 0 1 1-7.51-7.51c.03.01.06 0 .09.01v4.03c-1.23-.39-2.6-.13-3.63.63-1.09.81-1.63 2.15-1.43 3.49.2 1.34 1.25 2.45 2.57 2.77.82.3 2.03.11 2.71-.35 1.05-.72 1.62-2 1.64-3.23.01-1.93 0-3.87 0-5.8 0-4.15 0-8.3 0-12.45z"/>
-    </svg>
-  );
 }
