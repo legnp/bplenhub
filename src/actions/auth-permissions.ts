@@ -2,6 +2,7 @@
 
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { UserRole, UserServices } from "@/types/users";
 
 /**
  * BPlen HUB — Auth Permissions Action (Segurança 🛡️)
@@ -59,27 +60,37 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
       console.log(`✅ [Segurança] Permissão de Admin concedida para Master Account: ${email}`);
     }
 
-    return isAdmin;
+    return {
+      isAdmin,
+      role: (permSnap.exists() ? permSnap.data().role : "member") as UserRole,
+      services: (permSnap.exists() ? permSnap.data().services : {}) as UserServices
+    };
 
   } catch (error) {
     console.error("Erro na Sincronização de Permissões:", error);
-    return false;
+    return { isAdmin: false, role: "visitor", services: {} };
   }
 }
 
 /**
  * Busca o Status de Permissão (Leitura em Tempo Real ou SSR)
  */
-export async function fetchUserPermissionsStatus(uid: string) {
+export async function fetchUserPermissionsStatus(uid: string): Promise<{ isAdmin: boolean; role: UserRole; services: UserServices }> {
     const uidMapRef = doc(db, "_AuthMap", uid);
     const uidMapSnap = await getDoc(uidMapRef);
 
-    if (!uidMapSnap.exists()) return false;
+    if (!uidMapSnap.exists()) return { isAdmin: false, role: "visitor", services: {} };
     const matricula = uidMapSnap.data().matricula;
 
     const permissionsRef = doc(db, "User", matricula, "User_Permissions", "access");
     const permSnap = await getDoc(permissionsRef);
 
-    if (!permSnap.exists()) return false;
-    return permSnap.data().admin === true;
+    if (!permSnap.exists()) return { isAdmin: false, role: "member", services: {} };
+    const data = permSnap.data();
+    
+    return {
+      isAdmin: data.admin === true,
+      role: (data.role || (data.admin ? "admin" : "member")) as UserRole,
+      services: (data.services || {}) as UserServices
+    };
 }

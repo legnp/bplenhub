@@ -1,15 +1,13 @@
 import { adminAuth } from "./firebase-admin";
 import { fetchUserPermissionsStatus } from "@/actions/auth-permissions";
-
-/**
- * BPlen HUB — Server-Side Session Abstraction 🏗️
- * Desacopla as Server Actions da fonte de identidade (ID Token ou Cookies).
- */
+import { UserRole, UserServices } from "@/types/users";
 
 export interface Session {
   uid: string;
   email?: string;
   isAdmin: boolean;
+  role?: UserRole;
+  services?: UserServices;
 }
 
 /**
@@ -31,14 +29,16 @@ export async function getServerSession(idToken?: string): Promise<Session | null
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
-    // 2. Resolver o Papel (Role) Administrativo do Usuário
+    // 2. Resolver o Papel (Role) e Serviços do Usuário
     // Usamos a fonte oficial de permissões definida em auth-permissions.ts
-    const isAdmin = await fetchUserPermissionsStatus(uid);
+    const { isAdmin, role, services } = await fetchUserPermissionsStatus(uid);
 
     return {
       uid,
       email: decodedToken.email,
       isAdmin,
+      role,
+      services
     };
   } catch (error) {
     console.error("❌ [Server Session] Falha ao resolver identidade:", error);

@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { UserServices } from "@/types/users";
 
 /**
  * BPlen HUB — AuthContext (Estado Global de Autenticação)
@@ -16,6 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   matricula: string | null;
   nickname: string | null;
+  services: UserServices;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   matricula: null,
   nickname: null,
+  services: {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -32,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [matricula, setMatricula] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  const [services, setServices] = useState<UserServices>({});
 
   useEffect(() => {
     // Escuta mudanças no estado de autenticação (login/logout/refresh)
@@ -42,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(false);
         setMatricula(null);
         setNickname(null);
+        setServices({});
         setLoading(false);
         return;
       }
@@ -78,9 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Snapshot das Permissões
               const permissionsRef = doc(db, "User", mat, "User_Permissions", "access");
               const permSnap = await getDoc(permissionsRef);
-              
-              if (permSnap.exists() && permSnap.data().admin === true) {
-                setIsAdmin(true);
+
+              if (permSnap.exists()) {
+                const pData = permSnap.data();
+                setIsAdmin(pData.admin === true);
+                setServices(pData.services || {});
               }
             }
           }
@@ -97,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname, services }}>
       {!loading && children}
     </AuthContext.Provider>
   );

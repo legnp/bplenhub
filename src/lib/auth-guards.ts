@@ -38,3 +38,29 @@ export async function requireAdmin(idToken?: string): Promise<Session> {
   
   return session;
 }
+
+/**
+ * Exige permissão de Área de Membro para continuar a execução.
+ * 
+ * @param idToken Token de Identidade opcional.
+ * @returns Objeto Session se autenticado e autorizado.
+ * @throws {AuthorizationError} Se o usuário não tiver o entitlement 'member_area_access'.
+ */
+export async function requireMemberAccess(idToken?: string): Promise<Session> {
+  const session = await getServerSession(idToken);
+
+  if (!session) {
+    throw new AuthorizationError("Sessão inválida ou expirada. Autentique-se novamente.");
+  }
+
+  // Governança: Admin tem acesso irrestrito, ou membro com entitlement específico
+  const hasAccess = session.isAdmin || session.services?.member_area_access === true;
+
+  if (!hasAccess) {
+    console.error(`❌ [Authorization] Acesso À ÁREA DE MEMBRO negado para o UID: ${session.uid}`);
+    throw new AuthorizationError("Seu plano atual não inclui acesso a esta área restrita.");
+  }
+
+  console.log(`✅ [Authorization] Acesso à Área de Membro autorizado para: ${session.email}`);
+  return session;
+}

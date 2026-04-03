@@ -39,6 +39,7 @@ const ROLE_OPTIONS: { id: UserRole; label: string; icon: any }[] = [
 const PREDEFINED_SERVICES = [
   { id: "hub_community", label: "Comunidade HUB" },
   { id: "survey_welcome", label: "Dossiê de Boas-Vindas" },
+  { id: "member_area_access", label: "🔒 Área de Membro" }, // NOVO ENTITLEMENT
   { id: "content_premium", label: "Conteúdos Premium" },
   { id: "mentoria_1to1", label: "Mentoria 1-to-1" },
   { id: "career_planning", label: "Planejamento de Carreira" },

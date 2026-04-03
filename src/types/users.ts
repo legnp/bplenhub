@@ -17,6 +17,7 @@ export interface UserServices {
   mentoria_1to1?: boolean;
   career_planning?: boolean;
   behavioral_analysis?: boolean;
+  member_area_access?: boolean; // 🔒 Acesso Restrito À Área de Membros
   [key: string]: boolean | undefined; // Permite expansão dinâmica
 }
 
