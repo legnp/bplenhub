@@ -96,23 +96,23 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
             {/* Redes Sociais Integradas */}
             <div className="flex items-center justify-center gap-4 mb-8">
               {profile.social.linkedin && (
-                <Link href={profile.social.linkedin} target="_blank" className="p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block">
-                  <img src="/linkedin.webp" alt="LinkedIn" className="w-5 h-5 object-contain" />
+                <Link href={profile.social.linkedin} target="_blank" className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block text-[var(--accent-start)]">
+                  <img src="/linkedin.webp" alt="LinkedIn" className="w-5 h-5 object-contain opacity-[var(--social-icon-opacity)] hover:opacity-100 transition-opacity" />
                 </Link>
               )}
               {profile.social.instagram && (
-                <Link href={profile.social.instagram} target="_blank" className="p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block">
-                  <img src="/insta.png" alt="Instagram" className="w-5 h-5 object-contain" />
+                <Link href={profile.social.instagram} target="_blank" className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block text-[var(--accent-start)]">
+                  <img src="/insta.png" alt="Instagram" className="w-5 h-5 object-contain opacity-[var(--social-icon-opacity)] hover:opacity-100 transition-opacity" />
                 </Link>
               )}
               {profile.social.whatsapp && (
-                <Link href={profile.social.whatsapp} target="_blank" className="p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block">
-                  <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5 object-contain" />
+                <Link href={profile.social.whatsapp} target="_blank" className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block text-[var(--accent-start)]">
+                  <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5 object-contain opacity-[var(--social-icon-opacity)] hover:opacity-100 transition-opacity" />
                 </Link>
               )}
               {profile.social.tiktok && (
-                <Link href={profile.social.tiktok} target="_blank" className="p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block">
-                  <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain" />
+                <Link href={profile.social.tiktok} target="_blank" className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:scale-110 transition-all block text-[var(--accent-start)]">
+                  <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain opacity-[var(--social-icon-opacity)] hover:opacity-100 transition-opacity" />
                 </Link>
               )}
             </div>

@@ -77,31 +77,33 @@ export function SocialSidebar() {
         >
           Conecte-se
         </span>
-        <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+        <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent" />
       </div>
 
       {/* Ícones sociais */}
-      <div className="flex flex-col gap-5 md:gap-6">
+      <div className="flex flex-col gap-3 md:gap-4">
         {socials.map((social) => (
           <motion.div
             key={social.name}
             onClick={() => handleSocialClick(social.url, social.appUrl)}
-            whileHover={{ scale: 1.2, y: -2 }}
-            className="group relative flex items-center justify-center w-5 h-5 opacity-35 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-300 cursor-pointer"
+            whileHover={{ scale: 1.1, y: -2 }}
+            className="group relative flex items-center justify-center w-10 h-10 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-xl transition-all duration-300 cursor-pointer hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30"
             title={social.name}
           >
-            {/* Efeito Glow no Hover */}
+            {/* Efeito Glow no Hover - Otimizado para Tema */}
             <div 
-              className="absolute inset-0 bg-white/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
-              style={{ background: social.color + "44" }}
+              className="absolute inset-0 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+              style={{ background: social.color + "33" }}
             />
-            <span className="relative z-10">{social.icon}</span>
+            <div className="relative z-10 opacity-[var(--social-icon-opacity)] group-hover:opacity-100 transition-all duration-300 grayscale group-hover:grayscale-0 scale-90 md:scale-100">
+              {social.icon}
+            </div>
           </motion.div>
         ))}
       </div>
 
       {/* Linha Inferior */}
-      <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/20 to-transparent mt-2" />
+      <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-[var(--border-primary)] to-transparent mt-2" />
     </motion.div>
   );
 }
