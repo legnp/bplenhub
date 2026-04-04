@@ -20,9 +20,10 @@ const ALLOWED_SERVICE_KEYS = [
   "member_area_access"
 ];
 
+import { toISOSafe } from "@/lib/date-utils";
+
 /**
  * Retorna a lista completa de usuários para o painel administrativo.
- * Resolve permissões via Collection Group e normaliza papéis.
  */
 export async function getAdminUsersList(adminToken?: string): Promise<{ success: boolean; data?: AdminUser[]; error?: string }> {
   try {
@@ -47,7 +48,6 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
     const permissionsMap = new Map<string, AccessDocData>();
     permissionsSnap.forEach(docSnap => {
        if (docSnap.id === "access") {
-          // Obtém a matrícula do documento "pai" do "pai" (User/{matricula}/User_Permissions/access)
           const matricula = docSnap.ref.parent.parent?.id;
           if (matricula) {
              permissionsMap.set(matricula, docSnap.data() as AccessDocData);
@@ -69,15 +69,9 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
       // Normalização de Papel (Role)
       let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
 
-      // SERIALIZAÇÃO SEGURA: Converte Timestamps para ISO Strings 🛡️
-      let createdAtData: string | undefined = undefined;
-      if (data.createdAt) {
-         if (typeof data.createdAt === 'object' && 'toDate' in data.createdAt) {
-            createdAtData = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
-         } else if (typeof data.createdAt === 'string') {
-            createdAtData = data.createdAt;
-         }
-      }
+      // SERIALIZAÇÃO SEGURA: Governança de Datas 🛡️
+      const createdAtData = toISOSafe(data.createdAt) || undefined;
+      const lastLoginData = toISOSafe(data.lastLogin) || undefined;
 
       adminUsers.push({
         matricula,

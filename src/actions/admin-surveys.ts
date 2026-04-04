@@ -19,10 +19,10 @@ export interface GlobalSurveyStats {
   responsesLast24h: number;
 }
 
+import { toSafeDate } from "@/lib/date-utils";
+
 /**
  * BPlen HUB — Admin Survey Strategy (Analytics 📊)
- * Consolida dados reais de todos os usuários via collectionGroup.
- * Aderente à Survey_Global.
  */
 export async function getAdminSurveysAnalytics(): Promise<{
   surveys: SurveyAnalyticsSummary[];
@@ -32,7 +32,6 @@ export async function getAdminSurveysAnalytics(): Promise<{
     const db = getAdminDb();
     
     // 1. Buscar todas as respostas via Collection Group (Caminho Hierárquico: User/*/Surveys/*)
-    // Nota: Pode exigir índice no Firestore caso filtre por subcoleção específica
     const surveysSnapshot = await db.collectionGroup("Surveys").get();
     
     const allResponses = surveysSnapshot.docs.map(doc => doc.data() as SurveyResponse);
@@ -48,14 +47,13 @@ export async function getAdminSurveysAnalytics(): Promise<{
       const id = res.surveyId;
       responseCountMap[id] = (responseCountMap[id] || 0) + 1;
       
-      // Converter Timestamp para String ISO
-      const subAt = res.submittedAt && typeof res.submittedAt.toDate === "function" 
-        ? res.submittedAt.toDate() 
-        : (res.submittedAt instanceof Date ? res.submittedAt : null);
+      // Converter Timestamp para String ISO de forma segura (Governança 🛡️)
+      const subAt = toSafeDate(res.submittedAt);
 
       if (subAt) {
-        if (!lastResponseMap[id] || subAt.toISOString() > (lastResponseMap[id] || "")) {
-          lastResponseMap[id] = subAt.toISOString();
+        const iso = subAt.toISOString();
+        if (!lastResponseMap[id] || iso > (lastResponseMap[id] || "")) {
+          lastResponseMap[id] = iso;
         }
         if (subAt >= oneDayAgo) {
           responsesLast24h++;
