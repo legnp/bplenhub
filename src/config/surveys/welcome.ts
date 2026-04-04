@@ -41,7 +41,7 @@ export const welcomeSurveyConfig: SurveyConfig = {
     },
     {
       id: "step_topics",
-      question: "{{displayName}}, quais temas podemos te oferecer aqui na BPlen HUB?",
+      question: "{{nickname}}, quais temas podemos te oferecer aqui na BPlen HUB?",
       fields: [
         {
           id: "topics",

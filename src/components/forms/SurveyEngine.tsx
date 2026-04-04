@@ -32,13 +32,21 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const currentStep = config.steps[currentStepIndex];
   const isLastStep = currentStepIndex === config.steps.length - 1;
 
-  // Lógica de Interpolação de Texto (ex: {{firstName}})
+  // Lógica de Interpolação de Texto Reativa (ex: {{nickname}} ou {{firstName}})
   const interpolate = (text: string) => {
-    if (!config.templateData) return text;
+    // Mesclar dados estáticos do template com as respostas atuais para interpolação em tempo real
+    const combinedData = {
+      ...(config.templateData || {}),
+      ...responses
+    };
+
     let interpolated = text;
-    Object.entries(config.templateData).forEach(([key, value]) => {
-      interpolated = interpolated.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    Object.entries(combinedData).forEach(([key, value]) => {
+      if (typeof value === "string" || typeof value === "number") {
+        interpolated = interpolated.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+      }
     });
+
     return interpolated;
   };
 
