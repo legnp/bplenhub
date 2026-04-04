@@ -1,7 +1,7 @@
 "use server";
 
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getAdminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { getDriveClient, getSheetsClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { FormConfig, FormResponse, FormRecord } from "@/types/forms";
@@ -15,35 +15,36 @@ import {
 /**
  * BPlen HUB — Generic Form Submission (V2.0 📡)
  * Recebe respostas da Plataforma e as persiste de forma hierárquica e operacional.
- * Aderente à Forms_Global e Governança de Dados (Privacidade por Design).
+ * Aderente à Forms_Global e Soberania de Dados (Server-Authoritative) 🛡️.
  */
 export async function submitGenericForm(config: FormConfig, response: FormResponse, userUid: string) {
   try {
     checkKeySignature();
+    const db = getAdminDb();
 
-    // 1. Obter Matrícula do Usuário (Lookup no _AuthMap)
-    const authMapRef = doc(db, "_AuthMap", userUid);
-    const authMapSnap = await getDoc(authMapRef);
-    const matricula = authMapSnap.exists() ? authMapSnap.data().matricula : `BP-ANON-${new Date().getTime()}`;
+    // 1. Obter Matrícula do Usuário (Lookup no _AuthMap Admin)
+    const authMapRef = db.doc(`_AuthMap/${userUid}`);
+    const authMapSnap = await authMapRef.get();
+    const matricula = authMapSnap.exists ? authMapSnap.data()?.matricula : `BP-ANON-${new Date().getTime()}`;
 
     // 2. Gravar no Firestore (Persistência Hierárquica Oficial 🛡️)
     // Registro Operacional conforme Forms_Global
-    const operationalRef = doc(db, "User", matricula, "Forms", config.id);
+    const operationalRef = db.doc(`User/${matricula}/Forms/${config.id}`);
 
     const recordPayload: FormRecord = {
       formId: config.id,
       matricula,
       userUid,
-      mode: "submitted", // No envio inicial
+      mode: "submitted",
       status: "submitted",
       data: response,
-      submittedAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       workflow: config.workflow
     };
 
-    // Salvamento Operacional Direto
-    await setDoc(operationalRef, recordPayload, { merge: true });
+    // Salvamento Operacional Direto (Soberania Admin)
+    await operationalRef.set(recordPayload, { merge: true });
 
     // 3. Sincronização Google Drive / Sheets
     const drive = await getDriveClient();

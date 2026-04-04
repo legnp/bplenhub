@@ -60,10 +60,12 @@ export default function HubPage() {
 
   if (user && hasCompletedSurvey === false) {
     // Preparar Configuração Dinâmica para a WelcomeSurvey (Institucional 🧬)
-    const firstName = user.displayName?.split(" ")[0] || "Membro";
+    const displayName = user.displayName || "Membro";
+    const firstName = displayName.split(" ")[0];
+    
     const dynamicWelcomeConfig = {
       ...welcomeSurveyConfig,
-      templateData: { firstName }
+      templateData: { firstName, displayName }
     };
 
     return (

@@ -1,5 +1,7 @@
 "use server";
 
+import { getAdminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { serverEnv } from "@/env";
 import {
   formatISO,
@@ -9,16 +11,6 @@ import {
   isAfter,
   addDays
 } from "date-fns";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  doc,
-  setDoc
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 import { bookEventAction } from "./calendar";
 import { Resend } from "resend";
@@ -38,34 +30,30 @@ export interface TimeSlot {
 
 /**
  * Busca slots disponíveis para agendamento público (1 to 1).
- * Agora baseia-se nos eventos já sincronizados na coleção Calendar_Events.
+ * Agora baseia-se nos eventos já sincronizados na coleção Calendar_Events via Admin SDK.
  */
 export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]> {
   try {
+    const db = getAdminDb();
     const targetDate = parseISO(dateStr);
     const timeMin = formatISO(startOfDay(targetDate));
     const timeMax = formatISO(addDays(startOfDay(targetDate), 1));
 
-    // 1. Consultar eventos 1 to 1 no Firestore
-    const eventsQuery = query(
-      collection(db, "Calendar_Events"),
-      where("start", ">=", timeMin),
-      where("start", "<", timeMax),
-      orderBy("start", "asc")
-    );
+    // 1. Consultar eventos 1 to 1 no Firestore (Admin)
+    const snap = await db.collection("Calendar_Events")
+      .where("start", ">=", timeMin)
+      .where("start", "<", timeMax)
+      .orderBy("start", "asc")
+      .get();
 
-    const snap = await getDocs(eventsQuery);
     const slots: TimeSlot[] = [];
-
     const now = new Date();
-    // Respeitar o lead time configurado
     const minAllowedTime = addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
 
     snap.forEach((docSnap) => {
       const data = docSnap.data();
       const summary = data.summary || "";
       
-      // FILTRO: Apenas eventos que contenham "1 to 1"
       if (summary.toLowerCase().includes("1 to 1")) {
         const startTime = parseISO(data.start);
         const registered = data.registeredCount || 0;
@@ -106,11 +94,10 @@ export async function bookPublicMeetingAction(formData: {
   try {
     const userId = `lead_${Buffer.from(formData.email).toString('base64').substring(0, 10)}`;
 
-    // 1. Persistência Institucional da Triagem (Forms_Global)
-    // Usamos o leadId como chave na coleção User para manter a soberania de dados
+    // 1. Persistência Institucional da Triagem (Forms_Global - Já usa Admin Action)
     await submitGenericForm(bookingScreeningFormConfig, formData.screening, userId);
 
-    // 2. Execução do Booking
+    // 2. Execução do Booking (Já usa Admin Action)
     const result = await bookEventAction(
       formData.slot,
       userId,
@@ -139,10 +126,10 @@ export async function bookPublicMeetingAction(formData: {
 
 /**
  * Busca todos os dias que possuem pelo menos um slot disponível nos próximos meses.
- * Usado para destacar no calendário apenas os dias clicáveis.
  */
 export async function getPublicAvailableDaysAction(): Promise<string[]> {
   try {
+    const db = getAdminDb();
     const now = new Date();
     const minAllowedDate = addDays(startOfDay(now), CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
     const maxAllowedDate = addDays(startOfDay(now), CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.maxDaysInFuture);
@@ -150,16 +137,13 @@ export async function getPublicAvailableDaysAction(): Promise<string[]> {
     const timeMin = formatISO(minAllowedDate);
     const timeMax = formatISO(maxAllowedDate);
 
-    const eventsQuery = query(
-      collection(db, "Calendar_Events"),
-      where("start", ">=", timeMin),
-      where("start", "<", timeMax),
-      orderBy("start", "asc")
-    );
+    const snap = await db.collection("Calendar_Events")
+      .where("start", ">=", timeMin)
+      .where("start", "<", timeMax)
+      .orderBy("start", "asc")
+      .get();
 
-    const snap = await getDocs(eventsQuery);
     const availableDaysSet = new Set<string>();
-    
     const minAllowedTime = addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
 
     snap.forEach((doc) => {
@@ -184,8 +168,7 @@ export async function getPublicAvailableDaysAction(): Promise<string[]> {
 }
 
 /**
- * Submete uma proposta de agenda (Especial: Quando não encontra horários livres no 1to1)
- * Salva na coleção Booking_Proposals com status 'pending'.
+ * Submete uma proposta de agenda via Admin SDK.
  */
 export async function submitBookingProposalAction(formData: {
   name: string;
@@ -195,14 +178,15 @@ export async function submitBookingProposalAction(formData: {
   options: { date: string; time: string }[];
 }) {
   try {
+    const db = getAdminDb();
     const leadId = `lead_${Buffer.from(formData.email).toString('base64').substring(0, 10)}`;
     const proposalId = `prop_${Date.now()}_${Buffer.from(formData.email).toString('base64').substring(0, 5)}`;
     
     // 1. Persistência Institucional da Triagem (Forms_Global)
     await submitGenericForm(bookingScreeningFormConfig, formData.screening, leadId);
 
-    // 2. Gravacao da Proposta
-    await setDoc(doc(db, "Booking_Proposals", proposalId), {
+    // 2. Gravacao da Proposta (Autoridade Admin)
+    await db.collection("Booking_Proposals").doc(proposalId).set({
       ...formData,
       status: "pending",
       createdAt: new Date().toISOString(),
@@ -210,7 +194,7 @@ export async function submitBookingProposalAction(formData: {
       leadId
     });
 
-    // --- Envio de E-mail de Confirmação da Proposta (Assíncrono) ---
+    // --- Envio de E-mail (Assíncrono via Resend) ---
     try {
       const optionsHtml = formData.options.map(opt => {
         const d = parseISO(opt.date);
@@ -247,7 +231,7 @@ export async function submitBookingProposalAction(formData: {
             </p>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="font-size: 10px; color: #999; text-align: center;">BPlen HUB — Inteligência em Gestão e Desenvolvimento</p>
+            <p style="font-size: 10px; color: #9ca3af; text-align: center;">BPlen HUB — Inteligência em Gestão e Desenvolvimento</p>
           </div>
         `
       });

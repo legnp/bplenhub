@@ -1,11 +1,11 @@
 "use server";
 
+import { getAdminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { getCalendarClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { doc, setDoc, serverTimestamp, getDocs, collection, query, runTransaction, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 
@@ -108,6 +108,7 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
 export async function syncCalendarToFirestore() {
   try {
     const calendar = await getCalendarClient();
+    const db = getAdminDb();
     const now = new Date();
     const ninetyDaysOut = addDays(now, CALENDAR_CONFIG.SYNC_WINDOW_DAYS);
 
@@ -126,22 +127,15 @@ export async function syncCalendarToFirestore() {
     const googleIds = new Set(googleItems.map(item => item.id).filter(Boolean));
 
     // 1. Cleanup: Buscar eventos no Firestore nesse período para detecção de deletados
-    const eventsQuery = query(
-      collection(db, "Calendar_Events"),
-      where("start", ">=", timeMin),
-      where("start", "<=", timeMax)
-    );
-    const firestoreSnap = await getDocs(eventsQuery);
+    const eventsSnap = await db.collection("Calendar_Events")
+      .where("start", ">=", timeMin)
+      .where("start", "<=", timeMax)
+      .get();
     
     let deleteCount = 0;
-    for (const docSnap of firestoreSnap.docs) {
+    for (const docSnap of eventsSnap.docs) {
       if (!googleIds.has(docSnap.id)) {
-        await runTransaction(db, async (transaction) => {
-          // Remover evento e travas de semana associadas? 
-          // Por segurança, apenas marcamos como 'deleted_on_google' ou removemos o evento principal.
-          // Aqui optaremos por deletar o evento do calendário para não poluir a UI.
-          transaction.delete(docSnap.ref);
-        });
+        await docSnap.ref.delete();
         deleteCount++;
       }
     }
@@ -162,10 +156,10 @@ export async function syncCalendarToFirestore() {
         .replace(/Tema:\s*.*/gi, "")
         .trim();
 
-      const eventRef = doc(db, "Calendar_Events", item.id);
+      const eventRef = db.collection("Calendar_Events").doc(item.id);
       
-      // Upsert: Preserva registeredCount se já existir via merge: true
-      await setDoc(eventRef, {
+      // Upsert Soberano Admin
+      await eventRef.set({
         id: item.id,
         summary: item.summary || "Sem Título",
         description: cleanDescription,
@@ -175,7 +169,7 @@ export async function syncCalendarToFirestore() {
         totalCapacity: capacityMatch ? parseInt(capacityMatch[1]) : 0,
         mentor: mentorMatch ? mentorMatch[1].trim() : "BPlen",
         theme: themeMatch ? themeMatch[1].trim() : null,
-        lastSync: serverTimestamp(),
+        lastSync: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
 
       syncCount++;
@@ -196,23 +190,25 @@ export async function syncCalendarToFirestore() {
 
 /**
  * Agendamento de Evento (Nova Arquitetura: Subcoleção de User 🔐)
+ * Soberania Admin para garantir escrita atômica e confiável.
  */
 export async function bookEventAction(
   eventId: string, 
   userId: string, 
   userEmail: string,
-  matricula?: string, // Opcional para Leads
-  nickname?: string,  // Opcional para Leads
+  matricula?: string,
+  nickname?: string,
   oneToOneData?: { type: string; expectations: string },
-  leadInfo?: { name: string; phone: string } // Novo campo para Leads
+  leadInfo?: { name: string; phone: string }
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const eventRef = doc(db, "Calendar_Events", eventId);
+    const db = getAdminDb();
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
     const displayName = nickname || leadInfo?.name || "Convidado BPlen";
 
-    const trxResult = await runTransaction(db, async (transaction) => {
+    const trxResult = await db.runTransaction(async (transaction) => {
       const eventSnap = await transaction.get(eventRef);
-      if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
+      if (!eventSnap.exists) throw new Error("Evento não encontrado.");
 
       const eventData = eventSnap.data() as GoogleCalendarEvent;
       const startTime = parseISO(eventData.start);
@@ -238,31 +234,31 @@ export async function bookEventAction(
       const evSum = eventData.summary.toLowerCase();
       if (evSum.includes("1 to 1")) category = "1to1";
       else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
-      else if (evSum.includes("orientação individual") || evSum.includes("orientacao individual")) category = "individual";
+      else if (evSum.includes("orientação individual") || evSum.includes("orientacao em grupo")) category = "individual";
 
       // Trava de semana na nova subcoleção (Apenas para usuários internos logados)
       const weekBookingId = `week_${week}_${year}_${category}`;
       const weekBookingRef = matricula 
-        ? doc(db, "User", matricula, "User_Bookings", weekBookingId)
+        ? db.collection("User").doc(matricula).collection("User_Bookings").doc(weekBookingId)
         : null;
       
       if (weekBookingRef) {
         const weekBookingSnap = await transaction.get(weekBookingRef);
-        if (weekBookingSnap.exists()) {
+        if (weekBookingSnap.exists) {
           const catName = category === "grupo" ? "Orientação em Grupo" : category === "individual" ? "Orientação Individual" : category === "1to1" ? "1-to-1" : "evento genérico";
           throw new Error(`Você já possui um agendamento de ${catName} para a Semana SI-${week.toString().padStart(2, '0')}. Limite: 1 de cada formato na semana.`);
         }
       }
 
-      const capacity = eventData.totalCapacity || 1; // Default 1 para 1 to 1
+      const capacity = eventData.totalCapacity || 1;
       const registered = eventData.registeredCount || 0;
       if (registered >= capacity) {
         throw new Error("Infelizmente as vagas para este horário esgotaram.");
       }
 
       // EXECUÇÃO:
-      // 1. Criar registro de participação detalhado no evento (Para ambos: Lead ou User)
-      const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
+      // 1. Criar registro de participação detalhado no evento
+      const attendeeRef = eventRef.collection("attendees").doc(userId);
       transaction.set(attendeeRef, {
         userId,
         matricula: matricula || "LEAD_EXTERNO",
@@ -270,7 +266,7 @@ export async function bookEventAction(
         email: userEmail,
         phone: leadInfo?.phone || null,
         isLead: !matricula,
-        timestamp: serverTimestamp(),
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
         ...oneToOneData
       });
 
@@ -279,7 +275,7 @@ export async function bookEventAction(
         registeredCount: registered + 1
       });
 
-      // 3. Registrar trava de semana na subcoleção do usuário (Apenas se for usuário interno)
+      // 3. Registrar trava de semana na subcoleção do usuário
       if (weekBookingRef) {
         transaction.set(weekBookingRef, {
           eventId,
@@ -287,7 +283,7 @@ export async function bookEventAction(
           year,
           category,
           oneToOneData: oneToOneData || null,
-          timestamp: serverTimestamp(),
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
           rating: 0,
           feedback: ""
         });
@@ -412,9 +408,9 @@ export async function bookEventAction(
  */
 export async function getSyncedEvents() {
     try {
-      const q = query(collection(db, "Calendar_Events"));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => doc.data() as GoogleCalendarEvent);
+      const db = getAdminDb();
+      const snap = await db.collection("Calendar_Events").get();
+      return snap.docs.map(doc => doc.data() as GoogleCalendarEvent);
     } catch (error) {
       console.error("Erro ao buscar eventos do Firestore:", error);
       return [];
@@ -426,20 +422,20 @@ export async function getSyncedEvents() {
  */
 export async function getUserBookingsAction(matricula: string): Promise<UserBooking[]> {
   try {
-    const bookingsRef = collection(db, "User", matricula, "User_Bookings");
-    const querySnapshot = await getDocs(bookingsRef);
+    const db = getAdminDb();
+    const bookingsSnap = await db.collection("User").doc(matricula).collection("User_Bookings").get();
     
     const allEvents = await getSyncedEvents();
     const eventsMap = new Map(allEvents.map(e => [e.id, e]));
 
-    return querySnapshot.docs.map(docSnap => {
+    return bookingsSnap.docs.map(docSnap => {
       const data = docSnap.data();
       const eventDetail = eventsMap.get(data.eventId);
       
       return {
         id: docSnap.id,
         eventId: data.eventId,
-        userId: matricula, // Mapeado para matricula na nova estrutura
+        userId: matricula,
         week: data.week,
         year: data.year,
         category: data.category || "geral",
@@ -449,7 +445,7 @@ export async function getUserBookingsAction(matricula: string): Promise<UserBook
         evaluatedAt: data.evaluatedAt?.toDate?.()?.toISOString() || null,
         eventDetail: eventDetail || null
       };
-    }).sort((a, b) => {
+    }).sort((a: any, b: any) => {
       const startA = a.eventDetail ? new Date(a.eventDetail.start).getTime() : 0;
       const startB = b.eventDetail ? new Date(b.eventDetail.start).getTime() : 0;
       return startB - startA;
@@ -475,12 +471,13 @@ export async function submitEvaluationAction(
   userUid: string
 ) {
   try {
+    const db = getAdminDb();
     // 1. Persistência de Transição (Local no Booking)
-    const bookingRef = doc(db, "User", matricula, "User_Bookings", bookingId);
-    await setDoc(bookingRef, {
+    const bookingRef = db.collection("User").doc(matricula).collection("User_Bookings").doc(bookingId);
+    await bookingRef.set({
       rating,
       feedback,
-      evaluatedAt: serverTimestamp()
+      evaluatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
     // 2. Persistência Institucional (Survey_Global)
@@ -510,24 +507,21 @@ export async function cancelBookingAction(
   userId: string
 ) {
   try {
-    const trxResult = await runTransaction(db, async (transaction) => {
-      const eventRef = doc(db, "Calendar_Events", eventId);
-      const bookingRef = doc(db, "User", matricula, "User_Bookings", bookingId);
-      const attendeeRef = doc(db, `Calendar_Events/${eventId}/attendees`, userId);
+    const db = getAdminDb();
+    const trxResult = await db.runTransaction(async (transaction: admin.firestore.Transaction) => {
+      const eventRef = db.collection("Calendar_Events").doc(eventId);
+      const bookingRef = db.collection("User").doc(matricula).collection("User_Bookings").doc(bookingId);
+      const attendeeRef = eventRef.collection("attendees").doc(userId);
 
       const eventSnap = await transaction.get(eventRef);
-      if (!eventSnap.exists()) throw new Error("Evento não encontrado.");
+      if (!eventSnap.exists) throw new Error("Evento não encontrado.");
 
-      const eventData = eventSnap.data();
+      const eventData = eventSnap.data() as any;
       const currentRegistered = eventData.registeredCount || 0;
-
-      // 1. Identificar Categoria para saber qual trava liberar (se o ID for dinâmico)
-      // Na nova estrutura, o bookingId JÁ É a trava (ex: week_14_2026_grupo)
-      // Mas se o usuário passar um ID que não segue o padrão, tentamos encontrar.
 
       // Coletar dados do attendee para o envio do e-mail de cancelamento
       const attendeeSnap = await transaction.get(attendeeRef);
-      const attendeeData = attendeeSnap.exists() ? attendeeSnap.data() : null;
+      const attendeeData = attendeeSnap.exists ? attendeeSnap.data() as any : null;
 
       // 1. Decrementar contador de vagas (mínimo 0)
       transaction.update(eventRef, {

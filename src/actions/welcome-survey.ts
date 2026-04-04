@@ -1,7 +1,7 @@
 "use server";
 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getAdminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
 import { getDriveClient, getSheetsClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { WelcomeSurveyData } from "@/types/survey";
@@ -19,9 +19,12 @@ import { welcomeSurveyConfig } from "@/config/surveys/welcome";
 /**
  * BPlen HUB — Welcome Survey Action (Institucional 🧬)
  * Gerencia a matrícula BPlen, gravação no Firestore conforme Survey_Global e sincronização Drive/Sheets.
+ * Aderente à Survey_Global e Soberania de Dados (Server-Authoritative) 🛡️.
  */
 export async function submitWelcomeSurvey(responses: Record<string, string | string[]>, authData: { uid: string, email: string, name: string }) {
   try {
+    const db = getAdminDb();
+
     // 1. Gerar Matrícula BPlen (Blindagem por Transação 🛡️)
     const count = await getNextUserSequence();
 
@@ -38,32 +41,30 @@ export async function submitWelcomeSurvey(responses: Record<string, string | str
     const matricula = `BP-${seq}-${type}-${aammdd}`;
 
     // 2. Persistência Institucional (Survey_Global 🧬)
-    // Isso já grava em User/{matricula}/Surveys/welcome_survey
+    // Isso já grava em User/{matricula}/Surveys/welcome_survey via sub-action Admin
     await submitSurvey(welcomeSurveyConfig, responses as any, authData.uid);
 
-    // 3. Atualizar Perfil Raiz do Usuário
-    const userRef = doc(db, "User", matricula);
-    await setDoc(userRef, {
+    // 3. Atualizar Perfil Raiz do Usuário (Soberania Admin)
+    const userRef = db.doc(`User/${matricula}`);
+    await userRef.set({
       uid: authData.uid,
       email: authData.email,
       Authentication_Name: authData.name,
       User_Nickname: responses.nickname,
       User_Type: type,
-      createdAt: serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
       hasCompletedWelcome: true,
-      lastUpdated: serverTimestamp(),
-      // Mantemos uma cópia legacy por compatibilidade imediata se necessário, 
-      // mas o "Source of Truth" de pesquisa agora é Surveys/welcome_survey
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       User_Welcome: {
         ...responses,
         matricula,
-        submittedAt: serverTimestamp()
+        submittedAt: admin.firestore.FieldValue.serverTimestamp()
       }
     }, { merge: true });
 
-    // 4. Mapear UID -> Matrícula
-    const uidMapRef = doc(db, "_AuthMap", authData.uid);
-    await setDoc(uidMapRef, { matricula });
+    // 4. Mapear UID -> Matrícula (Soberania Admin)
+    const uidMapRef = db.doc(`_AuthMap/${authData.uid}`);
+    await uidMapRef.set({ matricula }, { merge: true });
 
     // 5. Sincronização Google Drive / Sheets
     await syncToDrive(matricula, authData, responses);

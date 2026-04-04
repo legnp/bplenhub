@@ -1,12 +1,13 @@
 "use server";
 
-import { collection, getDocs, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { SurveyResponse, SurveyStatus } from "@/types/survey";
+import { getAdminDb } from "@/lib/firebase-admin";
+import * as admin from "firebase-admin";
+import { SurveyResponse, SurveyStatus, SurveyValue } from "@/types/survey";
 
 /**
  * MIGRATION SCRIPT — WelcomeSurvey Legacy to Institutional 🧬
  * Move dados de User/{mat}.User_Welcome para User/{mat}/Surveys/welcome_survey.
+ * Soberania Admin para processamento em lote (Bulk Migration).
  */
 export async function runWelcomeMigration() {
   const results = {
@@ -17,7 +18,8 @@ export async function runWelcomeMigration() {
   };
 
   try {
-    const usersSnap = await getDocs(collection(db, "User"));
+    const db = getAdminDb();
+    const usersSnap = await db.collection("User").get();
     results.total = usersSnap.size;
 
     for (const userDoc of usersSnap.docs) {
@@ -25,16 +27,23 @@ export async function runWelcomeMigration() {
       const matricula = userDoc.id;
       const legacyWelcome = userData.User_Welcome;
 
+      // 1. Verificar se há dados legados e se a migração já ocorreu
       if (!legacyWelcome) {
         results.skipped++;
         continue;
       }
 
-      // Evitar sobreposição se já existir na nova estrutura
-      const surveyRef = doc(db, "User", matricula, "Surveys", "welcome_survey");
-      
-      // Mapeamento de Campos (Legacy -> Institutional)
-      const institutionalData = {
+      const surveyRef = db.collection("User").doc(matricula).collection("Surveys").doc("welcome_survey");
+      const surveySnap = await surveyRef.get();
+
+      if (surveySnap.exists) {
+        results.skipped++;
+        console.log(`ℹ️ [Migration] Pulando ${matricula}: Já migrado.`);
+        continue;
+      }
+
+      // 2. Mapeamento de Campos (Legacy -> Institutional)
+      const institutionalData: Record<string, SurveyValue> = {
         nickname: legacyWelcome.User_Nickname || legacyWelcome.nickname || "",
         userType: legacyWelcome.User_Type || legacyWelcome.userType || "",
         topics: legacyWelcome.Customer_FirstTopics || legacyWelcome.topics || [],
@@ -46,8 +55,8 @@ export async function runWelcomeMigration() {
         surveyId: "welcome_survey",
         matricula,
         status: "completed" as SurveyStatus,
-        data: institutionalData as any,
-        submittedAt: legacyWelcome.submittedAt || serverTimestamp(),
+        data: institutionalData,
+        submittedAt: legacyWelcome.submittedAt || admin.firestore.FieldValue.serverTimestamp(),
         metadata: {
           surveyId: "welcome_survey",
           domain: "ONBOARDING",
@@ -58,19 +67,19 @@ export async function runWelcomeMigration() {
 
       try {
         // A. Gravar na Subcoleção (Survey_Global)
-        await setDoc(surveyRef, payload, { merge: true });
+        await surveyRef.set(payload, { merge: true });
 
         // B. Atualizar Raiz do Usuário (Identificação Core 🛡️)
-        const userRef = doc(db, "User", matricula);
-        await setDoc(userRef, {
+        const userRef = db.collection("User").doc(matricula);
+        await userRef.set({
           hasCompletedWelcome: true,
           User_Nickname: institutionalData.nickname,
-          User_Type: institutionalData.userType.includes("empresa") || institutionalData.userType.includes("PJ") ? "PJ" : "PF",
-          lastUpdated: serverTimestamp()
+          User_Type: String(institutionalData.userType).includes("empresa") || String(institutionalData.userType).includes("PJ") ? "PJ" : "PF",
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
         results.migrated++;
-        console.log(`✅ [Migration] Usuário migrado e perfil atualizado: ${matricula}`);
+        console.log(`✅ [Migration] Usuário migrado com sucesso: ${matricula}`);
       } catch (e) {
         console.error(`❌ [Migration] Erro ao migrar ${matricula}:`, e);
         results.errors++;
