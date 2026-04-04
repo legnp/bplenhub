@@ -16,7 +16,7 @@ import { revalidatePath } from "next/cache";
  * Retorna a lista completa de usuários para o painel administrativo.
  * Resolve permissões via Collection Group e normaliza papéis.
  */
-export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[]> {
+export async function getAdminUsersList(adminToken?: string): Promise<{ success: boolean; data?: AdminUser[]; error?: string }> {
   try {
     // 🛡️ Segurança Real no Servidor
     await requireAdmin(adminToken);
@@ -71,11 +71,11 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
       });
     });
 
-    return adminUsers.sort((a, b) => a.name.localeCompare(b.name));
+    return { success: true, data: adminUsers.sort((a, b) => a.name.localeCompare(b.name)) };
 
   } catch (error: any) {
     console.error("❌ [Users Admin] Falha ao listar usuários:", error.message);
-    throw new Error(error.message || "Falha ao carregar lista de usuários.");
+    return { success: false, error: error.message || "Falha ao carregar lista de usuários." };
   }
 }
 

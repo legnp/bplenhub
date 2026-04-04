@@ -62,10 +62,17 @@ export default function UsersManagementPage() {
     setLoading(true);
     try {
       const token = await auth.currentUser?.getIdToken();
-      const data = await getAdminUsersList(token);
-      setUsers(data);
+      const result = await getAdminUsersList(token);
+      
+      if (result.success && result.data) {
+        setUsers(result.data);
+        setError(null);
+      } else {
+        setError(result.error || "Falha desconhecida ao carregar usuários.");
+      }
     } catch (err: any) {
-      setError(err.message || "Erro ao carregar a lista de usuários.");
+      console.error("Fetch Error:", err);
+      setError("Erro interno ao processar a requisição.");
     } finally {
       setLoading(false);
     }
