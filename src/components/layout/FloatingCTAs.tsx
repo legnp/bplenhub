@@ -4,7 +4,9 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Menu, X, Phone, Globe } from "lucide-react";
+import { Home, Menu, X, Phone, Globe, LogIn, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 /**
  * FloatingCTAs — Menu lateral fixo (Top Right / Bottom Right)
@@ -13,6 +15,8 @@ import { Home, Menu, X, Phone, Globe } from "lucide-react";
  */
 export function FloatingCTAs() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isLoggingIn, signInWithGoogle } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const isHomePage = pathname === "/";
 
@@ -102,13 +106,32 @@ export function FloatingCTAs() {
 
               {/* Botão de Destaque HUB */}
               <div className="pt-4">
-                <Link
-                  href="/hub"
-                  onClick={toggleMenu}
-                  className="w-full block py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20"
-                >
-                  ACESSAR BPLEN HUB
-                </Link>
+                {user ? (
+                   <Link
+                      href="/hub"
+                      onClick={toggleMenu}
+                      className="w-full block py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20"
+                   >
+                     ACESSAR BPLEN HUB
+                   </Link>
+                ) : (
+                   <button
+                      onClick={async () => {
+                         try {
+                           await signInWithGoogle();
+                           toggleMenu();
+                           router.push("/hub");
+                         } catch (err) {
+                           console.error("Erro ao autenticar via CTA:", err);
+                         }
+                      }}
+                      disabled={isLoggingIn}
+                      className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20 disabled:opacity-50"
+                   >
+                     {isLoggingIn ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
+                     {isLoggingIn ? "CONECTANDO..." : "ACESSAR BPLEN HUB"}
+                   </button>
+                )}
               </div>
 
               {/* Redes Sociais */}
@@ -191,12 +214,30 @@ export function FloatingCTAs() {
         >
           Explore Conteúdos
         </Link>
-        <Link 
-          href="/hub"
-          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
-        >
-          Acessar BPlen HUB
-        </Link>
+        {user ? (
+           <Link 
+             href="/hub"
+             className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+           >
+             Acessar BPlen HUB
+           </Link>
+        ) : (
+           <button 
+             onClick={async () => {
+                try {
+                  await signInWithGoogle();
+                  router.push("/hub");
+                } catch (err) {
+                  console.error("Erro ao autenticar via CTA Desktop:", err);
+                }
+             }}
+             disabled={isLoggingIn}
+             className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer disabled:opacity-50 gap-2"
+           >
+             {isLoggingIn ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />}
+             {isLoggingIn ? "Entrando..." : "Acessar BPlen HUB"}
+           </button>
+        )}
       </motion.div>
     </>
   );
