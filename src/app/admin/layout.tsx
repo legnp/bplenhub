@@ -17,8 +17,10 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Palette,
-  Check
+  Check,
+  LogOut
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ThemeOption {
   id: BPlenTheme;
@@ -37,9 +39,11 @@ const THEMES: ThemeOption[] = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin, loading } = useAuthContext();
+  const { user, isAdmin, loading, logout } = useAuthContext();
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
 
   // Fechar menus ao clicar fora
@@ -150,6 +154,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Voltar ao Hub
           </Link>
+
+          <button 
+            onClick={async () => {
+              setIsLoggingOut(true);
+              await logout();
+              router.push("/");
+            }}
+            disabled={isLoggingOut}
+            className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 disabled:opacity-30"
+          >
+             <LogOut size={14} className={isLoggingOut ? 'animate-pulse' : ''} />
+             Sair do Sistema
+          </button>
         </div>
       </aside>
 

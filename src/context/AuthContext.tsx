@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { UserServices } from "@/types/users";
@@ -19,6 +19,7 @@ interface AuthContextType {
   matricula: string | null;
   nickname: string | null;
   services: UserServices;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   matricula: null,
   nickname: null,
   services: {},
+  logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -122,8 +124,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      // Opcionalmente: window.location.href = "/";
+    } catch (error) {
+      console.error("❌ [AuthContext] Erro ao deslogar:", error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname, services }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname, services, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

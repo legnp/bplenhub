@@ -9,9 +9,12 @@ import {
   Palette,
   Check,
   ArrowLeft,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import { useTheme, BPlenTheme } from "@/context/ThemeContext";
+import { useAuthContext } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 /**
  * HubHeader (Ecossistema Privado)
@@ -37,8 +40,11 @@ const THEMES: ThemeOption[] = [
 
 export function HubHeader() {
   const { theme, setTheme } = useTheme();
+  const { logout } = useAuthContext();
+  const router = useRouter();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isSocialMenuOpen, setIsSocialMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
   const socialMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -98,6 +104,21 @@ export function HubHeader() {
       {/* Direita: Ações & Temas */}
       <div className="flex items-center gap-2 md:gap-3">
          
+         {/* Botão de Sair (Prioridade Prática 🛡️) */}
+         <button 
+           onClick={async () => {
+             setIsLoggingOut(true);
+             await logout();
+             router.push("/");
+           }}
+           disabled={isLoggingOut}
+           className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 disabled:opacity-50 group"
+           title="Encerrar Sessão"
+         >
+            <LogOut size={16} className={`${isLoggingOut ? 'animate-pulse' : ''}`} />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Sair</span>
+         </button>
+
          {/* Seletor de Temas (Dropdown) */}
          <div className="relative" ref={themeMenuRef}>
             <button 
