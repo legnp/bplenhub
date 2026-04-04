@@ -10,16 +10,22 @@ import { UserRole, UserServices } from "@/types/users";
  * Transição para Firebase Admin SDK (Node.js) para governança soberana.
  */
 
-// Email Master que recebe a Flag de Admin automaticamente
-const MASTER_DOMAINS = ["@bplen.com"];
-const MASTER_EMAILS = ["lisandra.lencina@bplen.com", "it@bplen.com"]; // Fallback de hardcoded accounts principais
+// ──────────────────────────────
+// Governança: Allowlist de Administradores Master (Soberania 🛡️)
+// Apenas estes e-mails recebem auto-grant se o banco estiver vazio ou para recuperação.
+// ──────────────────────────────
+const MASTER_EMAILS = [
+  "lisandra.lencina@bplen.com", 
+  "it@bplen.com", 
+  "legnp@bplen.com"
+];
 
 export async function syncUserPermissionsOnLogin(uid: string, email: string | null) {
   if (!email) return { isAdmin: false, role: "visitor", services: {} };
 
   try {
-    const isMasterEmail = MASTER_EMAILS.includes(email.toLowerCase()) || 
-                          MASTER_DOMAINS.some(domain => email.toLowerCase().endsWith(domain));
+    const isMasterEmail = MASTER_EMAILS.includes(email.toLowerCase());
+
 
     // 1. Determina a Matrícula via UID Mapping
     const uidMapRef = getAdminDb().collection("_AuthMap").doc(uid);

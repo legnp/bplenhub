@@ -1,0 +1,52 @@
+rules_version = '2';
+
+/**
+ * BPlen HUB — Cloud Firestore Security Rules (Soberania de Dados 🛡️)
+ * 
+ * Regras fundamentais de proteção v3.
+ * O Servidor (Admin SDK) ignora estas regras, permitindo governança total via Server Actions.
+ * O Cliente (SDK Web) é restrito ao mínimo necessário para operação segura.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 🛡️ [Governança] Mapeamento de Autenticação
+    // Apenas o próprio usuário pode ler seu mapeamento de UID -> Matrícula.
+    match /_AuthMap/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; 
+    }
+
+    // 👥 [Usuários] Coleção Principal
+    // Usuários logados podem ler perfis básicos.
+    match /User/{matricula} {
+      allow read: if request.auth != null;
+      allow write: if false; // Escrita exclusiva via Admin SDK / Server Actions
+
+      // 🏗️ Sub-coleção de Permissões (Entitlements)
+      // O usuário pode ler suas próprias permissões para habilitar UI reativa.
+      match /User_Permissions/access {
+        allow read: if request.auth != null;
+        allow write: if false; // Escrita soberana via Servidor
+      }
+      
+      // Outras sub-coleções de serviço (conforme necessidade)
+      match /{allSubcollections=**} {
+        allow read: if request.auth != null;
+        allow write: if false;
+      }
+    }
+
+    // 🔒 [Configurações] Global
+    match /Settings/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ⚙️ [Fallback] Bloqueio preventivo para novas coleções não documentadas
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
