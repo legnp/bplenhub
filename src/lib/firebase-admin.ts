@@ -2,65 +2,58 @@ import * as admin from "firebase-admin";
 import { serverEnv } from "@/env";
 
 /**
- * BPlen HUB — Firebase Admin SDK (Segurança Real 🛡️)
- * Inicializa o Admin SDK para operações privilegiadas e validação de tokens no servidor.
- * Agora com suporte a Safe Initialization para evitar crashes durante o build.
+ * BPlen HUB — Firebase Admin SDK (Soberania de Dados)
+ * Inicialização controlada por Getters para evitar crashes no build e persistência de nulos.
  */
 
-function getAdminApp() {
-  if (admin.apps.length > 0) {
-    return admin.apps[0]!;
-  }
+function initializeAdmin() {
+  // Se já existir uma instância viva, retorna ela
+  if (admin.apps.length > 0) return admin.apps[0]!;
 
-  const adminConfig = {
-    projectId: serverEnv.FIREBASE_PROJECT_ID,
-    clientEmail: serverEnv.FIREBASE_CLIENT_EMAIL,
-    privateKey: serverEnv.FIREBASE_PRIVATE_KEY,
-  };
+  // Proteção para o ambiente de build do Vercel/NextJS
+  // Se as chaves estiverem vazias, não tentamos inicializar (evita o crash global)
+  if (!serverEnv.FIREBASE_PROJECT_ID || !serverEnv.FIREBASE_PRIVATE_KEY) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn("⚠️ [Firebase Admin] Variáveis de ambiente ausentes. Executando em modo de build seguro.");
+    }
+    return null;
+  }
 
   try {
     const app = admin.initializeApp({
-      credential: admin.credential.cert(adminConfig),
+      credential: admin.credential.cert({
+        projectId: serverEnv.FIREBASE_PROJECT_ID,
+        clientEmail: serverEnv.FIREBASE_CLIENT_EMAIL,
+        privateKey: serverEnv.FIREBASE_PRIVATE_KEY,
+      }),
     });
-    console.log("✅ [Firebase Admin] Inicializado com sucesso.");
+    console.log("✅ [Firebase Admin] Instância inicializada com sucesso.");
     return app;
   } catch (error) {
-    console.error("❌ [Firebase Admin] Erro inesperado na inicialização:", error);
-    // Em ambiente de build, não queremos crashear o processo imediatamente
-    if (process.env.NODE_ENV === "production" && !serverEnv.FIREBASE_PRIVATE_KEY) {
-       console.warn("⚠️ [Firebase Admin] Build detectado ou variáveis ausentes. As operações administrativas podem falhar em runtime.");
-    }
-    throw error;
+    console.error("❌ [Firebase Admin] Erro crítico de inicialização:", error);
+    return null;
   }
 }
 
 /**
- * Getters seguros para os serviços administrativo.
- * Garantem que a inicialização só ocorra quando o serviço for de fato solicitado.
+ * Getters Dinâmicos (Sempre use estes em vez de constantes globais)
  */
 
 export const getAdminAuth = () => {
-    try {
-        return getAdminApp().auth();
-    } catch (e) {
-        console.error("❌ [Firebase Admin] Falha ao obter Auth. O app foi inicializado corretamente?");
-        throw e;
-    }
+  const app = initializeAdmin();
+  if (!app) {
+    throw new Error("Falha ao inicializar Firebase Auth Admin (Chaves ausentes?)");
+  }
+  return app.auth();
 };
 
 export const getAdminDb = () => {
-    try {
-        return getAdminApp().firestore();
-    } catch (e) {
-        console.error("❌ [Firebase Admin] Falha ao obter Firestore. O app foi inicializado corretamente?");
-        throw e;
-    }
+  const app = initializeAdmin();
+  if (!app) {
+    throw new Error("Falha ao inicializar Firebase Firestore Admin (Chaves ausentes?)");
+  }
+  return app.firestore();
 };
 
-// Mantemos os exports originais como proxies para compatibilidade imediata se possível,
-// mas o ideal é migrar gradualmente para os getters.
-export const adminAuth = admin.apps.length > 0 ? admin.apps[0]!.auth() : null as unknown as admin.auth.Auth;
-export const adminDb = admin.apps.length > 0 ? admin.apps[0]!.firestore() : null as unknown as admin.firestore.Firestore;
-
+// Export padrão do módulo carregado
 export default admin;
-

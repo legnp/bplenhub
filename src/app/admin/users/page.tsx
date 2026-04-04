@@ -127,10 +127,10 @@ export default function UsersManagementPage() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1 text-left">
           <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">
-            Gestão & <span className="text-[var(--accent-start)] italic">Governança</span>
+            Gestão de <span className="text-[var(--accent-start)] italic">Usuários</span>
           </h1>
           <p className="text-[var(--text-muted)] text-sm font-medium opacity-60">
-            Fundação arquitetural para Papéis e Entitlements de serviços.
+            Controle centralizado de membros, papéis e permissões de acesso.
           </p>
         </div>
 
