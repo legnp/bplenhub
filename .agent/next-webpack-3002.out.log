@@ -1,0 +1,14 @@
+
+> v3@0.1.0 dev
+> next dev --webpack --port 3002
+
+▲ Next.js 16.2.1 (webpack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.15.3:3002
+- Environments: .env.local
+✓ Ready in 1302ms
+
+○ Compiling / ...
+ HEAD / 500 in 32.7s (next.js: 32.2s, application-code: 560ms)
+ GET / 500 in 35ms (next.js: 10ms, application-code: 25ms)
+ HEAD / 200 in 3.2s (next.js: 2.4s, application-code: 807ms)

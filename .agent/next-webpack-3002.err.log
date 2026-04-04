@@ -1,0 +1,148 @@
+⨯ ./src/context/AuthContext.tsx
+Error:   x You're importing a module that depends on `createContext` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                 ^^^^^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useEffect` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                            ^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useState` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                       ^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useRef` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                                 ^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+
+Import trace for requested module:
+./src/context/AuthContext.tsx
+./src/app/layout.tsx
+⨯ ./src/context/AuthContext.tsx
+Error:   x You're importing a module that depends on `createContext` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                 ^^^^^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useEffect` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                            ^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useState` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                       ^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useRef` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                                 ^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+
+Import trace for requested module:
+./src/context/AuthContext.tsx
+./src/app/layout.tsx
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'D:\BPlen HUB\v3\.next\dev\cache\webpack\client-development-fallback\0.pack.gz_' -> 'D:\BPlen HUB\v3\.next\dev\cache\webpack\client-development-fallback\0.pack.gz'
+⨯ ./src/context/AuthContext.tsx
+Error:   x You're importing a module that depends on `createContext` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                 ^^^^^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useEffect` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                            ^^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useState` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                       ^^^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+  x You're importing a module that depends on `useRef` into a React Server Component module. This API is only available in Client Components. To fix, mark the file (or its parent) with the `"use client"` directive.
+  | Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+  |
+
+   ,-[D:\BPlen HUB\v3\src\context\AuthContext.tsx:1:1]
+ 1 | import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+   :                                                                 ^^^^^^
+ 2 | import { onAuthStateChanged, User } from "firebase/auth";
+ 3 | import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
+ 4 | import { auth, db } from "@/lib/firebase";
+   `----
+
+Import trace for requested module:
+./src/context/AuthContext.tsx
+./src/app/layout.tsx

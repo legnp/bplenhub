@@ -1,4 +1,4 @@
-import { adminAuth } from "./firebase-admin";
+import { getAdminAuth } from "./firebase-admin";
 import { fetchUserPermissionsStatus } from "@/actions/auth-permissions";
 import { UserRole, UserServices } from "@/types/users";
 
@@ -26,7 +26,7 @@ export async function getServerSession(idToken?: string): Promise<Session | null
 
   try {
     // 1. Validar a Autenticidade do Token (Segurança Real ✅)
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const decodedToken = await getAdminAuth().verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
     // 2. Resolver o Papel (Role) e Serviços do Usuário

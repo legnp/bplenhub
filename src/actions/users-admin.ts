@@ -1,4 +1,6 @@
-import { adminDb } from "@/lib/firebase-admin";
+"use server";
+
+import { getAdminDb } from "@/lib/firebase-admin";
 import * as admin from "firebase-admin";
 import { requireAdmin } from "@/lib/auth-guards";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
@@ -20,11 +22,11 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
     await requireAdmin(adminToken);
 
     // 1. Puxar todos os usuários da base principal (Node Admin SDK)
-    const usersRef = adminDb.collection("User");
+    const usersRef = getAdminDb().collection("User");
     const usersSnap = await usersRef.get();
 
     // 2. Puxar todas as permissões administrativas via Collection Group
-    const permissionsRef = adminDb.collectionGroup("User_Permissions");
+    const permissionsRef = getAdminDb().collectionGroup("User_Permissions");
     const permissionsSnap = await permissionsRef.get();
 
     // Mapear dados de permissão por matrícula para busca O(1)
@@ -86,7 +88,7 @@ export async function updateUserPermissions(
     await requireAdmin(adminToken);
 
     const permissionsPath = `User/${targetMatricula}/User_Permissions/access`;
-    const permissionsRef = adminDb.doc(permissionsPath);
+    const permissionsRef = getAdminDb().doc(permissionsPath);
     
     // Preparar dados para salvar
     const dataToSave: any = {

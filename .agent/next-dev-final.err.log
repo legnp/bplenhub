@@ -1,0 +1,2 @@
+[browser] Image with src "/foto_perfil_fundadora.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+^C

@@ -1,4 +1,6 @@
-import { adminDb } from "@/lib/firebase-admin";
+"use server";
+
+import { getAdminDb } from "@/lib/firebase-admin";
 import * as admin from "firebase-admin";
 import { UserRole, UserServices } from "@/types/users";
 
@@ -20,7 +22,7 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
                           MASTER_DOMAINS.some(domain => email.toLowerCase().endsWith(domain));
 
     // 1. Determina a Matrícula via UID Mapping
-    const uidMapRef = adminDb.collection("_AuthMap").doc(uid);
+    const uidMapRef = getAdminDb().collection("_AuthMap").doc(uid);
     const uidMapSnap = await uidMapRef.get();
 
     let matricula = "";
@@ -40,7 +42,7 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
 
     // 2. Lógica de Registro/Verificação de Permissão no Banco (Path Soberano)
     const permissionsPath = `User/${matricula}/User_Permissions/access`;
-    const permissionsRef = adminDb.doc(permissionsPath);
+    const permissionsRef = getAdminDb().doc(permissionsPath);
     const permSnap = await permissionsRef.get();
 
     let isAdmin = false;
@@ -82,7 +84,7 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
  */
 export async function fetchUserPermissionsStatus(uid: string): Promise<{ isAdmin: boolean; role: UserRole; services: UserServices }> {
     try {
-      const uidMapRef = adminDb.collection("_AuthMap").doc(uid);
+      const uidMapRef = getAdminDb().collection("_AuthMap").doc(uid);
       const uidMapSnap = await uidMapRef.get();
 
       if (!uidMapSnap.exists) {
@@ -91,7 +93,7 @@ export async function fetchUserPermissionsStatus(uid: string): Promise<{ isAdmin
 
       const matricula = uidMapSnap.data()?.matricula;
       const permissionsPath = `User/${matricula}/User_Permissions/access`;
-      const permissionsRef = adminDb.doc(permissionsPath);
+      const permissionsRef = getAdminDb().doc(permissionsPath);
       const permSnap = await permissionsRef.get();
 
       console.log(`[Auth Status] UID: ${uid} | Matrícula: ${matricula} | Path: ${permissionsPath}`);
