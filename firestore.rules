@@ -18,25 +18,30 @@ service cloud.firestore {
       allow write: if false; 
     }
 
-    // 👥 [Usuários] Coleção Principal
-    // Usuários logados podem ler perfis básicos.
+    // 👥 [Usuários] Coleção Principal de Perfis
+    // REGRA DE OURO 🛡️: Um usuário só pode ler seu PRÓPRIO perfil.
     match /User/{matricula} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && (
+        // Valida se o UID do solicitante autenticado é o dono desta matrícula no sistema
+        get(/databases/$(database)/documents/_AuthMap/$(request.auth.uid)).data.matricula == matricula
+      );
       allow write: if false; // Escrita exclusiva via Admin SDK / Server Actions
 
       // 🏗️ Sub-coleção de Permissões (Entitlements)
-      // O usuário só pode ler suas PRÓPRIAS permissões.
+      // Mesma governança da coleção pai.
       match /User_Permissions/access {
         allow read: if request.auth != null && (
-          // Opção 1: Verificar se o UID do solicitante mapeia para esta matrícula
           get(/databases/$(database)/documents/_AuthMap/$(request.auth.uid)).data.matricula == matricula
         );
         allow write: if false; // Escrita soberana via Servidor
       }
       
-      // Outras sub-coleções de serviço (conforme necessidade)
+      // 📚 Outras sub-coleções (Ex: Agenda, Forms, Mensagens)
+      // Todas as subáreas seguem o princípio do dono da matrícula. 🔐
       match /{allSubcollections=**} {
-        allow read: if request.auth != null;
+        allow read: if request.auth != null && (
+          get(/databases/$(database)/documents/_AuthMap/$(request.auth.uid)).data.matricula == matricula
+        );
         allow write: if false;
       }
     }

@@ -1,47 +1,28 @@
-"use client";
-
-import React, { useEffect } from "react";
-import { HubHeader } from "@/components/hub/HubHeader";
-import { useTheme } from "@/context/ThemeContext";
-import { useAuthContext } from "@/context/AuthContext";
+import React from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { HubShell } from "@/components/hub/HubShell";
 
 /**
- * HUB LAYOUT — O Frame Institucional Privado 🧬
- * Todas as páginas dentro de /hub herdam este layout.
- * Governança: Gate de Autenticação Centralizado 🛡️
+ * HUB LAYOUT — O Gate de Autenticação Server-Side 🛡️
+ * O servidor toma a decisão de autorização ANTES do JS carregar no cliente.
  */
-export default function HubLayout({ children }: { children: React.ReactNode }) {
-  const { theme } = useTheme();
-  const { user, loading } = useAuthContext();
+export default async function HubLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const sessionUid = cookieStore.get("bplen_session_uid")?.value;
 
-  // 🛡️ Gate de Autenticação (Soberania de Acesso)
-  // Impede reentrada no HUB sem sessão ativa após logout.
-  useEffect(() => {
-    if (!loading && !user) {
-      console.warn("🚫 [Hub Layout] Sessão não detectada. Redirecionando para Home...");
-      redirect("/");
-    }
-  }, [user, loading]);
-
-  if (loading) {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] transition-colors duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
-        <div className="w-10 h-10 border-4 border-t-[var(--accent-start)] border-[var(--accent-soft)] rounded-full animate-spin" />
-        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] animate-pulse">Sincronizando Ecossistema...</p>
-      </div>
-    );
+  // 🛡️ [Autoridade do Servidor] 
+  // Bloqueio imediato na orquestração da página. Se não houver cookie, o redirect 
+  // ocorre no nível de cabeçalho HTTP, antes de qualquer dado chegar ao navegador.
+  if (!sessionUid) {
+     console.log("🚦 [Route Gate] Sessão não encontrada nos cookies. Redirecionamento Server-Side...");
+     redirect("/");
   }
 
-  // Se não houver usuário, as páginas internas não devem ser renderizadas (o useEffect cuidará do redirect)
-  if (!user) return null;
-
+  // Se houver sessão (UID no cookie), permitimos a renderização da Shell e do Conteúdo.
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
-      <HubHeader />
-      <main className="flex-1 w-full bg-background transition-colors duration-500">
-        {children}
-      </main>
-    </div>
+    <HubShell>
+       {children}
+    </HubShell>
   );
 }

@@ -38,12 +38,20 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
     const permissionsSnap = await permissionsRef.get();
 
     // Mapear dados de permissão por matrícula para busca O(1)
-    const permissionsMap = new Map<string, { role?: UserRole; services?: UserServices; admin?: boolean }>();
+    interface AccessDocData {
+      role?: UserRole;
+      services?: UserServices;
+      admin?: boolean;
+    }
+    
+    const permissionsMap = new Map<string, AccessDocData>();
     permissionsSnap.forEach(docSnap => {
        if (docSnap.id === "access") {
-          const pathSegments = docSnap.ref.path.split('/');
-          const matricula = pathSegments[1];
-          permissionsMap.set(matricula, docSnap.data() as any);
+          // Obtém a matrícula do documento "pai" do "pai" (User/{matricula}/User_Permissions/access)
+          const matricula = docSnap.ref.parent.parent?.id;
+          if (matricula) {
+             permissionsMap.set(matricula, docSnap.data() as AccessDocData);
+          }
        }
     });
 
@@ -63,9 +71,14 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
       let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
 
       // SERIALIZAÇÃO SEGURA: Converte Timestamps para ISO Strings 🛡️
-      const createdAtData = data.createdAt ? 
-          (typeof (data.createdAt as any).toDate === 'function' ? (data.createdAt as any).toDate().toISOString() : data.createdAt) 
-          : null;
+      let createdAtData: string | undefined = undefined;
+      if (data.createdAt) {
+         if (typeof data.createdAt === 'object' && 'toDate' in data.createdAt) {
+            createdAtData = (data.createdAt as admin.firestore.Timestamp).toDate().toISOString();
+         } else if (typeof data.createdAt === 'string') {
+            createdAtData = data.createdAt;
+         }
+      }
 
       adminUsers.push({
         matricula,
@@ -101,7 +114,13 @@ export async function updateUserPermissions(
     const session = await requireAdmin(adminToken);
 
     // 1. Validação de Payload (Enforcement de Tipagem no Servidor) 🛡️
-    const dataToSave: any = {
+    const dataToSave: {
+       updatedAt: admin.firestore.FieldValue;
+       updatedBy: string;
+       role?: UserRole;
+       admin?: boolean;
+       services?: UserServices;
+    } = {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: `ADMIN:${session.email || session.uid}`
     };

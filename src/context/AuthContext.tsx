@@ -5,6 +5,7 @@ import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { UserServices } from "@/types/users";
+import { syncSessionCookie } from "@/actions/auth-session";
 
 /**
  * BPlen HUB — AuthContext (Estado Global de Autenticação)
@@ -59,9 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setMatricula(null);
         setNickname(null);
         setServices({});
+        await syncSessionCookie(null); // Remove o cookie do servidor 🛡️
         setLoading(false);
         return;
       }
+      
+      // Sincroniza o UID com o servidor para Route Guards (Server Components)
+      await syncSessionCookie(currentUser.uid);
 
       // Hardcoded fallback safety para email master (UX imediata)
       const email = currentUser.email?.toLowerCase() || "";
@@ -126,8 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      await syncSessionCookie(null); // Limpeza preventiva no servidor
       await signOut(auth);
-      // Opcionalmente: window.location.href = "/";
     } catch (error) {
       console.error("❌ [AuthContext] Erro ao deslogar:", error);
     }
