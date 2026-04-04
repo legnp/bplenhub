@@ -29,6 +29,10 @@ export function useAuth() {
    */
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    
+    // Força a exibição do seletor de contas (Permite escolher outra conta ou inserir nova) 🛡️
+    provider.setCustomParameters({ prompt: "select_account" });
+
     setIsLoggingIn(true);
     setError(null);
 
