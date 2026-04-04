@@ -439,14 +439,21 @@ export function PublicBookingFlow() {
                 <p className="text-[9px] text-[var(--text-muted)] opacity-30 uppercase font-black tracking-widest italic">
                   Sua resposta nos ajuda a preparar o melhor material 🧪
                 </p>
-                <button
-                  onClick={handleBooking}
-                  disabled={!formData.screening.objetivo || isSubmitting}
-                  className="h-12 px-8 bg-[var(--accent-start)] text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
-                  {isSubmitting ? "PROCESSANDO..." : "FINALIZAR AGENDAMENTO"}
-                </button>
+                <div className="flex flex-col items-end gap-2">
+                  {error && (
+                    <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {error}
+                    </p>
+                  )}
+                  <button
+                    onClick={handleBooking}
+                    disabled={!formData.screening.objetivo || isSubmitting}
+                    className="h-12 px-8 bg-[var(--accent-start)] text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                    {isSubmitting ? "PROCESSANDO..." : "FINALIZAR AGENDAMENTO"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
