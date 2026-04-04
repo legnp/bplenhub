@@ -90,8 +90,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (userSnap.exists()) {
               const d = userSnap.data();
-              const welcome = d.User_Welcome || {};
-              const resolvedNick = welcome.User_Nickname || welcome.Authentication_Name || d.User_Nickname || d.User_Name || d.Authentication_Name || "Membro BPlen";
+              // Priorizar nova estrutura: User_Nickname na raiz
+              const resolvedNick = d.User_Nickname || d.User_Welcome?.User_Nickname || d.Authentication_Name || d.User_Name || "Membro BPlen";
               setNickname(resolvedNick);
 
               // 3. Estabelecer Listener em Tempo Real para Permissões (onSnapshot)

@@ -31,7 +31,7 @@ export default function HubPage() {
           const { matricula } = mapSnap.data();
           const userSnap = await getDoc(doc(db, "User", matricula));
           
-          if (userSnap.exists() && (userSnap.data().hasCompletedWelcome || userSnap.data().User_Welcome)) {
+          if (userSnap.exists() && userSnap.data().hasCompletedWelcome) {
             setHasCompletedSurvey(true);
           } else {
             setHasCompletedSurvey(false);

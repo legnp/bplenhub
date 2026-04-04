@@ -63,8 +63,8 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
       const matricula = docSnap.id;
       const perm = permissionsMap.get(matricula) || {};
       
-      const name = data.Authentication_Name || data.User_Name || data.User_Welcome?.Authentication_Name || "Membro BPlen";
-      const nickname = data.User_Nickname || data.User_Welcome?.User_Nickname;
+      const name = data.Authentication_Name || data.User_Name || "Membro BPlen";
+      const nickname = data.User_Nickname || "";
 
       // Normalização de Papel (Role)
       let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
@@ -77,11 +77,11 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
         matricula,
         name,
         nickname,
-        email: data.email || data.User_Email || data.User_Welcome?.email || data.User_Welcome?.User_Email || "",
+        email: data.email || data.User_Email || "",
         isAdmin: resolvedRole === "admin",
         role: resolvedRole,
         services: perm.services || {},
-        onboardStatus: (data.hasCompletedWelcome || data.User_Welcome) ? "completed" : "pending",
+        onboardStatus: data.hasCompletedWelcome ? "completed" : "pending",
         createdAt: createdAtData,
       });
     });

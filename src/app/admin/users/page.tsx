@@ -141,11 +141,35 @@ export default function UsersManagementPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 glass px-6 py-3 border-blue-500/10 bg-blue-500/5">
-           <Activity size={16} className="text-blue-500 animate-pulse" />
-           <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-              Role/Service Engine Active
-           </span>
+        <div className="flex flex-col md:flex-row items-center gap-3">
+          <div className="flex items-center gap-3 glass px-6 py-3 border-blue-500/10 bg-blue-500/5">
+            <Activity size={16} className="text-blue-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+               Role/Service Engine Active
+            </span>
+          </div>
+
+          <button
+            onClick={async () => {
+              if (!confirm("Deseja executar a migração de dados legados? Isso irá atualizar todos os perfis para o novo padrão institucional.")) return;
+              try {
+                const { runWelcomeMigration } = await import("@/actions/migration-welcome");
+                const res = await runWelcomeMigration();
+                if (res.success && res.results) {
+                  alert(`Sucesso! ${res.results.migrated} usuários migrados de um total de ${res.results.total}. (${res.results.skipped} pulados).`);
+                  fetchUsers();
+                } else {
+                  alert(`Falha na migração de dados.`);
+                }
+              } catch (err: any) {
+                alert(`Erro crítico: ${err.message}`);
+              }
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 text-[var(--accent-start)] rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[var(--accent-start)] hover:text-white transition-all group"
+          >
+            <Rocket size={14} className="group-hover:translate-x-1 transition-transform" />
+            Migrar Dados Legados (Cleanup)
+          </button>
         </div>
       </div>
 
