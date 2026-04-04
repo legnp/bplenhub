@@ -24,7 +24,7 @@ import {
   Briefcase,
   Globe
 } from "lucide-react";
-import { MOCK_SERVICES, MOCK_TOOLS, MOCK_SURVEYS } from "@/config/hub-data";
+import { MOCK_SERVICES, MOCK_TOOLS } from "@/config/hub-data";
 import { useTheme } from "@/context/ThemeContext";
 import { getSocialPosts } from "@/actions/social";
 import { SocialPost } from "@/types/social";
@@ -244,19 +244,27 @@ export function HubHomeView() {
                  </h3>
               </div>
 
-              <div className="p-10 rounded-[2.5rem] bg-[var(--input-bg)] border border-[var(--border-primary)] text-left space-y-8 max-w-2xl mx-auto hover:border-[var(--accent-start)]/30 transition-all shadow-2xl backdrop-blur-xl">
-                 <p className="text-lg font-bold text-[var(--text-primary)] leading-relaxed">
-                    {MOCK_SURVEYS[0].question}
-                 </p>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {MOCK_SURVEYS[0].options.map((opt) => (
-                       <button 
-                         key={opt.id}
-                         className="p-4 bg-[var(--input-bg)] text-left rounded-2xl text-xs font-bold text-[var(--text-secondary)] border border-[var(--border-primary)] hover:bg-[var(--accent-start)] hover:text-white hover:border-[var(--accent-start)] transition-all"
-                       >
-                          {opt.label}
-                       </button>
-                    ))}
+              <div className="p-10 rounded-[3.5rem] bg-gradient-to-br from-[var(--input-bg)] to-transparent border border-[var(--border-primary)] text-center space-y-8 max-w-2xl mx-auto hover:border-[var(--accent-start)]/20 transition-all shadow-2xl backdrop-blur-xl relative group">
+                 {/* Decorative Glow */}
+                 <div className="absolute inset-0 bg-[var(--accent-start)]/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                 <div className="space-y-4 relative z-10">
+                    <div className="w-16 h-16 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                       <Zap size={28} className="text-[var(--accent-start)]" />
+                    </div>
+                    <p className="text-xl font-bold text-[var(--text-primary)] leading-tight">
+                       O BPlen HUB está em <br /> <span className="text-[var(--accent-start)] italic">Evolução Constante.</span>
+                    </p>
+                    <p className="text-[10px] md:text-xs text-[var(--text-muted)] font-black uppercase tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
+                       No momento, não há enquetes abertas. Fique atento às notificações para participar das próximas decisões.
+                    </p>
+                 </div>
+
+                 <div className="pt-6 relative z-10">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-500">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                       Monitoramento Ativo
+                    </div>
                  </div>
               </div>
            </div>
