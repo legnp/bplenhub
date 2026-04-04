@@ -18,7 +18,7 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
     const authMapRef = db.doc(`_AuthMap/${userUid}`);
     const authMapSnap = await authMapRef.get();
 
-    if (authMapSnap.exists()) {
+    if (authMapSnap.exists) {
       matricula = authMapSnap.data()?.matricula;
     } else if (config.id === "welcome_survey") {
       // Geração Atômica de Matrícula para Novos Usuários 🛡️
@@ -27,7 +27,7 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
         const counterSnap = await transaction.get(counterRef);
         
         let count = 1;
-        if (counterSnap.exists()) {
+        if (counterSnap.exists) {
           count = (counterSnap.data()?.count || 0) + 1;
           transaction.update(counterRef, { count, lastUpdated: admin.firestore.FieldValue.serverTimestamp() });
         } else {
