@@ -128,7 +128,6 @@ export function FloatingCTAs() {
                       disabled={isLoggingIn}
                       className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20 disabled:opacity-50"
                    >
-                     {isLoggingIn ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
                      {isLoggingIn ? "CONECTANDO..." : "ACESSAR BPLEN HUB"}
                    </button>
                 )}
@@ -234,7 +233,6 @@ export function FloatingCTAs() {
              disabled={isLoggingIn}
              className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer disabled:opacity-50 gap-2"
            >
-             {isLoggingIn ? <Loader2 size={14} className="animate-spin" /> : <LogIn size={14} />}
              {isLoggingIn ? "Entrando..." : "Acessar BPlen HUB"}
            </button>
         )}

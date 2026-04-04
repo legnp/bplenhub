@@ -10,7 +10,8 @@ import {
   Check,
   ArrowLeft,
   X,
-  LogOut
+  LogOut,
+  ShieldCheck
 } from "lucide-react";
 import { useTheme, BPlenTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
@@ -104,21 +105,6 @@ export function HubHeader() {
       {/* Direita: Ações & Temas */}
       <div className="flex items-center gap-2 md:gap-3">
          
-         {/* Botão de Sair (Prioridade Prática 🛡️) */}
-         <button 
-           onClick={async () => {
-             setIsLoggingOut(true);
-             await logout();
-             router.push("/");
-           }}
-           disabled={isLoggingOut}
-           className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all active:scale-95 disabled:opacity-50 group"
-           title="Encerrar Sessão"
-         >
-            <LogOut size={16} className={`${isLoggingOut ? 'animate-pulse' : ''}`} />
-            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Sair</span>
-         </button>
-
          {/* Seletor de Temas (Dropdown) */}
          <div className="relative" ref={themeMenuRef}>
             <button 
@@ -198,6 +184,33 @@ export function HubHeader() {
                    className="absolute top-16 right-0 p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-40 backdrop-blur-[var(--glass-blur)] z-[200]"
                  >
                     <div className="space-y-4">
+                       {/* Links Principais do Usuário */}
+                       <div className="space-y-1">
+                          <Link 
+                            href="/hub/membro"
+                            onClick={() => setIsSocialMenuOpen(false)}
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-[var(--accent-soft)]/50 border border-[var(--accent-start)]/20 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
+                          >
+                             <ShieldCheck size={16} />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Área de Membro</span>
+                          </Link>
+
+                          <button 
+                            onClick={async () => {
+                              setIsLoggingOut(true);
+                              await logout();
+                              router.push("/");
+                            }}
+                            disabled={isLoggingOut}
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group border border-transparent hover:border-red-500/10"
+                          >
+                             <LogOut size={16} className={isLoggingOut ? "animate-pulse" : ""} />
+                             <span className="text-[10px] font-black uppercase tracking-widest">{isLoggingOut ? "Saindo..." : "Sair"}</span>
+                          </button>
+                       </div>
+
+                       <div className="h-px bg-[var(--border-primary)]" />
+
                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Conectar</p>
                        <div className="grid grid-cols-2 gap-3">
                           {socialLinks.map((social, i) => (
