@@ -27,6 +27,13 @@ function initializeAdmin() {
         privateKey: serverEnv.FIREBASE_PRIVATE_KEY,
       }),
     });
+
+    // ──────────────────────────────
+    // Configurações Globais Firestore Admin 🛡️
+    // ignoreUndefinedProperties: Essencial para evitar erros ao gravar objetos com campos opcionais undefined.
+    // ──────────────────────────────
+    app.firestore().settings({ ignoreUndefinedProperties: true });
+
     console.log(`✅ [Firebase Admin] Instância inicializada: ${serverEnv.FIREBASE_PROJECT_ID}`);
     return app;
   } catch (error: any) {
