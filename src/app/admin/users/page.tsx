@@ -142,6 +142,32 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
+      {/* ⚠️ Alerta de Erro (Debug) */}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="p-6 bg-red-500/10 border border-red-500/20 rounded-[2rem] flex items-center gap-4 text-red-500 shadow-2xl"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-red-500/10 flex items-center justify-center shrink-0">
+               <X size={18} />
+            </div>
+            <div className="flex-1">
+               <h5 className="text-[10px] font-black uppercase tracking-widest">Erro de Sincronização</h5>
+               <p className="text-sm font-medium opacity-80">{error}</p>
+            </div>
+            <button 
+              onClick={() => fetchUsers()}
+              className="px-6 py-2 bg-red-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] transition-all"
+            >
+              Tentar Novamente
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Barra de Busca e Filtros */}
       <div className="flex flex-wrap items-center gap-4 p-5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-[2rem] shadow-2xl backdrop-blur-3xl">
         <div className="relative flex-1 min-w-[300px]">

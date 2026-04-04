@@ -27,10 +27,10 @@ function initializeAdmin() {
         privateKey: serverEnv.FIREBASE_PRIVATE_KEY,
       }),
     });
-    console.log("✅ [Firebase Admin] Instância inicializada com sucesso.");
+    console.log(`✅ [Firebase Admin] Instância inicializada: ${serverEnv.FIREBASE_PROJECT_ID}`);
     return app;
-  } catch (error) {
-    console.error("❌ [Firebase Admin] Erro crítico de inicialização:", error);
+  } catch (error: any) {
+    console.error("❌ [Firebase Admin] Erro Crítico:", error.message);
     return null;
   }
 }

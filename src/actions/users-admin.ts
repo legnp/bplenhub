@@ -24,10 +24,12 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
     // 1. Puxar todos os usuários da base principal (Node Admin SDK)
     const usersRef = getAdminDb().collection("User");
     const usersSnap = await usersRef.get();
+    console.log(`[Users Admin] Usuários encontrados na coleção 'User': ${usersSnap.size}`);
 
     // 2. Puxar todas as permissões administrativas via Collection Group
     const permissionsRef = getAdminDb().collectionGroup("User_Permissions");
     const permissionsSnap = await permissionsRef.get();
+    console.log(`[Users Admin] Documentos de permissão encontrados: ${permissionsSnap.size}`);
 
     // Mapear dados de permissão por matrícula para busca O(1)
     const permissionsMap = new Map<string, { role?: UserRole; services?: UserServices; admin?: boolean }>();
@@ -38,6 +40,8 @@ export async function getAdminUsersList(adminToken?: string): Promise<AdminUser[
           permissionsMap.set(matricula, docSnap.data() as any);
        }
     });
+
+    console.log(`[Users Admin] Mapa de permissões consolidado para ${permissionsMap.size} matrículas.`);
 
     // 3. Montar a lista consolidada
     const adminUsers: AdminUser[] = [];
