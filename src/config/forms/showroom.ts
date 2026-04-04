@@ -5,15 +5,17 @@ import { FormConfig } from "@/types/forms";
  */
 export const showroomFormConfig: FormConfig = {
   id: "showroom_interest",
+  kind: "form",
   title: "Interesse no Showroom BPlen",
   driveFolder: "Showroom",
   rootFolderKey: "PORTFOLIO",
   sheetNamePrefix: "Interesse_Fisico",
   submitLabel: "Quero ser avisado!",
-  steps: [
+  sections: [
     {
       id: "intro",
-      question: "Estamos preparando um espaço físico incrível para você!\nComo você gostaria de utilizá-lo?",
+      title: "Uso do Espaço Físico",
+      description: "Estamos preparando um espaço incrível! Como você gostaria de utilizá-lo?",
       fields: [
         {
           id: "usage_type",
@@ -30,7 +32,8 @@ export const showroomFormConfig: FormConfig = {
     },
     {
       id: "topics",
-      question: "Quais serviços de experimentação você mais sente falta no digital?",
+      title: "Necessidades Físicas",
+      description: "Quais serviços de experimentação você mais sente falta no digital?",
       fields: [
         {
           id: "physical_needs",
@@ -47,7 +50,8 @@ export const showroomFormConfig: FormConfig = {
     },
     {
       id: "feedback",
-      question: "O que não pode faltar no nosso Showroom físico para ser uma experiência nota 10?",
+      title: "Expectativas",
+      description: "O que não pode faltar no nosso Showroom físico para ser uma experiência nota 10?",
       fields: [
         {
           id: "user_expectation",
@@ -59,7 +63,8 @@ export const showroomFormConfig: FormConfig = {
     },
     {
       id: "contact",
-      question: "Como prefere receber o convite para a inauguração?",
+      title: "Inauguração & Contato",
+      description: "Como prefere receber o convite para a inauguração?",
       fields: [
         {
           id: "contact_method",

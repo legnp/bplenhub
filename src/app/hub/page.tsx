@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { WelcomeSurvey } from "@/components/forms/WelcomeSurvey";
+import { SurveyEngine } from "@/components/forms/SurveyEngine";
+import { welcomeSurveyConfig } from "@/config/surveys/welcome";
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import { HubHomeView } from "@/components/hub/HubHomeView";
 
@@ -12,7 +13,6 @@ export default function HubPage() {
   const { user, loading } = useAuthContext();
   
   // Guard de Proteção Rígida (Soberania de Acesso)
-  // Caso o redirect do layout demore ou falhe, impedimos vazamento visual.
   if (!user && !loading) return null;
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState<boolean | null>(null);
   const [checkingSurvey, setCheckingSurvey] = useState(false);
@@ -31,7 +31,7 @@ export default function HubPage() {
           const { matricula } = mapSnap.data();
           const userSnap = await getDoc(doc(db, "User", matricula));
           
-          if (userSnap.exists() && userSnap.data().hasCompletedWelcome) {
+          if (userSnap.exists() && (userSnap.data().hasCompletedWelcome || userSnap.data().User_Welcome)) {
             setHasCompletedSurvey(true);
           } else {
             setHasCompletedSurvey(false);
@@ -41,7 +41,7 @@ export default function HubPage() {
         }
       } catch (err) {
         console.error("Erro ao verificar status da survey:", err);
-        setHasCompletedSurvey(false); // Fallback para abrir a survey em caso de erro para não travar
+        setHasCompletedSurvey(false); 
       } finally {
         setCheckingSurvey(false);
       }
@@ -59,6 +59,13 @@ export default function HubPage() {
   }
 
   if (user && hasCompletedSurvey === false) {
+    // Preparar Configuração Dinâmica para a WelcomeSurvey (Institucional 🧬)
+    const firstName = user.displayName?.split(" ")[0] || "Membro";
+    const dynamicWelcomeConfig = {
+      ...welcomeSurveyConfig,
+      templateData: { firstName }
+    };
+
     return (
       <main className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
         {/* Background Decorations */}
@@ -68,10 +75,9 @@ export default function HubPage() {
         </div>
         
         <div className="relative z-10 w-full mt-10 mb-10">
-          <WelcomeSurvey 
+          <SurveyEngine 
+            config={dynamicWelcomeConfig}
             userUid={user.uid}
-            userName={user.displayName || "Membro"}
-            userEmail={user.email || ""}
             onComplete={() => setHasCompletedSurvey(true)}
           />
         </div>

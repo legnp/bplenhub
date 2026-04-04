@@ -3,9 +3,9 @@ export default function FormsManagementPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] bg-clip-text text-transparent text-left">
-          Gestão de Formulários
+          Gestão de Formulários Operacionais
         </h1>
-        <p className="text-[var(--text-muted)] mt-2 font-medium text-left">Controle de pesquisas e engajamentos do ecossistema.</p>
+        <p className="text-[var(--text-muted)] mt-2 font-medium text-left">Controle de fluxos, cadastros e workflows do ecossistema (Forms_Global).</p>
       </div>
 
       <div className="p-10 text-center border-2 border-dashed border-[var(--border-primary)] rounded-2xl bg-[var(--input-bg)] backdrop-blur-sm mt-8">

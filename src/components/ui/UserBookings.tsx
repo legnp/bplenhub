@@ -23,7 +23,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { UserBooking } from "@/types/calendar";
 
 export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} }: { refreshCounter?: number; onRefresh?: () => void }) {
-  const { matricula } = useAuthContext();
+  const { matricula, user } = useAuthContext();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluating, setIsEvaluating] = useState<string | null>(null);
@@ -46,10 +46,10 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
   }, [fetchBookings, refreshCounter]);
 
   const handleEvaluate = async (bookingId: string, rating: number, feedback: string) => {
-    if (!matricula) return;
+    if (!matricula || !user?.uid) return;
     setIsEvaluating(bookingId);
     try {
-      const res = await submitEvaluationAction(matricula, bookingId, rating, feedback);
+      const res = await submitEvaluationAction(matricula, bookingId, rating, feedback, user.uid);
       if (res.success) {
         alert("Avaliação enviada com sucesso!");
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, rating, feedback, evaluatedAt: new Date().toISOString() } : b));

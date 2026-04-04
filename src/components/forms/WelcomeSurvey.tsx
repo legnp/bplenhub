@@ -21,6 +21,11 @@ interface WelcomeSurveyProps {
   onComplete: () => void;
 }
 
+/**
+ * WelcomeSurvey (Referência Histórica 📜)
+ * Representa a implementação original da lógica narrativa de boas-vindas.
+ * NÃO deve ser promovida como padrão institucional; para novas surveys, use o SurveyEngine (Survey_Global).
+ */
 export function WelcomeSurvey({ userUid, userName, userEmail, onComplete }: WelcomeSurveyProps) {
   const [step, setStep] = useState(0);
   const [typedComplete, setTypedComplete] = useState(false);

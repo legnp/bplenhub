@@ -90,8 +90,11 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
   }
 }
 
+import { bookingScreeningFormConfig } from "@/config/forms/booking-screening";
+import { submitGenericForm } from "./generic-form";
+
 /**
- * Interface adaptada para o bookPublicMeetingAction
+ * Interface adaptada para o bookPublicMeetingAction (Forms_Global 🧬)
  */
 export async function bookPublicMeetingAction(formData: {
   name: string;
@@ -101,16 +104,19 @@ export async function bookPublicMeetingAction(formData: {
   slot: string; // Este é o ID do evento (eventId)
 }) {
   try {
-    // Agora simplesmente repassamos para a bookEventAction unificada
-    // O userId para leads pode ser um hash do email ou um UUID temporário
     const userId = `lead_${Buffer.from(formData.email).toString('base64').substring(0, 10)}`;
 
+    // 1. Persistência Institucional da Triagem (Forms_Global)
+    // Usamos o leadId como chave na coleção User para manter a soberania de dados
+    await submitGenericForm(bookingScreeningFormConfig, formData.screening, userId);
+
+    // 2. Execução do Booking
     const result = await bookEventAction(
-      formData.slot, // eventId
+      formData.slot,
       userId,
       formData.email,
-      undefined, // sem matricula
-      undefined, // sem nickname
+      undefined,
+      undefined,
       { 
         type: formData.screening.objetivo || "Reunião Estratégica", 
         expectations: `Cargo: ${formData.screening.cargo} | Como conheceu: ${formData.screening.conheceu_como}` 
@@ -123,7 +129,7 @@ export async function bookPublicMeetingAction(formData: {
 
     return result;
   } catch (error: unknown) {
-    console.error("Erro no bookPublicMeetingAction unificado:", error);
+    console.error("Erro no bookPublicMeetingAction institucional:", error);
     return {
       success: false,
       message: "Erro ao processar seu agendamento."
@@ -189,13 +195,19 @@ export async function submitBookingProposalAction(formData: {
   options: { date: string; time: string }[];
 }) {
   try {
+    const leadId = `lead_${Buffer.from(formData.email).toString('base64').substring(0, 10)}`;
     const proposalId = `prop_${Date.now()}_${Buffer.from(formData.email).toString('base64').substring(0, 5)}`;
     
+    // 1. Persistência Institucional da Triagem (Forms_Global)
+    await submitGenericForm(bookingScreeningFormConfig, formData.screening, leadId);
+
+    // 2. Gravacao da Proposta
     await setDoc(doc(db, "Booking_Proposals", proposalId), {
       ...formData,
       status: "pending",
       createdAt: new Date().toISOString(),
-      type: "External_Proposal"
+      type: "External_Proposal",
+      leadId
     });
 
     // --- Envio de E-mail de Confirmação da Proposta (Assíncrono) ---

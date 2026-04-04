@@ -460,24 +460,45 @@ export async function getUserBookingsAction(matricula: string): Promise<UserBook
   }
 }
 
+import { submitSurvey } from "./submit-survey";
+import { bookingEvaluationSurveyConfig } from "@/config/surveys/booking-evaluation";
+
 /**
  * Submete avaliação Likert e feedback para um agendamento na subcoleção.
+ * Agora integrado à Survey_Global.
  */
-export async function submitEvaluationAction(matricula: string, bookingId: string, rating: number, feedback: string) {
+export async function submitEvaluationAction(
+  matricula: string, 
+  bookingId: string, 
+  rating: number, 
+  feedback: string,
+  userUid: string
+) {
   try {
+    // 1. Persistência de Transição (Local no Booking)
     const bookingRef = doc(db, "User", matricula, "User_Bookings", bookingId);
     await setDoc(bookingRef, {
       rating,
       feedback,
       evaluatedAt: serverTimestamp()
     }, { merge: true });
+
+    // 2. Persistência Institucional (Survey_Global)
+    // Criamos um ID dinâmico vinculado ao agendamento
+    const dynamicConfig = {
+      ...bookingEvaluationSurveyConfig,
+      id: `${bookingEvaluationSurveyConfig.id}_${bookingId}`
+    };
+
+    await submitSurvey(dynamicConfig, { rating, feedback }, userUid);
     
     return { success: true };
   } catch (error) {
-    console.error("Erro ao submeter avaliação na subcoleção:", error);
+    console.error("Erro ao submeter avaliação institucional:", error);
     return { success: false };
   }
 }
+
 
 /**
  * Cancela um agendamento na subcoleção do usuário, estornando a vaga e liberando a trava de semana.

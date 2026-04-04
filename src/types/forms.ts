@@ -1,6 +1,9 @@
+import type { FieldValue, Timestamp } from "firebase/firestore";
+import { EntityKind } from "./intake";
+
 /**
- * BPlen HUB — Forms Platform Schema (V1.0)
- * Definições universais para renderização dinâmica de formulários.
+ * BPlen HUB — Forms Platform Schema (V2.0 🏗️)
+ * Definições universais para renderização dinâmica de formulários operacionais.
  */
 
 export type FormFieldType = 
@@ -9,7 +12,13 @@ export type FormFieldType =
   | "checkbox" 
   | "textarea" 
   | "select" 
-  | "info"; // Para passos apenas informativos
+  | "number"
+  | "date"
+  | "info";
+
+export type FormMode = "create" | "edit" | "view" | "submitted";
+export type FormStatus = "draft" | "submitted" | "updated" | "archived";
+export type FormValue = string | string[] | boolean | number | null | undefined;
 
 export interface FormFieldOption {
   label: string;
@@ -21,30 +30,57 @@ export interface FormFieldConfig {
   type: FormFieldType;
   label?: string;
   placeholder?: string;
-  options?: FormFieldOption[] | string[]; // Suporta lista de strings ou objetos label/value
+  options?: FormFieldOption[] | string[];
   required?: boolean;
   autoFocus?: boolean;
-  description?: string; // Para campos informativos (type="info")
-  metadata?: Record<string, unknown>; // Para expansões futuras (campos calculados, etc)
+  description?: string;
+  metadata?: Record<string, unknown>;
 }
 
-export interface FormStepConfig {
+export interface FormSectionConfig {
   id: string;
-  question: string;
-  fields: FormFieldConfig[];
+  title?: string; // Título operacional da seção (Recomendado)
   description?: string;
+  fields: FormFieldConfig[];
+  /** @deprecated Use 'title' para conformidade com Forms_Global */
+  question?: string; 
+}
+
+/** @deprecated Use 'FormSectionConfig' para conformidade com Forms_Global */
+export interface FormStepConfig extends FormSectionConfig {}
+
+export interface FormWorkflowMeta {
+  nextStep?: string; // TODO: Migrar para nextSection
+  triggers?: string[];
+  ownerRole?: string[];
 }
 
 export interface FormConfig {
   id: string;
+  kind: Extract<EntityKind, "form" | "hybrid">;
   title: string;
-  steps: FormStepConfig[];
+  /** @deprecated Use 'sections' para conformidade com Forms_Global */
+  steps?: FormStepConfig[]; 
+  sections?: FormSectionConfig[];
   submitLabel?: string;
-  driveFolder?: string; // Nome da pasta do formulário (ex: 'Showroom')
-  rootFolderKey?: "PORTFOLIO" | "USERS" | "ATAS"; // Qual o domínio pai no Drive
-  sheetNamePrefix?: string; // Prefixo do nome da planilha
+  driveFolder?: string;
+  rootFolderKey?: "PORTFOLIO" | "USERS" | "ATAS";
+  sheetNamePrefix?: string;
+  workflow?: FormWorkflowMeta;
 }
 
 export interface FormResponse {
-  [fieldId: string]: string | string[] | boolean | number | null | undefined;
+  [fieldId: string]: FormValue;
+}
+
+export interface FormRecord {
+  formId: string;
+  matricula: string;
+  userUid: string;
+  mode: FormMode;
+  status: FormStatus;
+  data: FormResponse;
+  submittedAt: FieldValue | Timestamp | Date | null;
+  updatedAt?: FieldValue | Timestamp | Date | null;
+  workflow?: FormWorkflowMeta;
 }

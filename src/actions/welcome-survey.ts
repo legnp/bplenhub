@@ -13,18 +13,21 @@ import {
   syncDataToSheet 
 } from "@/lib/drive-utils";
 
-/**
- * BPlen HUB — Welcome Survey Action (Versão Final Refatorada 🛡️)
- * Gerencia a matrícula BPlen, gravação no Firestore e sincronização Drive/Sheets.
- */
+import { submitSurvey } from "./submit-survey";
+import { welcomeSurveyConfig } from "@/config/surveys/welcome";
 
-export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
+/**
+ * BPlen HUB — Welcome Survey Action (Institucional 🧬)
+ * Gerencia a matrícula BPlen, gravação no Firestore conforme Survey_Global e sincronização Drive/Sheets.
+ */
+export async function submitWelcomeSurvey(responses: Record<string, string | string[]>, authData: { uid: string, email: string, name: string }) {
   try {
     // 1. Gerar Matrícula BPlen (Blindagem por Transação 🛡️)
     const count = await getNextUserSequence();
 
     const seq = count.toString().padStart(3, "0");
-    const type = data.User_Type;
+    const userTypeRaw = responses.userType as string;
+    const type = userTypeRaw.includes("empresa") || userTypeRaw.includes("PJ") ? "PJ" : "PF";
 
     const now = new Date();
     const yy = String(now.getFullYear()).slice(-2);
@@ -34,32 +37,41 @@ export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
 
     const matricula = `BP-${seq}-${type}-${aammdd}`;
 
-    // 2. Gravar no Firestore (Ecossistema de Usuários)
+    // 2. Persistência Institucional (Survey_Global 🧬)
+    // Isso já grava em User/{matricula}/Surveys/welcome_survey
+    await submitSurvey(welcomeSurveyConfig, responses as any, authData.uid);
+
+    // 3. Atualizar Perfil Raiz do Usuário
     const userRef = doc(db, "User", matricula);
     await setDoc(userRef, {
-      uid: data.uid,
-      email: data.email,
-      Authentication_Name: data.Authentication_Name,
+      uid: authData.uid,
+      email: authData.email,
+      Authentication_Name: authData.name,
+      User_Nickname: responses.nickname,
+      User_Type: type,
       createdAt: serverTimestamp(),
       hasCompletedWelcome: true,
       lastUpdated: serverTimestamp(),
+      // Mantemos uma cópia legacy por compatibilidade imediata se necessário, 
+      // mas o "Source of Truth" de pesquisa agora é Surveys/welcome_survey
       User_Welcome: {
-        ...data,
+        ...responses,
         matricula,
         submittedAt: serverTimestamp()
       }
     }, { merge: true });
 
-    const uidMapRef = doc(db, "_AuthMap", data.uid);
+    // 4. Mapear UID -> Matrícula
+    const uidMapRef = doc(db, "_AuthMap", authData.uid);
     await setDoc(uidMapRef, { matricula });
 
-    // 3. Sincronização Google Drive / Sheets (Via Drive Utils)
-    await syncToDrive(matricula, data);
+    // 5. Sincronização Google Drive / Sheets
+    await syncToDrive(matricula, authData, responses);
 
     return { success: true, matricula };
   } catch (err: unknown) {
     const error = err as Error;
-    console.error("Erro na Welcome Action:", error);
+    console.error("Erro na Welcome Action Institucional:", error);
     throw new Error(error.message || "Falha ao processar cadastro inicial.");
   }
 }
@@ -67,7 +79,7 @@ export async function submitWelcomeSurvey(data: WelcomeSurveyData) {
 /**
  * Sincronização Google Drive / Sheets (Orquestrada 📡)
  */
-async function syncToDrive(matricula: string, data: WelcomeSurveyData) {
+async function syncToDrive(matricula: string, authData: { email: string, uid: string }, responses: any) {
   try {
     checkKeySignature();
     
@@ -87,22 +99,19 @@ async function syncToDrive(matricula: string, data: WelcomeSurveyData) {
     );
 
     const headers = [
-      "Timestamp", "Matrícula", "UID", "Email", "Nome Autenticação", 
-      "Como devemos te chamar?", "Tipo", "Temas Buscados", 
-      "Demanda", "Origem"
+      "Timestamp", "Matrícula", "UID", "Email", 
+      "Nickname", "Interesses", "Demanda", "Origem"
     ];
     
     const rowData = [
       new Date().toLocaleString("pt-BR"),
       matricula,
-      data.uid,
-      data.email,
-      data.Authentication_Name,
-      data.User_Nickname,
-      data.User_Type,
-      data.Customer_FirstTopics.join(", "),
-      data.Customer_FirstDemand,
-      data.Customer_Origin
+      authData.uid,
+      authData.email,
+      responses.nickname,
+      Array.isArray(responses.topics) ? responses.topics.join(", ") : responses.topics,
+      responses.demand,
+      responses.origin
     ];
 
     await syncDataToSheet(sheets, spreadsheetId, headers, rowData);

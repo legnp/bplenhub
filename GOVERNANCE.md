@@ -10,6 +10,7 @@ Uma tarefa ou funcionalidade é considerada **CONCLUÍDA** apenas quando:
 3. **Lint & Style**: `npm run lint` não reporta erros (avisos de acessibilidade em imagens são aceitáveis temporariamente).
 4. **Testes**: `npm run test` passa em 100% dos casos.
 5. **Arquitetura Hierárquica**: Dados sensíveis de usuários residem em subcoleções privadas (`User/{matricula}/...`).
+6. **Classificação de Ativos**: Toda nova demanda de coleta deve ser classificada como **Survey**, **Form** ou **Hybrid** conforme as definições de `SURVEY_GLOBAL.md` e `FORMS_GLOBAL.md`.
 
 ## ⚙️ Rotina de Validação (Pipeline Local)
 

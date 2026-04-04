@@ -95,20 +95,3 @@ export const MOCK_TOOLS: BPlenTool[] = [
     status: "soon"
   }
 ];
-
-/**
- * MOCK DATA: PESQUISAS
- */
-export const MOCK_SURVEYS: BPlenSurvey[] = [
-  {
-    id: "srv-01",
-    question: "Qual o seu maior desafio atual em gestão de pessoas?",
-    status: "active",
-    options: [
-      { id: "opt-1", label: "Retenção de Talentos" },
-      { id: "opt-2", label: "Cultura Organizacional" },
-      { id: "opt-3", label: "Recrutamento Técnico" },
-      { id: "opt-4", label: "Liderança e Engajamento" }
-    ]
-  }
-];

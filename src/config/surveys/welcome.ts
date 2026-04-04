@@ -1,0 +1,104 @@
+import { SurveyConfig } from "@/types/survey";
+
+/**
+ * Configuração: Welcome Survey (Boas-vindas Institucional 🧬)
+ * Esta é a primeira interação do usuário no HUB.
+ */
+export const welcomeSurveyConfig: SurveyConfig = {
+  id: "welcome_survey",
+  kind: "survey",
+  title: "Boas-vindas ao BPlen HUB",
+  steps: [
+    {
+      id: "step_nickname",
+      question: "Olá {{firstName}}!!!\nFicamos muito felizes com a sua chegada a BPlen HUB!\n\nComo devemos te chamar?",
+      fields: [
+        {
+          id: "nickname",
+          type: "text",
+          label: "Seu Apelido ou Nome de Preferência",
+          placeholder: "Ex: João, Lisa, Eng. Maria...",
+          required: true,
+          autoFocus: true
+        }
+      ]
+    },
+    {
+      id: "step_type",
+      question: "Para o que você busca a BPlen?",
+      fields: [
+        {
+          id: "userType",
+          type: "choice",
+          label: "Seu Perfil",
+          options: [
+            "Para minha Carreira Profissional",
+            "Para o DHO da minha empresa"
+          ],
+          required: true
+        }
+      ]
+    },
+    {
+      id: "step_topics",
+      question: "{{displayName}}, quais temas podemos te oferecer aqui na BPlen HUB?",
+      fields: [
+        {
+          id: "topics",
+          type: "choice", // No SurveyEngine, se houver 'isMultiple' ou lógica similar, usaremos. 
+          label: "Temas de Interesse",
+          options: [
+            "Melhorar meu currículo",
+            "Transição de carreira",
+            "Liderança e gestão",
+            "Soft Skills",
+            "Desenvolvimento de talentos (DHO)"
+          ],
+          required: true
+          // Nota: O SurveyEngine precisará suportar múltipla escolha se quisermos manter paridade total.
+        }
+      ]
+    },
+    {
+      id: "step_demand",
+      question: "Porque você acredita que podemos te ajudar com os temas selecionados?",
+      fields: [
+        {
+          id: "demand",
+          type: "textarea",
+          label: "Sua Expectativa",
+          placeholder: "Descreva brevemente o que espera...",
+          required: true
+        }
+      ]
+    },
+    {
+      id: "step_origin",
+      question: "Como você nos conheceu?",
+      fields: [
+        {
+          id: "origin",
+          type: "choice",
+          label: "Origem",
+          options: [
+            "Instagram",
+            "LinkedIn",
+            "Indicação",
+            "Outro"
+          ],
+          required: true
+        }
+      ]
+    }
+  ],
+  analytics: {
+    surveyId: "welcome_survey",
+    domain: "ONBOARDING",
+    context: "first_access",
+    version: "2.0"
+  },
+  policy: {
+    editable: false
+  },
+  submitLabel: "clique aqui para entrar"
+};
