@@ -45,7 +45,8 @@ export const welcomeSurveyConfig: SurveyConfig = {
       fields: [
         {
           id: "topics",
-          type: "choice", // No SurveyEngine, se houver 'isMultiple' ou lógica similar, usaremos. 
+          type: "choice",
+          isMultiple: true, 
           label: "Temas de Interesse",
           options: [
             "Melhorar meu currículo",
