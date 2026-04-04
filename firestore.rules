@@ -25,9 +25,12 @@ service cloud.firestore {
       allow write: if false; // Escrita exclusiva via Admin SDK / Server Actions
 
       // 🏗️ Sub-coleção de Permissões (Entitlements)
-      // O usuário pode ler suas próprias permissões para habilitar UI reativa.
+      // O usuário só pode ler suas PRÓPRIAS permissões.
       match /User_Permissions/access {
-        allow read: if request.auth != null;
+        allow read: if request.auth != null && (
+          // Opção 1: Verificar se o UID do solicitante mapeia para esta matrícula
+          get(/databases/$(database)/documents/_AuthMap/$(request.auth.uid)).data.matricula == matricula
+        );
         allow write: if false; // Escrita soberana via Servidor
       }
       
