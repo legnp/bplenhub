@@ -27,20 +27,13 @@ export async function runWelcomeMigration() {
       const matricula = userDoc.id;
       const legacyWelcome = userData.User_Welcome;
 
-      // 1. Verificar se há dados legados e se a migração já ocorreu
+      // 1. Verificar se há dados legados
       if (!legacyWelcome) {
         results.skipped++;
         continue;
       }
 
       const surveyRef = db.collection("User").doc(matricula).collection("Surveys").doc("welcome_survey");
-      const surveySnap = await surveyRef.get();
-
-      if (surveySnap.exists) {
-        results.skipped++;
-        console.log(`ℹ️ [Migration] Pulando ${matricula}: Já migrado.`);
-        continue;
-      }
 
       // 2. Mapeamento de Campos (Legacy -> Institutional)
       const institutionalData: Record<string, SurveyValue> = {
@@ -73,6 +66,8 @@ export async function runWelcomeMigration() {
         const userRef = db.collection("User").doc(matricula);
         await userRef.set({
           hasCompletedWelcome: true,
+          Authentication_Name: legacyWelcome.Authentication_Name || legacyWelcome.name || userData.Authentication_Name || userData.User_Name || "Membro BPlen",
+          email: legacyWelcome.email || legacyWelcome.User_Email || userData.email || userData.User_Email || "",
           User_Nickname: institutionalData.nickname,
           User_Type: String(institutionalData.userType).includes("empresa") || String(institutionalData.userType).includes("PJ") ? "PJ" : "PF",
           lastUpdated: admin.firestore.FieldValue.serverTimestamp()

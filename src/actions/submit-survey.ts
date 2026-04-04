@@ -73,15 +73,30 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
       const userTypeRaw = (responses.userType as string) || "member";
       const userType = userTypeRaw.includes("empresa") || userTypeRaw.includes("PJ") ? "PJ" : "PF";
 
-      // A. Atualizar Perfil Raiz do Usuário 👤
+      // B. Obter dados oficiais do Auth para officializar o Perfil Raiz 🛡️
+      let authName = "Membro BPlen";
+      let authEmail = "";
+      try {
+        const { getAdminAuth } = await import("@/lib/firebase-admin");
+        const authAdmin = getAdminAuth();
+        const userAuth = await authAdmin.getUser(userUid);
+        authName = userAuth.displayName || userAuth.email?.split("@")[0] || authName;
+        authEmail = userAuth.email || "";
+      } catch (authErr) {
+        console.warn("⚠️ [SurveyEngine] Falha ao buscar metadados do Auth:", authErr);
+      }
+
+      // C. Atualizar Perfil Raiz do Usuário (Soberania de Identidade 👤)
       await userRef.set({
         hasCompletedWelcome: true,
+        Authentication_Name: authName,
+        email: authEmail,
         User_Nickname: nickname || null,
         User_Type: userType,
         lastUpdated: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 
-      // B. Sincronização Google Drive (Resiliência 🛰️)
+      // D. Sincronização Google Drive (Resiliência 🛰️)
       try {
         const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
         const { serverEnv } = await import("@/env");
