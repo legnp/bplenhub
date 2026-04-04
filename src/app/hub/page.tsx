@@ -10,6 +10,10 @@ import { HubHomeView } from "@/components/hub/HubHomeView";
 
 export default function HubPage() {
   const { user, loading } = useAuthContext();
+  
+  // Guard de Proteção Rígida (Soberania de Acesso)
+  // Caso o redirect do layout demore ou falhe, impedimos vazamento visual.
+  if (!user && !loading) return null;
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState<boolean | null>(null);
   const [checkingSurvey, setCheckingSurvey] = useState(false);
 
