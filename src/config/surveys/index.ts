@@ -1,16 +1,23 @@
-import { SurveyConfig } from "@/types/survey";
+import { welcomeSurveyConfig } from "./welcome";
 import { pilotSurveyConfig } from "./pilot";
+import { check_in_v1 } from "./definitions/check-in";
 
 /**
- * SURVEY_REGISTRY (Fonte de Verdade 📚)
- * Todas as pesquisas institucionais devem ser registradas aqui
+ * BPlen HUB — Survey Registry (🗂️)
+ * Centraliza todas as definições de pesquisa do projeto
  * para serem descobertas pelo Admin e pelo SurveyEngine.
  */
-export const SURVEY_REGISTRY: SurveyConfig[] = [
-  pilotSurveyConfig,
-  // Outras surveys futuras entram aqui
-];
+export const surveys = {
+  welcome_survey: welcomeSurveyConfig,
+  pilot_survey: pilotSurveyConfig,
+  check_in_v1
+};
 
-export function getSurveyConfig(id: string): SurveyConfig | undefined {
-  return SURVEY_REGISTRY.find(s => s.id === id);
+export const SURVEY_REGISTRY = Object.values(surveys);
+
+export type SurveyRegistry = typeof surveys;
+export type SurveyId = keyof SurveyRegistry;
+
+export function getSurveyConfig(id: string) {
+  return surveys[id as SurveyId];
 }

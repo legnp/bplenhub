@@ -126,5 +126,41 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     console.log(`✨ [Effects] Fluxo de Onboarding finalizado: ${matricula}`);
   }
 
-  // OUTROS EFEITOS (Ex: NPS, Avaliações, etc) - Adicionar aqui conforme a complexidade aumentar
+  // EFEITOS: Check-in de Carreira 📊
+  if (surveyId === "check_in_v1") {
+    console.log(`📡 [Effects] Iniciando processamento Check-in: ${matricula}`);
+    
+    try {
+      const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
+      const { serverEnv } = await import("@/env");
+      const { ensureFolder, createSpreadsheet, syncDataToSheet } = await import("@/lib/drive-utils");
+
+      const drive = await getDriveClient();
+      const sheets = await getSheetsClient();
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+
+      const isPJ = matricula.includes("-PJ-");
+      const catFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, catFolderId, matricula);
+      
+      // Pasta específica para Surveys/Checkins dentro do usuário
+      const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
+      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Check-in - ${matricula}`);
+
+      const headers = ["Timestamp", "Matrícula", "Nicho", "Desafios", "Objetivos", "Regime"];
+      const rowData: (string | number | boolean | null)[] = [
+        new Date().toLocaleString("pt-BR"),
+        matricula,
+        String((responses.nicho_cascata as any)?.primary || "N/A"),
+        Array.isArray(responses.desafios_multi) ? responses.desafios_multi.join(", ") : "N/A",
+        String(responses.objetivos_timeline || "N/A"),
+        String(responses.regime_choice || "N/A")
+      ];
+
+      await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
+      console.log(`✅ [Effects] Check-in sincronizado com Drive: ${matricula}`);
+    } catch (driveErr) {
+      console.error(`❌ [Effects] Erro na sincronização Drive do Check-in:`, driveErr);
+    }
+  }
 }

@@ -1,0 +1,100 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
+import { InputGlass } from "@/components/ui/InputGlass";
+
+interface Option {
+  label: string;
+  value: string;
+  subOptions?: string[];
+}
+
+interface CascadedValue {
+  primary: string;
+  secondary: string;
+  primaryOther?: string;
+  secondaryOther?: string;
+}
+
+interface CascadedSelectProps {
+  options: Option[];
+  value: CascadedValue;
+  onChange: (updated: CascadedValue) => void;
+  labels: { primary: string; secondary: string };
+}
+
+export function CascadedSelect({ options, value, onChange, labels }: CascadedSelectProps) {
+  const [selectedPrimary, setSelectedPrimary] = useState<Option | null>(
+    options.find(o => o.value === value?.primary) || null
+  );
+
+  const handlePrimaryChange = (opt: Option) => {
+    setSelectedPrimary(opt);
+    onChange({ 
+      primary: opt.value, 
+      secondary: "",
+      primaryOther: opt.value === "Outros" ? value?.primaryOther : undefined 
+    });
+  };
+
+  const handleSecondaryChange = (val: string) => {
+    onChange({ ...value, secondary: val });
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Nível 1: Primário (Nicho/Estágio) */}
+      <div className="space-y-4">
+        <label className="text-xs font-bold uppercase tracking-widest text-[var(--accent-start)]">
+          {labels.primary}
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {options.map((opt) => (
+            <ChoiceButton
+              key={opt.value}
+              active={value?.primary === opt.value}
+              onClick={() => handlePrimaryChange(opt)}
+            >
+              <span className="text-xs">{opt.label}</span>
+            </ChoiceButton>
+          ))}
+        </div>
+        {value?.primary === "Outros" && (
+           <InputGlass
+            placeholder="Especifique..."
+            value={value?.primaryOther || ""}
+            onChange={(e) => onChange({ ...value, primaryOther: e.target.value })}
+          />
+        )}
+      </div>
+
+      {/* Nível 2: Secundário (Departamento/Anos Exp) - Só aparece após selecionar primário */}
+      {selectedPrimary && (
+        <div className="space-y-4 animate-fade-in-up">
+           <label className="text-xs font-bold uppercase tracking-widest text-[var(--accent-start)]">
+            {labels.secondary}
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {selectedPrimary.subOptions?.map((sub) => (
+              <ChoiceButton
+                key={sub}
+                active={value?.secondary === sub}
+                onClick={() => handleSecondaryChange(sub)}
+              >
+                <span className="text-xs">{sub}</span>
+              </ChoiceButton>
+            ))}
+          </div>
+          {value?.secondary === "Outros" && (
+            <InputGlass
+              placeholder="Especifique..."
+              value={value?.secondaryOther || ""}
+              onChange={(e) => onChange({ ...value, secondaryOther: e.target.value })}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

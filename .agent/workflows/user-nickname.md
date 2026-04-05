@@ -2,14 +2,14 @@
 description: Como buscar o User_Nickname do usuário no Firestore
 ---
 
-# Regra Global: Extração do User_Nickname
+# Regra Global: Extração do User_Nickname (v2.0 🧬)
 
-Sempre que for necessário buscar o nome/apelido do usuário no projeto BPlen HUB, seguir obrigatoriamente esta rota de 3 passos:
+Sempre que for necessário buscar o nome/apelido do usuário no projeto BPlen HUB, seguir obrigatoriamente esta rota de 2 passos (Soberania de Dados):
 
 ## Caminho no Firestore
 
 ```
-_AuthMap/{userId} → matricula → User/{matricula} → User_Welcome (Map) → User_Nickname
+_AuthMap/{userId} → matricula → User/{matricula} → User_Nickname (Raiz)
 ```
 
 ## Passos Detalhados
@@ -27,25 +27,24 @@ _AuthMap/{userId} → matricula → User/{matricula} → User_Welcome (Map) → 
    const userSnap = await getDoc(userRef);
    ```
 
-3. **Extrair o nickname** do Map `User_Welcome` dentro do documento:
+3. **Extrair o nickname** com os fallbacks corretos (Priorizando Raiz):
    ```ts
    const d = userSnap.data();
-   const welcome = d.User_Welcome || {};
-   const nickname = welcome.User_Nickname || welcome.Authentication_Name || d.User_Nickname || d.User_Name || "Membro BPlen";
+   const nickname = d.User_Nickname || d.User_Welcome?.User_Nickname || d.Authentication_Name || d.User_Name || "Membro BPlen";
    ```
 
-## Ordem de Prioridade dos Fallbacks
+## Ordem de Prioridade dos Fallbacks (Soberania)
 
-| Prioridade | Campo                              | Localização        |
-|------------|------------------------------------|--------------------|
-| 1          | `User_Welcome.User_Nickname`       | Map aninhado       |
-| 2          | `User_Welcome.Authentication_Name` | Map aninhado       |
-| 3          | `User_Nickname`                    | Raiz do documento  |
-| 4          | `User_Name`                        | Raiz do documento  |
-| 5          | `"Membro BPlen"`                   | Fallback genérico  |
+| Prioridade | Campo                              | Localização        | Motivo                              |
+|------------|------------------------------------|--------------------|-------------------------------------|
+| 1          | `User_Nickname`                    | Raiz do documento  | **Padrão Atual (Hardening)**        |
+| 2          | `User_Welcome.User_Nickname`       | Map aninhado       | Compatibilidade Legada (Pesquisa)   |
+| 3          | `Authentication_Name`              | Raiz do documento  | Nome vindo do Google/E-mail        |
+| 4          | `User_Name`                        | Raiz do documento  | Fallback de Importação             |
+| 5          | `"Membro BPlen"`                   | Fallback genérico  | Garantia contra campos vazios      |
 
-## Regras
+## Regras de Governança
 
-- **NUNCA** acessar `User_Nickname` diretamente na raiz do documento sem antes verificar `User_Welcome.User_Nickname`.
-- O campo `User_Welcome` é um **Map** (objeto aninhado) no Firestore, não um documento separado.
-- Essa mesma lógica deve ser aplicada em: e-mails (Resend), dashboards, cards de agendamento, e qualquer outro ponto que exiba o nome do usuário.
+- **PRIORIDADE MÁXIMA**: O campo `User_Nickname` na raiz do documento é o "Estado da Arte" do projeto.
+- **LEGADO**: O campo `User_Welcome` (Map) ainda existe para usuários antigos, mas deve ser usado apenas como 2º fallback.
+- **SINCRONIA**: Essa mesma lógica deve ser aplicada em: e-mails (Resend), dashboards, cards de agendamento, e qualquer outro ponto que exiba o nome do usuário.

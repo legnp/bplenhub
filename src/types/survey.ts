@@ -46,15 +46,21 @@ export interface SurveyStep {
 
 export interface SurveyFieldConfig {
   id: string;
-  type: "choice" | "text" | "textarea" | "scale" | "info";
+  type: "choice" | "text" | "textarea" | "scale" | "info" | "buttons" | "multi_select" | "cascaded" | "benefits" | "currency_group" | "likert";
   label?: string;
   placeholder?: string;
-  options?: string[]; // Para choice ou scale customizada
+  options?: string[] | { label: string; value: string; subOptions?: string[] }[]; 
   required?: boolean;
   autoFocus?: boolean;
-  min?: number; // Para range de scale
-  max?: number; // Para range de scale
-  isMultiple?: boolean; // Para seleções múltiplas (checkboxes)
+  min?: number; 
+  max?: number; 
+  isMultiple?: boolean; 
+  logic?: Record<string, string>; // Mapeamento de valor -> ID do próximo passo
+  validation?: {
+    minSelections?: number;
+    maxSelections?: number;
+    pattern?: string;
+  };
 }
 
 export interface SurveyStepConfig {
@@ -75,7 +81,7 @@ export interface SurveyConfig {
   templateData?: Record<string, string>; // Dados para interpolação nas perguntas
 }
 
-export type SurveyValue = string | string[] | number | boolean | null;
+export type SurveyValue = string | string[] | number | boolean | null | Record<string, any>;
 
 export interface SurveyResponse {
   surveyId: string;

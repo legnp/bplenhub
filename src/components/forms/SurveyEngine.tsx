@@ -9,7 +9,13 @@ import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { InputGlass } from "@/components/ui/InputGlass";
 import { TextareaGlass } from "@/components/ui/TextareaGlass";
 import { CheckboxItem } from "@/components/ui/CheckboxItem";
-import { submitSurvey } from "@/actions/submit-survey";
+
+// Novos Componentes de Campo 🧬
+import { MultiSelect } from "./SurveyFields/MultiSelect";
+import { CascadedSelect } from "./SurveyFields/CascadedSelect";
+import { BenefitsPackage } from "./SurveyFields/BenefitsPackage";
+import { CurrencyGroup } from "./SurveyFields/CurrencyGroup";
+import { LikertScale } from "./SurveyFields/LikertScale";
 
 interface SurveyEngineProps {
   config: SurveyConfig;
@@ -18,9 +24,9 @@ interface SurveyEngineProps {
 }
 
 /**
- * SurveyEngine (Motor de Pesquisas V2.0 📊)
- * Focado em UX narrativa, progressão guiada e animação textual.
- * Aderente à Survey_Global.
+ * SurveyEngine (Motor de Pesquisas V2.5 📊)
+ * Focado em UX narrativa, progressão guiada e algoritmos de decisão.
+ * Agora suporta NAVEGAÇÃO CONDICIONAL (Grafos).
  */
 export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -32,9 +38,8 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const currentStep = config.steps[currentStepIndex];
   const isLastStep = currentStepIndex === config.steps.length - 1;
 
-  // Lógica de Interpolação de Texto Reativa (ex: {{nickname}} ou {{firstName}})
+  // Lógica de Interpolação de Texto Reativa (Suporta {{nickname}} e {User-nickname})
   const interpolate = (text: string) => {
-    // Mesclar dados estáticos do template com as respostas atuais para interpolação em tempo real
     const combinedData = {
       ...(config.templateData || {}),
       ...responses
@@ -42,9 +47,9 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
     let interpolated = text;
     Object.entries(combinedData).forEach(([key, value]) => {
-      if (typeof value === "string" || typeof value === "number") {
-        interpolated = interpolated.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
-      }
+      const valStr = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      interpolated = interpolated.replace(new RegExp(`{{${key}}}`, 'g'), valStr);
+      interpolated = interpolated.replace(new RegExp(`{${key}}`, 'g'), valStr);
     });
 
     return interpolated;
@@ -52,7 +57,6 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
   const currentQuestion = interpolate(currentStep.question);
 
-  // Lógica de Reset de Passo
   useEffect(() => {
     setTypedComplete(false);
     setShowNextButton(false);
@@ -63,6 +67,20 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   };
 
   const handleNext = () => {
+    // 1. Verificar Lógica Condicional (Salto de Grafo) 🧬
+    const firstField = currentStep.fields[0];
+    const userValue = responses[firstField.id];
+    
+    if (firstField.logic && typeof userValue === "string" && firstField.logic[userValue]) {
+      const nextStepId = firstField.logic[userValue];
+      const nextIndex = config.steps.findIndex(s => s.id === nextStepId);
+      if (nextIndex !== -1) {
+        setCurrentStepIndex(nextIndex);
+        return;
+      }
+    }
+
+    // 2. Fallback para Progressão Linear
     if (!isLastStep) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
@@ -73,6 +91,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const { submitSurvey } = await import("@/actions/submit-survey");
       const res = await submitSurvey(config, responses, userUid);
       if (onComplete) onComplete(res.matricula);
     } catch (err: unknown) {
@@ -88,38 +107,27 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     handleInteraction();
   };
 
-  const toggleMultipleResponse = (fieldId: string, option: string) => {
-    const current = (responses[fieldId] as string[]) || [];
-    const updated = current.includes(option)
-      ? current.filter(item => item !== option)
-      : [...current, option];
-    setResponses(prev => ({ ...prev, [fieldId]: updated }));
-    handleInteraction();
-  };
-
-  // Renderizador de Átomos Narrativos
+  // Renderizador de Átomos Narrativos (Extendido)
   const renderField = (field: SurveyFieldConfig) => {
     const rawValue = responses[field.id];
 
     switch (field.type) {
+      case "buttons":
       case "choice":
         if (field.isMultiple) {
           return (
-            <div className="flex flex-col gap-2">
-              {field.options?.map((opt) => (
-                <CheckboxItem
-                  key={opt}
-                  label={opt}
-                  checked={((rawValue as string[]) || []).includes(opt)}
-                  onChange={() => toggleMultipleResponse(field.id, opt)}
-                />
-              ))}
-            </div>
+             <MultiSelect
+              options={field.options as string[]}
+              selected={(rawValue as string[]) || []}
+              onChange={(val) => updateResponse(field.id, val)}
+              minSelections={field.validation?.minSelections}
+              maxSelections={field.validation?.maxSelections}
+            />
           );
         }
         return (
           <div className="flex flex-col gap-3">
-            {field.options?.map((opt) => (
+            {(field.options as string[])?.map((opt) => (
               <ChoiceButton
                 key={opt}
                 active={rawValue === opt}
@@ -131,27 +139,73 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           </div>
         );
 
+      case "multi_select":
+        return (
+          <MultiSelect
+            options={field.options as string[]}
+            selected={(rawValue as string[]) || []}
+            onChange={(val) => updateResponse(field.id, val)}
+            minSelections={field.validation?.minSelections}
+            maxSelections={field.validation?.maxSelections}
+          />
+        );
+
+      case "cascaded":
+        return (
+          <CascadedSelect
+            options={field.options as any[]}
+            value={rawValue as any}
+            onChange={(val) => updateResponse(field.id, val)}
+            labels={{ primary: field.label || "Nicho", secondary: "Subdivisão" }}
+          />
+        );
+
+      case "benefits":
+        return (
+          <BenefitsPackage
+            options={field.options as string[]}
+            value={rawValue as any}
+            onChange={(val) => updateResponse(field.id, val)}
+          />
+        );
+
+      case "currency_group":
+        return (
+          <CurrencyGroup
+            labels={field.options as string[]}
+            value={rawValue as any}
+            onChange={(val) => updateResponse(field.id, val)}
+          />
+        );
+
+      case "likert":
+        return (
+          <LikertScale
+            value={rawValue as any}
+            onChange={(val) => updateResponse(field.id, val)}
+            options={field.options as string[]}
+          />
+        );
+
       case "text":
-        const textValue = (typeof rawValue === "string" || typeof rawValue === "number") ? rawValue : "";
         return (
           <div className="pt-2">
             <InputGlass
               autoFocus={field.autoFocus}
               placeholder={field.placeholder || "Escreva aqui..."}
-              value={textValue}
+              value={String(rawValue || "")}
               onChange={(e) => updateResponse(field.id, e.target.value)}
             />
           </div>
         );
 
       case "textarea":
-        const areaValue = typeof rawValue === "string" ? rawValue : "";
         return (
           <div className="pt-2">
             <TextareaGlass
               autoFocus={field.autoFocus}
               placeholder={field.placeholder || "Descreva aqui..."}
-              value={areaValue}
+              value={String(rawValue || "")}
               onChange={(e) => updateResponse(field.id, e.target.value)}
               rows={4}
             />
@@ -159,7 +213,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
         );
 
       case "scale":
-        const scaleOptions = field.options || ["1", "2", "3", "4", "5"];
+        const scaleOptions = (field.options as string[]) || ["1", "2", "3", "4", "5"];
         return (
           <div className="flex justify-between items-center gap-2 pt-4 px-2">
             {scaleOptions.map((opt) => (
@@ -189,15 +243,30 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
         );
 
       default:
-        return null;
+        return <p className="text-red-500">Tipo de campo não suportado: {field.type}</p>;
     }
   };
 
-  // Verifica se o passo atual pode avançar
   const canProgress = currentStep.fields.every(f => {
     if (!f.required) return true;
     const val = responses[f.id];
-    if (Array.isArray(val)) return val.length > 0;
+    if (f.type === "multi_select" || f.isMultiple) {
+      const arr = (val as string[]) || [];
+      const min = f.validation?.minSelections || 1;
+      return arr.length >= min;
+    }
+    if (f.type === "cascaded") {
+      const v = (val as any) || {};
+      return !!v.primary && !!v.secondary;
+    }
+    if (f.type === "currency_group") {
+      const v = (val as any) || {};
+      return !!v.declined || Object.values(v).some((c: any) => !!c.value);
+    }
+    if (f.type === "likert") {
+      const v = (val as any) || {};
+      return !!v.score;
+    }
     return val !== undefined && val !== null && String(val).trim().length > 0;
   });
 
@@ -212,7 +281,6 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="min-h-[550px] flex flex-col justify-start relative pt-4 space-y-10"
         >
-          {/* Enunciado Narrativo */}
           <div className="space-y-4">
             <div className="text-[var(--text-primary)] text-[22px] md:text-[24px] font-medium leading-tight tracking-tight whitespace-pre-line">
               <TypedText
@@ -227,12 +295,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                 animate={{ opacity: 1 }}
                 className="text-sm text-[var(--text-muted)] leading-relaxed max-w-[90%]"
               >
-                {currentStep.description}
+                {interpolate(currentStep.description)}
               </motion.p>
             )}
           </div>
 
-          {/* Campos do Passo */}
           <AnimatePresence>
             {typedComplete && (
               <motion.div
@@ -247,7 +314,6 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                   </div>
                 ))}
 
-                {/* Bloco de Ação Final */}
                 <div className="pt-8">
                   {isLastStep ? (
                      <button
