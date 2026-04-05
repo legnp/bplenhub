@@ -55,14 +55,14 @@ export function LikertScale({ value = { score: "" }, onChange, options = ["1", "
                 className={`
                   transition-all duration-300
                   ${isActive || isHovered 
-                    ? "fill-[var(--accent-start)] text-[var(--accent-start)] transform drop-shadow-[0_0_8px_rgba(255,44,141,0.4)]" 
-                    : "text-white/20 fill-white/5"}
+                    ? "fill-[#FFB800] text-[#FFB800] transform drop-shadow-[0_0_12px_rgba(255,184,0,0.6)]" 
+                    : "text-black/40 fill-black/5 dark:text-white/30 dark:fill-white/5"}
                 `}
               />
               {isActive && (
                 <motion.div 
                   layoutId="activeStar"
-                  className="absolute inset-0 bg-[var(--accent-start)] blur-xl opacity-20 rounded-full"
+                  className="absolute inset-0 bg-[#FFB800] blur-xl opacity-20 rounded-full"
                 />
               )}
             </motion.button>
