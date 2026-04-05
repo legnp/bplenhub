@@ -56,6 +56,7 @@ export interface SurveyFieldConfig {
   max?: number; 
   isMultiple?: boolean; 
   logic?: Record<string, string>; // Mapeamento de valor -> ID do próximo passo
+  secondaryLabel?: string; // Rótulo para o segundo nível de campos cascateados
   validation?: {
     minSelections?: number;
     maxSelections?: number;
@@ -67,6 +68,7 @@ export interface SurveyStepConfig {
   id: string;
   question: string;
   description?: string;
+  nextStepId?: string; // Força salto direto para um ID específico
   fields: SurveyFieldConfig[];
 }
 

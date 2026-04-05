@@ -80,7 +80,16 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       }
     }
 
-    // 2. Fallback para Progressão Linear
+    // 2. Verificar Salto de Etapa Fixo (ID direta) 🧬
+    if (currentStep.nextStepId) {
+      const nextIndex = config.steps.findIndex(s => s.id === currentStep.nextStepId);
+      if (nextIndex !== -1) {
+        setCurrentStepIndex(nextIndex);
+        return;
+      }
+    }
+
+    // 3. Fallback para Progressão Linear
     if (!isLastStep) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
@@ -156,7 +165,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             options={field.options as any[]}
             value={rawValue as any}
             onChange={(val) => updateResponse(field.id, val)}
-            labels={{ primary: field.label || "Nicho", secondary: "Subdivisão" }}
+            labels={{ primary: field.label || "Nicho", secondary: field.secondaryLabel || "Subdivisão" }}
           />
         );
 

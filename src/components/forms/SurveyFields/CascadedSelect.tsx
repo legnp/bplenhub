@@ -29,6 +29,10 @@ export function CascadedSelect({ options, value, onChange, labels }: CascadedSel
     options.find(o => o.value === value?.primary) || null
   );
 
+  useEffect(() => {
+    setSelectedPrimary(options.find(o => o.value === value?.primary) || null);
+  }, [value?.primary, options]);
+
   const handlePrimaryChange = (opt: Option) => {
     setSelectedPrimary(opt);
     onChange({ 

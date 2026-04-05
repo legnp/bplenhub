@@ -1,16 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { CheckboxItem } from "@/components/ui/CheckboxItem";
 import { InputGlass } from "@/components/ui/InputGlass";
+import { SelectGlass } from "@/components/ui/SelectGlass";
+import { TextareaGlass } from "@/components/ui/TextareaGlass";
+import { ChoiceButton } from "@/components/ui/ChoiceButton";
 
 interface BenefitData {
   enabled: boolean;
   value?: string;
   currency?: string;
-  type?: string;
   company?: string;
-  hasCopay?: boolean;
+  details?: string; // Para "Mais detalhes da expectativa"
+  companyContributes?: boolean; // Para Previdência Privada
+  contributionCap?: string; // Para Previdência Privada
+  comments?: string; // Para Previdência Privada
+  // Novos campos para Performance (Bônus, PLR, Comissão)
+  calculationBase?: "percentage" | "salary_multiplier";
+  salaryMultiplier?: string;
+  percentageValue?: string;
+  isGoalBased?: boolean;
+  recurrence?: string;
+  extraInfo?: string;
 }
 
 interface BenefitsPackageProps {
@@ -18,6 +30,28 @@ interface BenefitsPackageProps {
   onChange: (updated: Record<string, BenefitData>) => void;
   options: string[];
 }
+
+const CURRENCIES = [
+  { label: "BRL (R$)", value: "BRL" },
+  { label: "USD ($)", value: "USD" },
+  { label: "EUR (€)", value: "EUR" },
+  { label: "GBP (£)", value: "GBP" },
+  { label: "CHF (CHF)", value: "CHF" },
+  { label: "JPY (¥)", value: "JPY" },
+  { label: "CAD ($)", value: "CAD" },
+  { label: "AUD ($)", value: "AUD" },
+  { label: "CNY (¥)", value: "CNY" },
+];
+
+const RECURRENCES = ["Mensal", "Trimestral", "Semestral", "Anual"];
+const MULTIPLIERS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
+
+const FINANCIAL_FIELDS = [
+  "salário", "comissão", "bônus", "plr", "vr/va flex", "vr", "va", 
+  "expectativa salarial", "previdência privada"
+];
+
+const PERFORMANCE_FIELDS = ["bônus", "plr", "comissão"];
 
 export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPackageProps) {
   const updateBenefit = (id: string, updates: Partial<BenefitData>) => {
@@ -28,19 +62,36 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
 
   const toggleBenefit = (id: string) => {
     const current = value[id] || { enabled: false };
-    updateBenefit(id, { enabled: !current.enabled });
+    const newEnabled = !current.enabled;
+    
+    // Ao ativar, define Moeda padrão se for financeiro
+    const updates: Partial<BenefitData> = { enabled: newEnabled };
+    if (newEnabled && FINANCIAL_FIELDS.includes(id.toLowerCase())) {
+        updates.currency = "BRL";
+    }
+    
+    updateBenefit(id, updates);
+  };
+
+  const handleValueChange = (id: string, rawStr: string, field: keyof BenefitData = "value") => {
+    // Apenas números, pontos e vírgulas
+    const filtered = rawStr.replace(/[^0-9,.]/g, "");
+    updateBenefit(id, { [field]: filtered });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {options.map((opt) => {
           const isEnabled = value[opt]?.enabled;
-          const isSalaryOrBonus = opt.toLowerCase().includes("salário") || opt.toLowerCase().includes("bônus");
-          const isInsurance = opt.toLowerCase().includes("seguro");
+          const labelLower = opt.toLowerCase();
+          const isFinancial = FINANCIAL_FIELDS.includes(labelLower);
+          const isInsurance = labelLower.includes("seguro");
+          const isPension = labelLower === "previdência privada";
+          const isPerformance = PERFORMANCE_FIELDS.includes(labelLower);
 
           return (
-            <div key={opt} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+            <div key={opt} className={`p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4 transition-all ${isEnabled ? "ring-1 ring-[var(--accent-start)]/30 bg-white/[0.08]" : ""}`}>
               <CheckboxItem
                 label={opt}
                 checked={isEnabled}
@@ -48,29 +99,168 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
               />
 
               {isEnabled && (
-                <div className="space-y-3 pl-8 animate-fade-in-down">
-                  {isSalaryOrBonus && (
-                    <div className="flex gap-2">
+                <div className="space-y-4 pl-8 animate-fade-in-up">
+                  {isFinancial && (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                       <div className="w-full sm:w-[140px]">
+                        <SelectGlass
+                          label="Moeda"
+                          value={value[opt]?.currency || "BRL"}
+                          onChange={(e) => updateBenefit(opt, { currency: e.target.value })}
+                        >
+                          {CURRENCIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </SelectGlass>
+                       </div>
                        <InputGlass
-                        placeholder="Valor"
-                        type="number"
+                        label="Valor"
+                        placeholder="0,00"
                         value={value[opt]?.value || ""}
-                        onChange={(e) => updateBenefit(opt, { value: e.target.value })}
+                        onChange={(e) => handleValueChange(opt, e.target.value)}
                       />
+                    </div>
+                  )}
+
+                  {/* Detalhes para Performance (Bônus, PLR, Comissão) 📈 */}
+                  {isPerformance && (
+                    <div className="space-y-4 pt-2 border-t border-white/5 overflow-hidden">
+                        {/* Base de Cálculo */}
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] text-[var(--text-muted)] ml-1 font-medium uppercase tracking-wider">
+                                Base de cálculo
+                            </label>
+                            <div className="flex gap-2">
+                                <ChoiceButton 
+                                    active={value[opt]?.calculationBase === "percentage"}
+                                    onClick={() => updateBenefit(opt, { calculationBase: "percentage" })}
+                                    className="flex-1 py-2 text-center"
+                                >
+                                    % Percentual
+                                </ChoiceButton>
+                                <ChoiceButton 
+                                    active={value[opt]?.calculationBase === "salary_multiplier"}
+                                    onClick={() => updateBenefit(opt, { calculationBase: "salary_multiplier" })}
+                                    className="flex-1 py-2 text-center"
+                                >
+                                    Qtd. Salários
+                                </ChoiceButton>
+                            </div>
+                        </div>
+
+                        {/* Campo Dinâmico de Cálculo */}
+                        {value[opt]?.calculationBase === "salary_multiplier" && (
+                            <SelectGlass
+                                label="Quantidade de salários"
+                                value={value[opt]?.salaryMultiplier || ""}
+                                onChange={(e) => updateBenefit(opt, { salaryMultiplier: e.target.value })}
+                            >
+                                <option value="">Selecione...</option>
+                                {MULTIPLIERS.map(m => <option key={m} value={m}>{m}</option>)}
+                            </SelectGlass>
+                        )}
+
+                        {value[opt]?.calculationBase === "percentage" && (
+                            <InputGlass
+                                label="Valor em %"
+                                placeholder="0%"
+                                value={value[opt]?.percentageValue || ""}
+                                onChange={(e) => handleValueChange(opt, e.target.value, "percentageValue")}
+                            />
+                        )}
+
+                        {/* Metas e Recorrência */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] text-[var(--text-muted)] ml-1 font-medium uppercase tracking-wider">
+                                    Condicionado a meta?
+                                </label>
+                                <div className="flex gap-2">
+                                    <ChoiceButton 
+                                        active={value[opt]?.isGoalBased === true}
+                                        onClick={() => updateBenefit(opt, { isGoalBased: true })}
+                                        className="flex-1 py-1.5 text-xs text-center"
+                                    >Sim</ChoiceButton>
+                                    <ChoiceButton 
+                                        active={value[opt]?.isGoalBased === false}
+                                        onClick={() => updateBenefit(opt, { isGoalBased: false })}
+                                        className="flex-1 py-1.5 text-xs text-center"
+                                    >Não</ChoiceButton>
+                                </div>
+                            </div>
+
+                            <SelectGlass
+                                label="Recorrência"
+                                value={value[opt]?.recurrence || ""}
+                                onChange={(e) => updateBenefit(opt, { recurrence: e.target.value })}
+                            >
+                                <option value="">Selecione...</option>
+                                {RECURRENCES.map(r => <option key={r} value={r}>{r}</option>)}
+                            </SelectGlass>
+                        </div>
+
+                        <InputGlass
+                            label="Complemento"
+                            placeholder="Informação adicional..."
+                            value={value[opt]?.extraInfo || ""}
+                            onChange={(e) => updateBenefit(opt, { extraInfo: e.target.value })}
+                        />
+                    </div>
+                  )}
+
+                  {/* Detalhes para Previdência Divisão 🔘 */}
+                  {isPension && (
+                    <div className="space-y-4 pt-2 border-t border-white/5">
+                        <div className="space-y-2.5">
+                            <label className="text-[10px] text-[var(--text-muted)] ml-1 font-medium uppercase tracking-wider">
+                                A empresa contribui também? (Matching)
+                            </label>
+                            <div className="flex gap-2">
+                                <ChoiceButton 
+                                    active={value[opt]?.companyContributes === true}
+                                    onClick={() => updateBenefit(opt, { companyContributes: true })}
+                                    className="flex-1 py-2 text-center"
+                                >
+                                    Sim
+                                </ChoiceButton>
+                                <ChoiceButton 
+                                    active={value[opt]?.companyContributes === false}
+                                    onClick={() => updateBenefit(opt, { companyContributes: false })}
+                                    className="flex-1 py-2 text-center"
+                                >
+                                    Não
+                                </ChoiceButton>
+                            </div>
+                        </div>
+
+                        {value[opt]?.companyContributes === true && (
+                            <InputGlass
+                                label="Teto de contribuição em %"
+                                placeholder="0%"
+                                value={value[opt]?.contributionCap || ""}
+                                onChange={(e) => handleValueChange(opt, e.target.value, "contributionCap")}
+                            />
+                        )}
+
+                        <InputGlass
+                            label="Comentários a respeito da previdência"
+                            placeholder="Descreva aqui detalhes sobre o plano..."
+                            value={value[opt]?.comments || ""}
+                            onChange={(e) => updateBenefit(opt, { comments: e.target.value })}
+                        />
                     </div>
                   )}
 
                   {isInsurance && (
                      <InputGlass
-                      placeholder="Seguradora/Tipo"
+                      label="Seguradora/Tipo"
+                      placeholder="Ex: Bradesco Saúde..."
                       value={value[opt]?.company || ""}
                       onChange={(e) => updateBenefit(opt, { company: e.target.value })}
                     />
                   )}
 
-                  {!isSalaryOrBonus && !isInsurance && (
-                    <p className="text-[10px] text-[var(--accent-start)] font-bold uppercase tracking-widest">
-                      Ativado ✅
+                  {!isFinancial && !isInsurance && !isPension && !isPerformance && (
+                    <p className="text-[10px] text-[var(--accent-start)] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                      <span>✓</span> Selecionado
                     </p>
                   )}
                 </div>
@@ -80,13 +270,24 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
         })}
       </div>
       
-      {/* Campo para Outros Benefícios */}
-      <div className="pt-4">
+      {/* Rodapé: Outros e Detalhes da Expectativa */}
+      <div className="space-y-6 pt-6 border-t border-white/5">
         <InputGlass
-          placeholder="Algum outro benefício não listado? (Descreva aqui)"
+          label="Algum outro benefício não listado?"
+          placeholder="Descreva aqui..."
           value={value["outros"]?.value || ""}
           onChange={(e) => updateBenefit("outros", { enabled: true, value: e.target.value })}
         />
+
+        <div className="animate-fade-in">
+             <TextareaGlass
+                label="Mais detalhes da expectativa"
+                placeholder="Explique um pouco mais sobre suas expectativas (benefícios, motivos, etc)..."
+                value={value["expectativa_detalhes"]?.value || ""}
+                onChange={(e) => updateBenefit("expectativa_detalhes", { enabled: true, value: e.target.value })}
+                rows={4}
+            />
+        </div>
       </div>
     </div>
   );

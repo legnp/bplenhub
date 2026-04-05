@@ -1,5 +1,8 @@
 import { SurveyConfig } from "@/types/survey";
 
+const DEPARTAMENTOS_GLOBAIS = ["Operações", "Financeiro", "Diretoria", "Vendas", "RH", "Marketing", "Logística", "Outros"];
+const TEMPOS_EXPERIENCIA_GLOBAIS = ["Até 2 anos", "2 a 5 anos", "5 a 10 anos", "10 a 15 anos", "15 a 20 anos", "+20 anos"];
+
 /**
  * BPlen HUB — Survey: Check-in (V1.0) 📊
  * Coleta dados profundos sobre a carreira e desafios do usuário.
@@ -125,14 +128,15 @@ export const check_in_v1: SurveyConfig = {
           type: "cascaded",
           required: true,
           label: "Nicho de Atuação",
+          secondaryLabel: "Departamento",
           options: [
-            { label: "Tecnologia", value: "Tecnologia", subOptions: ["Desenvolvimento", "Vendas", "RH", "Marketing", "Operações", "Financeiro", "Diretoria", "Outros"] },
-            { label: "Saúde", value: "Saúde", subOptions: ["Operações", "Financeiro", "Diretoria", "Vendas", "RH", "Outros"] },
-            { label: "Educação", value: "Educação", subOptions: ["Operações", "Financeiro", "Diretoria", "RH", "Outros"] },
-            { label: "Finanças", value: "Finanças", subOptions: ["Operações", "Financeiro", "Diretoria", "Vendas", "RH", "Outros"] },
-            { label: "Marketing", value: "Marketing", subOptions: ["Marketing", "Vendas", "Operações", "Diretoria", "Outros"] },
-            { label: "Varejo", value: "Varejo", subOptions: ["Vendas", "Operações", "Financeiro", "Logística", "Outros"] },
-            { label: "Outros", value: "Outros", subOptions: ["Outros"] }
+            { label: "Tecnologia", value: "Tecnologia", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Saúde", value: "Saúde", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Educação", value: "Educação", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Finanças", value: "Finanças", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Marketing", value: "Marketing", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Varejo", value: "Varejo", subOptions: DEPARTAMENTOS_GLOBAIS },
+            { label: "Outros", value: "Outros", subOptions: DEPARTAMENTOS_GLOBAIS }
           ]
         }
       ]
@@ -158,14 +162,15 @@ export const check_in_v1: SurveyConfig = {
                 type: "cascaded",
                 required: true,
                 label: "Estágio de Maturidade",
+                secondaryLabel: "Tempo total de experiência",
                 options: [
-                    { label: "Aprendiz", value: "Aprendiz", subOptions: ["Até 1 ano", "1 a 2 anos"] },
-                    { label: "Junior", value: "Junior", subOptions: ["1 a 3 anos", "3 a 5 anos"] },
-                    { label: "Pleno", value: "Pleno", subOptions: ["3 a 7 anos", "7 a 10 anos"] },
-                    { label: "Sênior", value: "Sênior", subOptions: ["10 a 15 anos", "15 a 20 anos", "+20 anos"] },
-                    { label: "Conselheiro", value: "Conselheiro", subOptions: ["+20 anos", "+30 anos"] },
-                    { label: "Diretoria", value: "Diretoria", subOptions: ["+10 anos", "+15 anos", "+20 anos"] },
-                    { label: "Dono", value: "Dono", subOptions: ["Qualquer tempo"] }
+                    { label: "Aprendiz", value: "Aprendiz", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Junior", value: "Junior", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Pleno", value: "Pleno", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Sênior", value: "Sênior", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Conselheiro", value: "Conselheiro", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Diretoria", value: "Diretoria", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS },
+                    { label: "Dono", value: "Dono", subOptions: TEMPOS_EXPERIENCIA_GLOBAIS }
                 ]
             }
         ]
@@ -178,10 +183,12 @@ export const check_in_v1: SurveyConfig = {
           id: "regime_choice",
           type: "buttons",
           required: true,
-          options: ["Sim", "Não"], // Conforme roteiro: "Sim" -> q8c, "Não" -> q9
+          options: ["CLT", "PJ", "Trabalho informal", "Não estou empregado"],
           logic: {
-            "Sim": "q8c_pacote",
-            "Não": "q9_rendimento"
+            "CLT": "q8c_pacote",
+            "PJ": "q8c_pacote",
+            "Trabalho informal": "q8c_pacote",
+            "Não estou empregado": "q8c_pacote_anterior"
           }
         }
       ]
@@ -189,34 +196,40 @@ export const check_in_v1: SurveyConfig = {
     {
       id: "q8c_pacote",
       question: "Como está o seu pacote de remuneração e benefícios atual?",
+      nextStepId: "q9_como_podemos_ajudar",
       fields: [
         {
           id: "beneficios_pacote",
           type: "benefits",
           required: true,
           options: [
-            "Salário", "Bônus/PLR", "Previdência Privada", "VR/VA Flex", 
+            "Salário", "Comissão", "Bônus", "PLR", "Previdência Privada", "VR/VA Flex", 
             "VR", "VA", "VT", "Vale Combustível", "Estacionamento", 
             "Seguro Médico", "Seguro Odontológico", "Seguro de Vida", 
-            "Dayoff", "Home Office"
+            "Dayoff", "Home Office", "Expectativa Salarial"
           ]
         }
       ]
     },
     {
-      id: "q9_rendimento",
-      question: "Qual é o seu rendimento médio mensal?",
-      fields: [
-        {
-          id: "rendimento_mensal",
-          type: "currency_group",
-          required: true,
-          options: ["Atual", "Expectativa"]
-        }
-      ]
-    },
+        id: "q8c_pacote_anterior",
+        question: "Como o seu último pacote de remuneração e benefícios era composto?",
+        fields: [
+          {
+            id: "beneficios_pacote", // Reaproveita ID para unificar dados no banco
+            type: "benefits",
+            required: true,
+            options: [
+              "Salário", "Comissão", "Bônus", "PLR", "Previdência Privada", "VR/VA Flex", 
+              "VR", "VA", "VT", "Vale Combustível", "Estacionamento", 
+              "Seguro Médico", "Seguro Odontológico", "Seguro de Vida", 
+              "Dayoff", "Home Office", "Expectativa Salarial"
+            ]
+          }
+        ]
+      },
     {
-      id: "q10_como_podemos_ajudar",
+      id: "q9_como_podemos_ajudar",
       question: "{User_Nickname}, porque você deu sua permissão a BPlen para te ajudar na jornada do desenvolvimento da sua carreira, o que você espera encontrar por aqui? Como podemos te ajudar?",
       fields: [
         {
@@ -228,7 +241,7 @@ export const check_in_v1: SurveyConfig = {
       ]
     },
     {
-      id: "q11_likert",
+      id: "q10_likert",
       question: "Até aqui, como você avalia a sua experiência? E como gostaria que continuássemos te conduzindo?",
       fields: [
         {
