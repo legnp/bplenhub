@@ -68,9 +68,9 @@ export default function SurveyPlaygroundPage() {
       <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[var(--accent-start)]/5 blur-[120px] rounded-full" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500/5 blur-[120px] rounded-full" />
 
-      {/* Renderização do Motor */}
+      {/* Renderização do Motor (Naked / Integrado) */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl bg-white/[0.02] border border-white/5 rounded-[3rem] shadow-2xl backdrop-blur-3xl overflow-hidden min-h-[600px] flex items-center">
+        <div className="w-full max-w-4xl flex items-center">
           <SurveyEngine 
             config={config} 
             userUid={user.uid}

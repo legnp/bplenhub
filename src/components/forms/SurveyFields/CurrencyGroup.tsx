@@ -2,6 +2,7 @@
 
 import React from "react";
 import { InputGlass } from "@/components/ui/InputGlass";
+import { ChevronDown } from "lucide-react";
 
 interface CurrencyValue {
   value: string;
@@ -12,7 +13,7 @@ interface CurrencyValue {
 interface CurrencyGroupProps {
   value: Record<string, CurrencyValue>;
   onChange: (updated: Record<string, CurrencyValue>) => void;
-  labels: string[]; // ex: ["Atual", "Expectativa"]
+  labels: string[]; 
 }
 
 const COMMON_CURRENCIES = ["BRL", "USD", "EUR", "GBP", "CAD", "JPY"];
@@ -30,13 +31,13 @@ export function CurrencyGroup({ value = {}, onChange, labels }: CurrencyGroupPro
 
   if (value?.declined) {
     return (
-      <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
-        <p className="text-sm text-[var(--text-muted)] italic">Resposta omitida.</p>
+      <div className="p-6 bg-white/[0.02] border border-white/10 rounded-3xl text-center">
+        <p className="text-sm text-[var(--text-muted)] italic">Você optou por não responder este campo.</p>
         <button 
           onClick={() => onChange({})} 
-          className="text-xs text-[var(--accent-start)] font-bold mt-2"
+          className="text-[10px] text-[var(--accent-start)] font-bold uppercase tracking-widest mt-3 hover:underline"
         >
-          Desfazer ↩️
+          Desfazer e responder ↩️
         </button>
       </div>
     );
@@ -44,26 +45,35 @@ export function CurrencyGroup({ value = {}, onChange, labels }: CurrencyGroupPro
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {labels.map((label) => (
-          <div key={label} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
-            <label className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">
+          <div key={label} className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4 shadow-sm">
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">
               Rendimento {label}
             </label>
-            <div className="flex gap-2">
-              <select
-                className="bg-white/5 border border-white/10 rounded-xl px-2 py-2 text-xs text-white focus:outline-none"
-                value={value[label]?.currency || "BRL"}
-                onChange={(e) => updateCurrencyField(label, { currency: e.target.value })}
-              >
-                {COMMON_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <InputGlass
-                placeholder="Valor"
-                type="number"
-                value={value[label]?.value || ""}
-                onChange={(e) => updateCurrencyField(label, { value: e.target.value })}
-              />
+            <div className="flex gap-3">
+              <div className="relative group">
+                <select
+                  className="appearance-none bg-white/5 border border-white/10 rounded-2xl pl-4 pr-10 py-3 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all cursor-pointer"
+                  value={value[label]?.currency || "BRL"}
+                  onChange={(e) => updateCurrencyField(label, { currency: e.target.value })}
+                >
+                  {COMMON_CURRENCIES.map(c => (
+                    <option key={c} value={c} className="bg-[var(--bg-primary)] text-white">
+                      {c}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none group-hover:text-[var(--accent-start)] transition-colors" />
+              </div>
+              <div className="flex-1">
+                <InputGlass
+                  placeholder="0,00"
+                  type="number"
+                  value={value[label]?.value || ""}
+                  onChange={(e) => updateCurrencyField(label, { value: e.target.value })}
+                />
+              </div>
             </div>
           </div>
         ))}
@@ -72,7 +82,7 @@ export function CurrencyGroup({ value = {}, onChange, labels }: CurrencyGroupPro
       <div className="flex justify-center pt-2">
         <button 
           onClick={declineResponse}
-          className="text-xs text-[var(--text-muted)] hover:text-white transition-colors underline underline-offset-4"
+          className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-all underline underline-offset-8 decoration-[var(--accent-start)]/30"
         >
           Prefiro não responder
         </button>

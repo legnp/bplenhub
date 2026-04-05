@@ -126,7 +126,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           );
         }
         return (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {(field.options as string[])?.map((opt) => (
               <ChoiceButton
                 key={opt}
@@ -271,7 +271,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   });
 
   return (
-    <div className="w-full max-w-[750px] mx-auto p-10 relative">
+    <div className="w-full max-w-[750px] mx-auto relative">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStepIndex}
@@ -279,7 +279,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="min-h-[550px] flex flex-col justify-start relative pt-4 space-y-10"
+          className="min-h-[400px] flex flex-col justify-start relative pt-4 space-y-10"
         >
           <div className="space-y-4">
             <div className="text-[var(--text-primary)] text-[22px] md:text-[24px] font-medium leading-tight tracking-tight whitespace-pre-line">
