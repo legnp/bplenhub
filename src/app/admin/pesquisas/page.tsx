@@ -139,7 +139,13 @@ export default async function AdminSurveysPage() {
                     </span>
                   </td>
                   <td className="p-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-3">
+                       <a 
+                         href={`/test/surveys/${survey.id}`}
+                         className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[var(--text-primary)] text-[10px] font-bold rounded-lg hover:border-[var(--accent-start)]/50 transition-all font-mono tracking-widest"
+                       >
+                         <Eye size={14} className="text-[var(--accent-start)]" /> PREVIEW
+                       </a>
                        <button className="flex items-center gap-2 px-4 py-2 bg-accent-start text-white text-[10px] font-bold rounded-lg hover:opacity-90 transition-all shadow-lg shadow-accent-start/20">
                          <BarChart3 size={14} /> Detalhes
                        </button>
