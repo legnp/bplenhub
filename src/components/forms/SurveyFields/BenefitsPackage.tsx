@@ -46,6 +46,11 @@ const CURRENCIES = [
 const RECURRENCES = ["Mensal", "Trimestral", "Semestral", "Anual"];
 const MULTIPLIERS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"];
 
+const INSURERS = [
+  "Bradesco Saúde/Seguros", "SulAmérica", "Amil", "Unimed", "Porto Seguro", 
+  "NotreDame Intermédica", "Hapvida", "Seguros Unimed", "Allianz", "Care Plus", "Outro"
+];
+
 const FINANCIAL_FIELDS = [
   "salário", "comissão", "bônus", "plr", "vr/va flex", "vr", "va", 
   "expectativa salarial", "previdência privada"
@@ -82,13 +87,18 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {options.map((opt) => {
+        {options.filter(o => o !== "Expectativa Salarial").map((opt) => {
           const isEnabled = value[opt]?.enabled;
           const labelLower = opt.toLowerCase();
           const isFinancial = FINANCIAL_FIELDS.includes(labelLower);
           const isInsurance = labelLower.includes("seguro");
           const isPension = labelLower === "previdência privada";
           const isPerformance = PERFORMANCE_FIELDS.includes(labelLower);
+
+          // Lógica para detecção automática de "Outro" seguradora
+          const currentInsurer = value[opt]?.company || "";
+          const isKnownInsurer = INSURERS.includes(currentInsurer);
+          const selectValue = isKnownInsurer ? currentInsurer : currentInsurer ? "Outro" : "";
 
           return (
             <div key={opt} className={`p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4 transition-all ${isEnabled ? "ring-1 ring-[var(--accent-start)]/30 bg-white/[0.08]" : ""}`}>
@@ -250,12 +260,25 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
                   )}
 
                   {isInsurance && (
-                     <InputGlass
-                      label="Seguradora/Tipo"
-                      placeholder="Ex: Bradesco Saúde..."
-                      value={value[opt]?.company || ""}
-                      onChange={(e) => updateBenefit(opt, { company: e.target.value })}
-                    />
+                    <div className="space-y-3">
+                         <SelectGlass
+                            label="Seguradora / Operadora"
+                            value={selectValue}
+                            onChange={(e) => updateBenefit(opt, { company: e.target.value })}
+                        >
+                            <option value="">Selecione...</option>
+                            {INSURERS.map(ins => <option key={ins} value={ins}>{ins}</option>)}
+                        </SelectGlass>
+
+                        {(selectValue === "Outro" || !isKnownInsurer) && (
+                            <InputGlass
+                                label="Qual é a seguradora?"
+                                placeholder="Digite aqui o nome..."
+                                value={currentInsurer === "Outro" ? "" : currentInsurer}
+                                onChange={(e) => updateBenefit(opt, { company: e.target.value })}
+                            />
+                        )}
+                    </div>
                   )}
 
                   {!isFinancial && !isInsurance && !isPension && !isPerformance && (
@@ -278,6 +301,36 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
           value={value["outros"]?.value || ""}
           onChange={(e) => updateBenefit("outros", { enabled: true, value: e.target.value })}
         />
+
+        {/* Campo Expectativa Salarial (Movido para aqui) */}
+        {options.includes("Expectativa Salarial") && (
+            <div className={`p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4 transition-all ${value["Expectativa Salarial"]?.enabled ? "ring-1 ring-[var(--accent-start)]/30 bg-white/[0.08]" : ""}`}>
+                <CheckboxItem
+                    label="Expectativa Salarial"
+                    checked={value["Expectativa Salarial"]?.enabled || false}
+                    onChange={() => toggleBenefit("Expectativa Salarial")}
+                />
+                {value["Expectativa Salarial"]?.enabled && (
+                    <div className="flex flex-col sm:flex-row gap-3 pl-8 animate-fade-in-up">
+                        <div className="w-full sm:w-[140px]">
+                            <SelectGlass
+                                label="Moeda"
+                                value={value["Expectativa Salarial"]?.currency || "BRL"}
+                                onChange={(e) => updateBenefit("Expectativa Salarial", { currency: e.target.value })}
+                            >
+                                {CURRENCIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                            </SelectGlass>
+                        </div>
+                        <InputGlass
+                            label="Valor"
+                            placeholder="0,00"
+                            value={value["Expectativa Salarial"]?.value || ""}
+                            onChange={(e) => handleValueChange("Expectativa Salarial", e.target.value)}
+                        />
+                    </div>
+                )}
+            </div>
+        )}
 
         <div className="animate-fade-in">
              <TextareaGlass
