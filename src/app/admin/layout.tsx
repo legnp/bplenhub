@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useAuthContext } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
-import { FloatingSupport } from "@/components/layout/FloatingSupport";
 import { 
   Calendar, 
   Settings, 
@@ -70,7 +69,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Admin Content Area with Header */}
       <div className="flex-1 flex flex-col ml-68">
          <HubHeader />
          
@@ -84,8 +82,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
          </main>
       </div>
-
-      <FloatingSupport />
     </div>
   );
 }
