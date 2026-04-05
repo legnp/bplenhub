@@ -69,6 +69,7 @@ export interface SurveyStepConfig {
   question: string;
   description?: string;
   nextStepId?: string; // Força salto direto para um ID específico
+  nextLabel?: string; // Rótulo customizado para o botão de avançar (ex: "De acordo", "Iniciar")
   fields: SurveyFieldConfig[];
 }
 
@@ -80,6 +81,7 @@ export interface SurveyConfig {
   analytics: SurveyAnalyticsMeta;
   policy: SurveyEditPolicy;
   submitLabel?: string;
+  completionMessage?: string; // Mensagem final exibida ao fechar a pesquisa
   templateData?: Record<string, string>; // Dados para interpolação nas perguntas
 }
 

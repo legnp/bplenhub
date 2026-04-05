@@ -1,6 +1,7 @@
 import { welcomeSurveyConfig } from "./welcome";
 import { pilotSurveyConfig } from "./pilot";
 import { check_in_v1 } from "./definitions/check-in";
+import { gestaoTempoSurvey } from "./definitions/gestao-tempo";
 
 /**
  * BPlen HUB — Survey Registry (🗂️)
@@ -10,7 +11,8 @@ import { check_in_v1 } from "./definitions/check-in";
 export const surveys = {
   welcome_survey: welcomeSurveyConfig,
   pilot_survey: pilotSurveyConfig,
-  check_in_v1
+  check_in_v1,
+  gestao_tempo: gestaoTempoSurvey
 };
 
 export const SURVEY_REGISTRY = Object.values(surveys);

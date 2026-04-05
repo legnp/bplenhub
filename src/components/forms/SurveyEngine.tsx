@@ -34,6 +34,8 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const [typedComplete, setTypedComplete] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+  const [startTime] = useState<number>(Date.now());
 
   const currentStep = config.steps[currentStepIndex];
   const isLastStep = currentStepIndex === config.steps.length - 1;
@@ -100,9 +102,27 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const endTime = Date.now();
+      const durationSeconds = Math.round((endTime - startTime) / 1000);
+      
+      const payload = {
+        ...responses,
+        metadata: {
+          ...(responses.metadata as any || {}),
+          startTime,
+          endTime,
+          durationSeconds
+        }
+      };
+
       const { submitSurvey } = await import("@/actions/submit-survey");
-      const res = await submitSurvey(config, responses, userUid);
-      if (onComplete) onComplete(res.matricula);
+      const res = await submitSurvey(config, payload, userUid);
+      
+      if (config.completionMessage) {
+        setIsFinished(true);
+      } else if (onComplete) {
+        onComplete(res.matricula || "");
+      }
     } catch (err: unknown) {
       console.error("Erro na submissão do SurveyEngine:", err);
       alert("Houve um erro ao enviar sua pesquisa. Tente novamente.");
@@ -232,7 +252,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                 className={`
                   w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center font-bold text-sm
                   ${rawValue === opt 
-                    ? "bg-accent-start border-accent-start text-white shadow-lg shadow-accent-start/30 scale-110" 
+                    ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/30 scale-110" 
                     : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:border-[var(--accent-start)]/40"}
                 `}
               >
@@ -276,8 +296,35 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       const v = (val as any) || {};
       return !!v.score;
     }
+    if (f.type === "info") return true;
     return val !== undefined && val !== null && String(val).trim().length > 0;
   });
+
+  if (isFinished) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center space-y-8 py-20 px-6 backdrop-blur-xl bg-white/5 rounded-[3rem] border border-white/10"
+      >
+        <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+           </svg>
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">Excelente!</h2>
+        <p className="text-[var(--text-muted)] leading-relaxed max-w-md mx-auto whitespace-pre-line">
+          {config.completionMessage}
+        </p>
+        <button
+          onClick={() => onComplete?.("")}
+          className="px-10 py-4 bg-[var(--accent-soft)] hover:bg-[var(--accent-start)] hover:text-white text-[var(--accent-start)] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+        >
+           Voltar ao Início
+        </button>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[750px] mx-auto relative">
@@ -340,7 +387,10 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                           >
-                            <NavButton onClick={handleNext} />
+                            <NavButton 
+                              onClick={handleNext} 
+                              label={currentStep.nextLabel} 
+                            />
                           </motion.div>
                         )}
                       </AnimatePresence>
