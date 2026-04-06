@@ -353,6 +353,13 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const pctC = totalC * 2;
     const pctD = totalD * 2;
 
+    const scores = {
+      visual: { total: totalV, percentage: pctV },
+      auditivo: { total: totalA, percentage: pctA },
+      cinestesico: { total: totalC, percentage: pctC },
+      digital: { total: totalD, percentage: pctD }
+    };
+
     const metadata = (responses.metadata as any) || {};
 
     // 2. Persistência no Firestore (Prioridade Máxima 🛡️)
@@ -362,12 +369,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     await resultRef.set({
       surveyId,
       matricula,
-      scores: {
-        visual: { total: totalV, percentage: pctV },
-        auditivo: { total: totalA, percentage: pctA },
-        cinestesico: { total: totalC, percentage: pctC },
-        digital: { total: totalD, percentage: pctD }
-      },
+      scores,
       responses: Object.fromEntries(Object.entries(responses).filter(([k]) => k !== "metadata")),
       durationSeconds: metadata.durationSeconds || 0,
       isReleased: false,

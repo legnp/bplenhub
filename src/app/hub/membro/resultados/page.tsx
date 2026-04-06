@@ -48,25 +48,26 @@ export default function ResultadosPage() {
     load();
   }, [user]);
 
+  // Mapeamento dinâmico para os gráficos (conforme estrutura do Firestore)
   const triadData = gestaoResult?.scores ? [
-    { label: "Importância", percentage: gestaoResult.scores.importancia.percentage, color: "#6366F1" },
-    { label: "Urgência", percentage: gestaoResult.scores.urgencia.percentage, color: "#F59E0B" },
-    { label: "Circunstância", percentage: gestaoResult.scores.circunstancia.percentage, color: "#64748B" }
+    { label: 'Importância', value: gestaoResult.scores.importancia?.percentage || 0, color: '#ec4899' },
+    { label: 'Urgência', value: gestaoResult.scores.urgencia?.percentage || 0, color: '#facc15' },
+    { label: 'Circunstância', value: gestaoResult.scores.circunstancia?.percentage || 0, color: '#94a3b8' },
   ] : [];
 
   const vacdData = aprendizadoResult?.scores ? [
-    { label: "Visual", percentage: aprendizadoResult.scores.visual.percentage, color: "#EC4899" },
-    { label: "Auditivo", percentage: aprendizadoResult.scores.auditivo.percentage, color: "#3B82F6" },
-    { label: "Cinestésico", percentage: aprendizadoResult.scores.cinestesico.percentage, color: "#10B981" },
-    { label: "Digital", percentage: aprendizadoResult.scores.digital.percentage, color: "#8B5CF6" }
+    { label: 'Vis', value: aprendizadoResult.scores.visual?.percentage || 0, color: '#ec4899' },
+    { label: 'Aud', value: aprendizadoResult.scores.auditivo?.percentage || 0, color: '#3b82f6' },
+    { label: 'Cin', value: aprendizadoResult.scores.cinestesico?.percentage || 0, color: '#10b981' },
+    { label: 'Dig', value: aprendizadoResult.scores.digital?.percentage || 0, color: '#f59e0b' },
   ] : [];
 
   const reconhecimentoData = reconhecimentoResult?.scores ? [
-    { label: "Afirmação", percentage: reconhecimentoResult.scores.afirmacao.percentage, color: "#FF7F50" },
-    { label: "Serviço", percentage: reconhecimentoResult.scores.servico.percentage, color: "#10B981" },
-    { label: "Presentes", percentage: reconhecimentoResult.scores.presentes.percentage, color: "#FFD700" },
-    { label: "Tempo", percentage: reconhecimentoResult.scores.tempo.percentage, color: "#007FFF" },
-    { label: "Toque", percentage: reconhecimentoResult.scores.toque.percentage, color: "#DC143C" }
+    { label: 'Pal', value: reconhecimentoResult.scores.palavras?.percentage || 0, color: '#ef4444' },
+    { label: 'Tem', value: reconhecimentoResult.scores.tempo?.percentage || 0, color: '#3b82f6' },
+    { label: 'Pre', value: reconhecimentoResult.scores.presentes?.percentage || 0, color: '#10b981' },
+    { label: 'Ser', value: reconhecimentoResult.scores.servico?.percentage || 0, color: '#f59e0b' },
+    { label: 'Toq', value: reconhecimentoResult.scores.toque?.percentage || 0, color: '#ec4899' },
   ] : [];
 
   return (
@@ -119,18 +120,6 @@ export default function ResultadosPage() {
                         <span className="text-[10px] font-bold text-center text-[var(--text-muted)] opacity-30">Perfil<br/>Comportamental</span>
                      </div>
                   </div>
-
-                  {/* Pré-Análise Comportamental */}
-                  {preAnaliseResult && (
-                     <MiniCard 
-                        title="Análise Comportamental" 
-                        subtitle="Mapeamento" 
-                        data={[]} 
-                        isReleased={preAnaliseResult.isReleased}
-                        submittedAt={preAnaliseResult.submittedAt}
-                        icon={<Brain size={14} className="text-[var(--accent-start)]" />}
-                     />
-                  )}
 
                   {/* Aprendizado (VACD) */}
                   {aprendizadoResult && (
