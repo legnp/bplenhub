@@ -2,6 +2,7 @@
 
 import React from "react";
 import { HubHeader } from "@/components/hub/HubHeader";
+import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
 import { redirect } from "next/navigation";
@@ -33,8 +34,9 @@ export function HubShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
       <HubHeader />
-      <main className="flex-1 w-full bg-background transition-colors duration-500">
+      <main className="flex-1 w-full bg-background transition-colors duration-500 relative">
         {children}
+        <FloatingCTAs />
       </main>
     </div>
   );
