@@ -58,6 +58,8 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   };
 
   const currentQuestion = interpolate(currentStep.question);
+  const fullNarrative = `${currentStep.question}${currentStep.description ? "\n\n" + currentStep.description : ""}`;
+  const isInfoOnly = currentStep.fields.every(f => f.type === "info");
 
   useEffect(() => {
     setTypedComplete(false);
@@ -66,6 +68,13 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
   const handleInteraction = () => {
     if (!showNextButton) setShowNextButton(true);
+  };
+
+  const handleNarrativeComplete = () => {
+    setTypedComplete(true);
+    if (isInfoOnly) {
+      setShowNextButton(true);
+    }
   };
 
   const handleNext = () => {
@@ -337,23 +346,13 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="min-h-[400px] flex flex-col justify-start relative pt-4 space-y-10"
         >
-          <div className="space-y-4">
-            <div className="text-[var(--text-primary)] text-[22px] md:text-[24px] font-medium leading-tight tracking-tight whitespace-pre-line">
+          <div className="space-y-6">
+            <div className="text-[var(--text-primary)] text-2xl md:text-3xl font-bold leading-tight tracking-tight whitespace-pre-line">
               <TypedText
-                text={currentQuestion}
-                onComplete={() => setTypedComplete(true)}
+                text={interpolate(fullNarrative)}
+                onComplete={handleNarrativeComplete}
               />
             </div>
-            
-            {typedComplete && currentStep.description && (
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-[var(--text-muted)] leading-relaxed max-w-[90%]"
-              >
-                {interpolate(currentStep.description)}
-              </motion.p>
-            )}
           </div>
 
           <AnimatePresence>
@@ -364,7 +363,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                 transition={{ duration: 0.4 }}
                 className="space-y-6"
               >
-                {currentStep.fields.map(field => (
+                {currentStep.fields.filter(f => f.type !== "info").map(field => (
                   <div key={field.id} className="animate-fade-in">
                     {renderField(field)}
                   </div>
@@ -381,8 +380,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                     </button>
                   ) : (
                     <div className="flex justify-end">
-                      <AnimatePresence>
-                        {showNextButton && canProgress && (
+                        {showNextButton && (isInfoOnly || canProgress) && (
                           <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -393,7 +391,6 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                             />
                           </motion.div>
                         )}
-                      </AnimatePresence>
                     </div>
                   )}
                 </div>
