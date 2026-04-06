@@ -17,7 +17,9 @@ import {
   Settings,
   X,
   CreditCard,
-  Rocket
+  Rocket,
+  ShieldAlert,
+  Link2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
@@ -493,19 +495,73 @@ export default function UsersManagementPage() {
                                       : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
                                     }`}
                                   >
-                                    {test.isReleased ? "Ocultar do Cliente" : "Liberar para Cliente"}
+                             {test.isReleased ? "Ocultar do Cliente" : "Liberar para Cliente"}
                                   </button>
                                </div>
                              ))}
                            </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                             <div className="p-6 rounded-3xl bg-[var(--bg-primary)] border border-dashed border-[var(--border-primary)]">
-                                <Fingerprint size={32} className="text-[var(--text-muted)] opacity-20" />
-                             </div>
-                             <p className="text-sm font-bold text-[var(--text-muted)] opacity-60">Nenhuma pesquisa submetida por este usuário.</p>
-                          </div>
-                        )}
+                         ) : (
+                           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                              <div className="p-6 rounded-3xl bg-[var(--bg-primary)] border border-dashed border-[var(--border-primary)]">
+                                 <Fingerprint size={32} className="text-[var(--text-muted)] opacity-20" />
+                              </div>
+                              <p className="text-sm font-bold text-[var(--text-muted)] opacity-60">Nenhuma pesquisa submetida por este usuário.</p>
+                           </div>
+                         )}
+
+                         {/* Seção de Recuperação de Identidade (Bugfix 🧬) */}
+                         <div className="pt-12 border-t border-[var(--border-primary)] border-dashed space-y-6">
+                            <div className="flex items-center gap-3 mb-2">
+                               <div className="p-2 bg-amber-500/10 rounded-xl">
+                                  <ShieldAlert size={16} className="text-amber-600" />
+                                </div>
+                               <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Recuperação de Identidade</h6>
+                            </div>
+                            
+                            <div className="p-7 bg-amber-500/[0.03] border border-amber-500/10 rounded-[2rem] space-y-5">
+                               <p className="text-[9px] font-bold text-amber-600 uppercase tracking-[0.2em] leading-relaxed max-w-sm">
+                                  Se o cliente não vê os resultados, solicite o UID dele (no rodapé da página de resultados dele) e vincule abaixo.
+                               </p>
+                               
+                               <div className="flex flex-col gap-3">
+                                  <div className="flex gap-2">
+                                    <input 
+                                       type="text"
+                                       placeholder="Colar UID de Login do Cliente..."
+                                       className="bg-black/5 border border-amber-500/20 rounded-2xl px-5 py-3.5 text-[10px] font-mono flex-1 text-[var(--text-primary)] focus:border-amber-500/50 outline-none transition-all placeholder:opacity-30"
+                                       id="manual-uid-input"
+                                    />
+                                    <button 
+                                       onClick={async () => {
+                                          const input = document.getElementById('manual-uid-input') as HTMLInputElement;
+                                          if (!input.value) return;
+                                          
+                                          const { forceIdentifyUser } = await import('@/actions/users-admin');
+                                          const res = await forceIdentifyUser(selectedUser.matricula, input.value.trim());
+                                          
+                                          if (res.success) {
+                                             alert('✅ Identidade vinculada com sucesso! Peça ao cliente para atualizar a página.');
+                                             input.value = '';
+                                             setSelectedUser(null);
+                                          } else {
+                                             alert('❌ Erro ao vincular: ' + res.error);
+                                          }
+                                       }}
+                                       className="px-6 bg-amber-500 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all flex items-center gap-2 shadow-xl shadow-amber-500/10 group"
+                                    >
+                                       <Link2 size={14} className="group-hover:rotate-45 transition-transform" />
+                                       Vincular
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center gap-2 px-2 opacity-40">
+                                     <div className="w-1 h-1 rounded-full bg-amber-500" />
+                                     <p className="text-[8px] font-medium uppercase tracking-widest text-[var(--text-muted)]">
+                                        UID Atual vinculada: {selectedUser.uid || 'Nenhuma'}
+                                     </p>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
                       </div>
                    )}
                 </div>

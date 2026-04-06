@@ -109,8 +109,9 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
  */
 export async function handleSurveySideEffects(surveyId: string, responses: Record<string, SurveyValue>, matricula: string, userUid: string) {
   const db = getAdminDb();
+  console.log(`🚀 [Effects:Main] Iniciando Side Effects para: ${surveyId} | Matrícula: ${matricula}`);
 
-  // EFEITOS: Welcome Survey 🧬
+  try {
   if (surveyId === "welcome_survey") {
     console.log(`📡 [Effects] Iniciando processamento pós-onboarding: ${matricula}`);
     
@@ -242,9 +243,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
 
     const metadata = (responses.metadata as any) || {};
 
-    // 2. Persistência no Firestore (Privado até liberação)
+    // 2. Persistência no Firestore (Prioridade Máxima 🛡️)
     const resultPath = `User/${matricula}/results/gestao_tempo`;
-    console.log(`🔍 [Effects:GestaoTempo] Salvando resultado em: ${resultPath}`);
+    console.log(`🔍 [Effects:GestaoTempo] Salvando resultado imediato em: ${resultPath}`);
     const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
@@ -257,11 +258,11 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       },
       responses: Object.fromEntries(Object.entries(responses).filter(([k]) => k !== "metadata")),
       durationSeconds: metadata.durationSeconds || 0,
-      isReleased: false, // 🔒 Bloqueado até devolutiva
+      isReleased: false, 
       submittedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // 3. Sincronização Google Sheets
+    // 3. Sincronização Google Sheets (Baixa Prioridade / Background-ish)
     try {
       const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
       const { serverEnv } = await import("@/env");
@@ -354,9 +355,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
 
     const metadata = (responses.metadata as any) || {};
 
-    // 2. Persistência no Firestore
+    // 2. Persistência no Firestore (Prioridade Máxima 🛡️)
     const resultPath = `User/${matricula}/results/preferencias_aprendizado`;
-    console.log(`🔍 [Effects:Aprendizado] Salvando resultado em: ${resultPath}`);
+    console.log(`🔍 [Effects:Aprendizado] Salvando resultado imediato em: ${resultPath}`);
     const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
@@ -505,9 +506,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     
     const metadata = (responses.metadata as any) || {};
 
-    // 1. Persistência no Firestore
+    // 2. Persistência no Firestore (Prioridade Máxima 🛡️)
     const resultPath = `User/${matricula}/results/pre_analise_comportamental`;
-    console.log(`🔍 [Effects:PreAnalise] Salvando resultado em: ${resultPath}`);
+    console.log(`🔍 [Effects:PreAnalise] Salvando resultado imediato em: ${resultPath}`);
     const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
@@ -569,5 +570,11 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     } catch (driveErr) {
       console.error(`❌ [Effects] Erro na sincronização Drive Pré-Análise Comportamental:`, driveErr);
     }
+  }
+
+  } catch (globalErr: any) {
+    console.error(`🚨 [Effects:Fatal] Falha Crítica no Processamento da Survey ${surveyId}:`, globalErr);
+    // Não damos re-throw aqui para não travar o fluxo principal se os efeitos falharem,
+    // mas o log acima nos dirá exatamente o que houve.
   }
 }

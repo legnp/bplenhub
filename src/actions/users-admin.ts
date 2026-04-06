@@ -75,6 +75,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
 
       adminUsers.push({
         matricula,
+        uid: data.uid || "", // 🧬 Crucial para governança de identidade
         name,
         nickname,
         email: data.email || data.User_Email || "",
@@ -170,5 +171,35 @@ export async function updateUserPermissions(
   } catch (error: any) {
     console.error("❌ [Governance Admin] Falha ao atualizar permissões:", error.message);
     throw new Error(error.message || "Falha ao atualizar governança do usuário.");
+  }
+}
+
+/**
+ * forceIdentifyUser (Cura de Identidade 🧬)
+ * Vincula manualmente um UID a uma matrícula existente.
+ */
+export async function forceIdentifyUser(matricula: string, uid: string, adminToken?: string) {
+  try {
+    await requireAdmin(adminToken);
+    const db = getAdminDb();
+
+    // 1. Atualizar Documento do Usuário
+    await db.doc(`User/${matricula}`).update({
+      uid: uid,
+      identityRecoveredAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 2. Atualizar AuthMap
+    await db.doc(`_AuthMap/${uid}`).set({
+      matricula,
+      manualLink: true,
+      linkedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (err: any) {
+    console.error("❌ [forceIdentifyUser] Erro ao vincular manual:", err);
+    return { success: false, error: err.message };
   }
 }

@@ -82,21 +82,26 @@ export default function ResultadosPage() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-12"
             >
-              <section className="p-10 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3rem] shadow-sm relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                    <Compass size={120} className="text-[var(--text-primary)]" />
-                 </div>
-                 <div className="relative space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                       <Target size={18} className="text-[var(--accent-start)]" />
-                       <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Visão da sua jornada</h2>
-                    </div>
-                    <div className="h-24 flex items-center border border-dashed border-[var(--border-primary)] rounded-2xl px-6 bg-[var(--bg-primary)]/50">
-                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40 italic">
-                          Evolução estratégica em processamento...
-                       </p>
-                    </div>
-                 </div>
+              {/* Journey Header (100% width) */}
+              <section className="bg-[var(--bg-primary)] border border-dashed border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+                     <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
+                  </div>
+
+                  <div className="relative z-10 max-w-2xl space-y-8">
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
+                           <Target size={18} className="animate-pulse" />
+                           <span className="text-[10px] font-black uppercase tracking-[0.4em]">Visão Estratégica</span>
+                        </div>
+                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Visão da sua jornada</h2>
+                     </div>
+                     <div className="h-24 flex items-center border border-dashed border-[var(--border-primary)] rounded-2xl px-6 bg-[var(--bg-primary)]/50">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40 italic">
+                           Evolução estratégica em processamento...
+                        </p>
+                     </div>
+                  </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
@@ -176,6 +181,15 @@ export default function ResultadosPage() {
                    </div>
                 </div>
 
+              </div>
+
+              {/* Telenetria de Identidade (Debug) */}
+              <div className="pt-12 border-t border-[var(--border-primary)] border-dashed opacity-20 hover:opacity-100 transition-opacity">
+                  <div className="flex flex-col items-center gap-2 text-[8px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] text-center">
+                     <p>🧬 Sincronismo de Identidade Ativo</p>
+                     <p>UID: {user?.uid}</p>
+                     <p>E-mail: {user?.email}</p>
+                  </div>
               </div>
             </motion.div>
           )}
