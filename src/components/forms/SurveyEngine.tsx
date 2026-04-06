@@ -485,11 +485,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           className="min-h-[450px] flex flex-col justify-start relative pt-8"
         >
           {/* Bloco Narrativo Estabilizado 🎭 */}
-          <div className="space-y-6 mb-12 min-h-[160px]">
+          <div className="space-y-6 mb-8 min-h-[160px]">
             <h2 className="text-[26px] md:text-[32px] font-medium tracking-tighter text-[var(--accent-start)] leading-[1.1]">
               <TypedText 
                 text={currentQuestion} 
-                speed={15} 
+                speed={40} 
               />
             </h2>
 
@@ -497,7 +497,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
               <div className="max-w-[640px]">
                 <NarrativeContent 
                   text={currentDescription} 
-                  speed={8}
+                  speed={30}
                   onComplete={onTypedComplete}
                 />
               </div>
@@ -525,7 +525,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                      <button
                       onClick={handleSubmit}
                       disabled={isSubmitting || !canProgress}
-                      className="w-full bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] hover:opacity-90 text-white px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-lg shadow-accent-start/20 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2"
+                      className="w-full bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] hover:opacity-90 text-white px-6 py-4 rounded-[14px] text-sm font-bold uppercase tracking-widest shadow-lg shadow-accent-start/20 transition-all disabled:opacity-30 disabled:grayscale flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? "Enviando..." : config.submitLabel || "Finalizar Pesquisa"}
                     </button>

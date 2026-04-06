@@ -50,7 +50,7 @@ export function TypedText({
     <motion.span
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`inline-block text-left whitespace-pre-wrap ${className}`}
+      className={`text-left whitespace-pre-wrap ${className}`}
     >
       {displayedText}
     </motion.span>

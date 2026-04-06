@@ -15,34 +15,96 @@ interface NarrativeContentProps {
  * Processa strings com markdown-lite e aplica estilos institucionais.
  * Markdown suportado: **negrito**, ### subtítulo, [instrucao] texto [/instrucao]
  */
-export function NarrativeContent({ text, onComplete, speed = 8 }: NarrativeContentProps) {
+export function NarrativeContent({ text, onComplete, speed = 25 }: NarrativeContentProps) {
+  const [visibleBlockIndex, setVisibleBlockIndex] = React.useState(0);
   const [complete, setComplete] = React.useState(false);
+  const blocks = React.useMemo(() => parseNarrativeBlocks(text), [text]);
 
-  const handleComplete = () => {
-    setComplete(true);
-    if (onComplete) onComplete();
+  const handleBlockComplete = (index: number) => {
+    if (index === blocks.length - 1) {
+      setComplete(true);
+      if (onComplete) onComplete();
+    } else {
+      setVisibleBlockIndex(index + 1);
+    }
   };
 
   return (
-    <div className="space-y-4 animate-fade-in min-h-[1.5em]">
-      {!complete ? (
-        <TypedText
-          text={text}
-          speed={speed}
-          onComplete={handleComplete}
-          className="text-[15px] md:text-[16px] text-[var(--text-secondary)] leading-[1.6] tracking-tight whitespace-pre-line"
-        />
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-4"
-        >
-          {parseNarrative(text)}
-        </motion.div>
-      )}
+    <div className="space-y-4">
+      {blocks.map((block, i) => {
+        const isPast = i < visibleBlockIndex;
+        const isCurrent = i === visibleBlockIndex && !complete;
+        const isFuture = i > visibleBlockIndex;
+        const isFinal = complete;
+
+        if (isFuture) {
+           // Reservar espaço com opacidade 0 para evitar reflow massivo
+           return (
+             <div key={i} className="opacity-0 pointer-events-none select-none">
+               {renderBlockContent(block, true)}
+             </div>
+           );
+        }
+
+        if (isCurrent) {
+          return (
+            <div key={i}>
+              {renderBlockContent(block, false, speed, () => handleBlockComplete(i))}
+            </div>
+          );
+        }
+
+        // Past ou Final (Estático)
+        return (
+          <motion.div 
+            key={i}
+            initial={isFinal && i === blocks.length - 1 ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+          >
+            {renderBlockContent(block, true)}
+          </motion.div>
+        );
+      })}
     </div>
+  );
+}
+
+// Auxiliares para suporte a blocos narrativos sequenceáveis 🧬
+
+interface NarrativeBlockData {
+  type: "h3" | "p-muted" | "p-normal";
+  content: string;
+}
+
+function parseNarrativeBlocks(text: string): NarrativeBlockData[] {
+  if (!text) return [];
+  const paragraphs = text.split('\n\n');
+  return paragraphs.map(p => {
+    if (p.startsWith('###')) return { type: "h3", content: p.replace('###', '').trim() };
+    if (p.includes('•') || p.toLowerCase().includes('instruções') || p.toLowerCase().includes('importante')) {
+      return { type: "p-muted", content: p };
+    }
+    return { type: "p-normal", content: p };
+  });
+}
+
+function renderBlockContent(block: NarrativeBlockData, isStatic: boolean, speed?: number, onComplete?: () => void) {
+  const classNameMap = {
+    "h3": "text-lg font-semibold text-[var(--text-primary)] mt-6 mb-2 tracking-tight",
+    "p-muted": "text-[13px] text-[var(--text-muted)] italic leading-relaxed pl-1 border-l border-white/5",
+    "p-normal": "text-[15px] text-[var(--text-secondary)] leading-relaxed"
+  };
+
+  const Tag = block.type === "h3" ? "h3" : "p";
+
+  if (isStatic) {
+    return <Tag className={classNameMap[block.type]}>{processInlineStyles(block.content)}</Tag>;
+  }
+
+  return (
+    <Tag className={classNameMap[block.type]}>
+      <TypedText text={block.content} speed={speed} onComplete={onComplete} />
+    </Tag>
   );
 }
 

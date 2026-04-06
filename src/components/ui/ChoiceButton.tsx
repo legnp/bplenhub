@@ -20,7 +20,7 @@ export const ChoiceButton = ({
   return (
     <button
       {...props}
-      className={`px-4 py-2.5 rounded-[18px] border-[1px] text-[14px] text-left transition-all 
+      className={`px-4 py-2.5 rounded-[14px] border-[1px] text-[14px] text-left transition-all 
                  hover:bg-[var(--accent-soft)] active:scale-[0.98] shadow-sm backdrop-blur-md
                  ${active 
                    ? "border-[var(--accent-start)] bg-[var(--accent-soft)] text-[var(--accent-start)] font-semibold" 
