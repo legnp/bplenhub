@@ -55,8 +55,25 @@ export default function UsersManagementPage() {
   const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [processingUser, setProcessingUser] = useState<string | null>(null);
   
-  // Modal de Serviços
+  // Modal de Serviços e Assessments
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [activeTab, setActiveTab] = useState<"services" | "assessments">("services");
+  const [userAssessments, setUserAssessments] = useState<any[]>([]);
+  const [loadingAssessments, setLoadingAssessments] = useState(false);
+
+  // Carregar Assessments quando o modal abre
+  useEffect(() => {
+    if (selectedUser && activeTab === "assessments") {
+       const load = async () => {
+          const { getUserAssessments } = await import("@/actions/admin-assessments");
+          setLoadingAssessments(true);
+          const results = await getUserAssessments(selectedUser.matricula);
+          setUserAssessments(results);
+          setLoadingAssessments(false);
+       };
+       load();
+    }
+  }, [selectedUser, activeTab]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -125,6 +142,24 @@ export default function UsersManagementPage() {
       alert(err.message || "Erro ao atualizar serviços.");
     } finally {
       setProcessingUser(null);
+    }
+  };
+
+  const handleToggleRelease = async (testId: string, currentStatus: boolean) => {
+    if (!selectedUser) return;
+    setLoadingAssessments(true);
+    try {
+      const { toggleAssessmentRelease } = await import("@/actions/admin-assessments");
+      const res = await toggleAssessmentRelease(selectedUser.matricula, testId, currentStatus);
+      if (res.success) {
+         setUserAssessments(prev => prev.map(a => 
+           a.id === testId ? { ...a, isReleased: !currentStatus } : a
+         ));
+      }
+    } catch (err) {
+      alert("Erro ao atualizar status do diagnóstico.");
+    } finally {
+      setLoadingAssessments(false);
     }
   };
 
@@ -295,7 +330,7 @@ export default function UsersManagementPage() {
                     {/* Acessos (Destaque para Entitlements) */}
                     <td className="px-8 py-6">
                       <button 
-                        onClick={() => setSelectedUser(user)}
+                        onClick={() => { setSelectedUser(user); setActiveTab("services"); }}
                         className="flex flex-wrap gap-1.5 hover:scale-[1.02] transition-transform text-left"
                       >
                          {Object.values(user.services).filter(v => v === true).length > 0 ? (
@@ -325,11 +360,11 @@ export default function UsersManagementPage() {
                     {/* Ações Granulares */}
                     <td className="px-8 py-6 text-right">
                        <button 
-                         onClick={() => setSelectedUser(user)}
+                         onClick={() => { setSelectedUser(user); setActiveTab("services"); }}
                          className="p-3 rounded-xl bg-black text-white hover:bg-[var(--accent-start)] transition-all shadow-lg shadow-black/10 flex items-center gap-2 ml-auto"
                        >
                           <Settings size={14} />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Gerenciar Serviços</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest">Configurações</span>
                        </button>
                     </td>
                   </tr>
@@ -340,7 +375,7 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Modal de Gestão de Serviços (Entitlements) */}
+      {/* Modal de Gestão de Usuário (Serviços + Assessments) */}
       <AnimatePresence>
         {selectedUser && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
@@ -360,9 +395,23 @@ export default function UsersManagementPage() {
                 {/* Modal Header */}
                 <div className="p-8 border-b border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-between items-center text-left">
                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest">Acessos Granulares</p>
+                      <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest">Governança & Mapeamento</p>
                       <h3 className="text-xl font-black text-[var(--text-primary)]">{selectedUser.name}</h3>
-                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight opacity-60">Configuração de Produtos & Serviços</p>
+                      <div className="flex gap-4 mt-4">
+                        {["services", "assessments"].map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab as any)}
+                            className={`text-[9px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all ${
+                              activeTab === tab 
+                              ? "border-[var(--accent-start)] text-[var(--accent-start)]" 
+                              : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                            }`}
+                          >
+                            {tab === "services" ? "Acessos & Serviços" : "Assessments / Devolutivas"}
+                          </button>
+                        ))}
+                      </div>
                    </div>
                    <button onClick={() => setSelectedUser(null)} className="p-3 rounded-2xl hover:bg-white/10 transition-all text-gray-500">
                       <X size={20} />
@@ -371,63 +420,115 @@ export default function UsersManagementPage() {
 
                 {/* Modal Body */}
                 <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                   <div className="grid grid-cols-1 gap-4">
-                      {PREDEFINED_SERVICES.map((service) => {
-                         const isActive = selectedUser.services[service.id];
-                         return (
-                            <button 
-                              key={service.id}
-                              onClick={() => {
-                                 const newServices = { ...selectedUser.services, [service.id]: !isActive };
-                                 setSelectedUser({ ...selectedUser, services: newServices });
-                              }}
-                              className={`p-6 border rounded-[1.5rem] flex items-center justify-between transition-all group ${
-                                isActive 
-                                ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/30" 
-                                : "bg-[var(--input-bg)] border-[var(--border-primary)]"
-                              }`}
-                            >
-                               <div className="flex items-center gap-4 text-left">
-                                  <div className={`p-3 rounded-xl border transition-all ${
-                                     isActive ? "bg-[var(--accent-start)] text-white border-[var(--accent-start)]" : "bg-white/5 border-[var(--border-primary)] text-gray-500"
-                                  }`}>
-                                     {isActive ? <Rocket size={18} /> : <Layers size={18} />}
+                   {activeTab === "services" ? (
+                      <div className="grid grid-cols-1 gap-4">
+                         {PREDEFINED_SERVICES.map((service) => {
+                            const isActive = selectedUser.services[service.id];
+                            return (
+                               <button 
+                                 key={service.id}
+                                 onClick={() => {
+                                    const newServices = { ...selectedUser.services, [service.id]: !isActive };
+                                    setSelectedUser({ ...selectedUser, services: newServices });
+                                 }}
+                                 className={`p-6 border rounded-[1.5rem] flex items-center justify-between transition-all group ${
+                                   isActive 
+                                   ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/30" 
+                                   : "bg-[var(--input-bg)] border-[var(--border-primary)]"
+                                 }`}
+                               >
+                                  <div className="flex items-center gap-4 text-left">
+                                     <div className={`p-3 rounded-xl border transition-all ${
+                                        isActive ? "bg-[var(--accent-start)] text-white border-[var(--accent-start)]" : "bg-white/5 border-[var(--border-primary)] text-gray-500"
+                                     }`}>
+                                        {isActive ? <Rocket size={18} /> : <Layers size={18} />}
+                                     </div>
+                                     <div>
+                                        <h5 className={`font-black text-sm transition-colors ${isActive ? "text-[var(--accent-start)]" : "text-[var(--text-primary)]"}`}>
+                                           {service.label}
+                                        </h5>
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
+                                           Liberação de trilha & Hub
+                                        </p>
+                                     </div>
                                   </div>
-                                  <div>
-                                     <h5 className={`font-black text-sm transition-colors ${isActive ? "text-[var(--accent-start)]" : "text-[var(--text-primary)]"}`}>
-                                        {service.label}
-                                     </h5>
-                                     <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
-                                        Liberação de trilha & Hub
-                                     </p>
+                                  <div className={`w-10 h-5 rounded-full relative transition-all ${isActive ? "bg-[var(--accent-start)]" : "bg-gray-700"}`}>
+                                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? "left-6" : "left-1"}`} />
                                   </div>
+                               </button>
+                            );
+                         })}
+                      </div>
+                   ) : (
+                      <div className="space-y-6">
+                        {loadingAssessments ? (
+                          <div className="flex flex-col items-center justify-center py-20 gap-4">
+                             <Loader2 size={32} className="animate-spin text-[var(--accent-start)]" />
+                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Mapeando Pesquisas...</p>
+                          </div>
+                        ) : userAssessments.length > 0 ? (
+                           <div className="grid grid-cols-1 gap-4">
+                             {userAssessments.map((test) => (
+                               <div 
+                                 key={test.id}
+                                 className="p-6 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[1.5rem] flex items-center justify-between"
+                               >
+                                  <div className="flex items-center gap-4">
+                                     <div className={`p-3 rounded-xl ${test.isReleased ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                                        {test.isReleased ? <CheckCircle2 size={18} /> : <Activity size={18} />}
+                                     </div>
+                                     <div>
+                                        <h5 className="font-black text-sm text-[var(--text-primary)]">{test.title}</h5>
+                                        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
+                                           Submetido em {new Date(test.submittedAt).toLocaleDateString("pt-BR")}
+                                        </p>
+                                     </div>
+                                  </div>
+                                  
+                                  <button 
+                                    onClick={() => handleToggleRelease(test.id, test.isReleased)}
+                                    className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                                      test.isReleased 
+                                      ? "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" 
+                                      : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
+                                    }`}
+                                  >
+                                    {test.isReleased ? "Ocultar do Cliente" : "Liberar para Cliente"}
+                                  </button>
                                </div>
-                               <div className={`w-10 h-5 rounded-full relative transition-all ${isActive ? "bg-[var(--accent-start)]" : "bg-gray-700"}`}>
-                                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? "left-6" : "left-1"}`} />
-                               </div>
-                            </button>
-                         );
-                      })}
-                   </div>
+                             ))}
+                           </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                             <div className="p-6 rounded-3xl bg-[var(--bg-primary)] border border-dashed border-[var(--border-primary)]">
+                                <Fingerprint size={32} className="text-[var(--text-muted)] opacity-20" />
+                             </div>
+                             <p className="text-sm font-bold text-[var(--text-muted)] opacity-60">Nenhuma pesquisa submetida por este usuário.</p>
+                          </div>
+                        )}
+                      </div>
+                   )}
                 </div>
 
-                {/* Modal Footer */}
-                <div className="p-8 border-t border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-end gap-4">
-                   <button 
-                     onClick={() => setSelectedUser(null)}
-                     className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-all"
-                   >
-                      Cancelar
-                   </button>
-                   <button 
-                     onClick={() => handleUpdateServices(selectedUser.matricula, selectedUser.services)}
-                     disabled={processingUser === selectedUser.matricula}
-                     className="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
-                   >
-                      {processingUser === selectedUser.matricula ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                      {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Acessos"}
-                   </button>
-                </div>
+                {/* Modal Footer (Apenas para Tab Serviços) */}
+                {activeTab === "services" && (
+                  <div className="p-8 border-t border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-end gap-4">
+                    <button 
+                      onClick={() => setSelectedUser(null)}
+                      className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-all"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                      onClick={() => handleUpdateServices(selectedUser.matricula, selectedUser.services)}
+                      disabled={processingUser === selectedUser.matricula}
+                      className="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
+                    >
+                        {processingUser === selectedUser.matricula ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                        {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Acessos"}
+                    </button>
+                  </div>
+                )}
              </motion.div>
           </div>
         )}

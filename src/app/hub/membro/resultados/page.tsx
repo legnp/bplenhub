@@ -125,31 +125,34 @@ export default function ResultadosPage() {
                   </div>
 
                   {/* Aprendizado (VACD) */}
-                  {aprendizadoResult && aprendizadoResult.isReleased && (
+                  {aprendizadoResult && (
                      <MiniCard 
                         title="Aprendizado" 
                         subtitle="VACD" 
                         data={vacdData} 
+                        isReleased={aprendizadoResult.isReleased}
                         icon={<Sparkles size={14} className="text-pink-500" />}
                      />
                   )}
 
                   {/* Reconhecimento */}
-                  {reconhecimentoResult && reconhecimentoResult.isReleased && (
+                  {reconhecimentoResult && (
                      <MiniCard 
                         title="Reconhecimento" 
                         subtitle="Linguagem" 
                         data={reconhecimentoData} 
+                        isReleased={reconhecimentoResult.isReleased}
                         icon={<Heart size={14} className="text-red-500" />}
                      />
                   )}
 
                   {/* Gestão do Tempo (Tríade) */}
-                  {gestaoResult && gestaoResult.isReleased && (
+                  {gestaoResult && (
                      <MiniCard 
                         title="Tríade do Tempo" 
                         subtitle="Energia" 
                         data={triadData} 
+                        isReleased={gestaoResult.isReleased}
                         icon={<Clock size={14} className="text-blue-500" />}
                      />
                   )}
@@ -189,22 +192,35 @@ function LoadingView() {
   );
 }
 
-function MiniCard({ title, subtitle, data, icon }: any) {
+function MiniCard({ title, subtitle, data, icon, isReleased }: any) {
   return (
-    <section className="p-8 blur-glass border border-white/10 rounded-[2.5rem] bg-white/5 space-y-6 hover:translate-y-[-4px] transition-all duration-300">
+    <section className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 transition-all duration-300 shadow-sm relative overflow-hidden ${!isReleased ? 'opacity-70 group' : 'hover:translate-y-[-4px]'}`}>
         <header className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-                {icon && <div className="p-2 bg-white/5 rounded-xl">{icon}</div>}
+                {icon && <div className="p-2 bg-[var(--bg-primary)]/50 rounded-xl">{icon}</div>}
                 <div className="space-y-0.5">
                     <p className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">{subtitle}</p>
                     <h2 className="text-sm font-bold text-[var(--text-primary)]">{title}</h2>
                 </div>
             </div>
+            {!isReleased && (
+              <span className="text-[7px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-start)] animate-pulse">
+                Diagnosticando
+              </span>
+            )}
         </header>
 
-        <div className="scale-90 -mx-4">
+        <div className={`scale-90 -mx-4 transition-all ${!isReleased ? 'blur-md grayscale opacity-20' : ''}`}>
             <TriadDonutChart data={data} mini />
         </div>
+
+        {!isReleased && (
+          <div className="absolute inset-0 flex items-center justify-center pt-10">
+             <div className="p-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl shadow-xl">
+               <AlertCircle size={14} className="text-[var(--text-muted)] opacity-40 animate-bounce" />
+             </div>
+          </div>
+        )}
     </section>
   );
 }
