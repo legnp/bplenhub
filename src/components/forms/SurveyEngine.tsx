@@ -82,14 +82,16 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const handleNext = () => {
     // 1. Verificar Lógica Condicional (Salto de Grafo) 🧬
     const firstField = currentStep.fields[0];
-    const userValue = responses[firstField.id];
     
-    if (firstField.logic && typeof userValue === "string" && firstField.logic[userValue]) {
-      const nextStepId = firstField.logic[userValue];
-      const nextIndex = config.steps.findIndex(s => s.id === nextStepId);
-      if (nextIndex !== -1) {
-        setCurrentStepIndex(nextIndex);
-        return;
+    if (firstField) {
+      const userValue = responses[firstField.id];
+      if (firstField.logic && typeof userValue === "string" && firstField.logic[userValue]) {
+        const nextStepId = firstField.logic[userValue];
+        const nextIndex = config.steps.findIndex(s => s.id === nextStepId);
+        if (nextIndex !== -1) {
+          setCurrentStepIndex(nextIndex);
+          return;
+        }
       }
     }
 
