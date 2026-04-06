@@ -2,37 +2,39 @@
 
 import React, { useState, useEffect } from "react";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
-import { getAuth } from "firebase/auth";
-import { getGestaoTempoResult, getPreferenciasAprendizadoResult, getPreferenciasReconhecimentoResult } from "@/actions/get-user-results";
+import { getGestaoTempoResult, getPreferenciasAprendizadoResult, getPreferenciasReconhecimentoResult, getPreAnaliseComportamentalResult } from "@/actions/get-user-results";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MessageCircle, AlertCircle, Sparkles, Heart, Compass, Layout, Target } from "lucide-react";
+import { Clock, MessageCircle, AlertCircle, Sparkles, Heart, Compass, Layout, Target, Brain } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
+import { useAuthContext } from "@/context/AuthContext";
 
 /**
  * Hub - Área de Resultados do Membro 🧬
- * Versão Refinada (Sem duplicação e com Contraste Inteligente)
+ * Versão Refinada (Corrigido Auth e com todos os Cards)
  */
 export default function ResultadosPage() {
+  const { user } = useAuthContext();
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);
   const [reconhecimentoResult, setReconhecimentoResult] = useState<any>(null);
+  const [preAnaliseResult, setPreAnaliseResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
+    
     async function load() {
       try {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (user) {
-          const [gestao, aprendizado, reconhecimento] = await Promise.all([
-            getGestaoTempoResult(user.uid),
-            getPreferenciasAprendizadoResult(user.uid),
-            getPreferenciasReconhecimentoResult(user.uid)
-          ]);
-          setGestaoResult(gestao);
-          setAprendizadoResult(aprendizado);
-          setReconhecimentoResult(reconhecimento);
-        }
+        const [gestao, aprendizado, reconhecimento, preAnalise] = await Promise.all([
+          getGestaoTempoResult(user!.uid),
+          getPreferenciasAprendizadoResult(user!.uid),
+          getPreferenciasReconhecimentoResult(user!.uid),
+          getPreAnaliseComportamentalResult(user!.uid)
+        ]);
+        setGestaoResult(gestao);
+        setAprendizadoResult(aprendizado);
+        setReconhecimentoResult(reconhecimento);
+        setPreAnaliseResult(preAnalise);
       } catch (err) {
         console.error("Erro ao carregar resultados:", err);
       } finally {
@@ -40,7 +42,7 @@ export default function ResultadosPage() {
       }
     }
     load();
-  }, []);
+  }, [user]);
 
   const triadData = gestaoResult?.scores ? [
     { label: "Importância", percentage: gestaoResult.scores.importancia.percentage, color: "#6366F1" },
@@ -67,18 +69,6 @@ export default function ResultadosPage() {
     <div className="flex flex-col min-h-screen animate-fade-in">
       <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-12 flex-1 w-full">
         
-        <header className="space-y-3">
-           <div className="flex items-center gap-3">
-              <div className="bg-[var(--accent-soft)] p-2.5 rounded-2xl text-[var(--accent-start)]">
-                 <Layout size={20} />
-              </div>
-              <h1 className="text-4xl font-black tracking-tight text-[var(--text-primary)]">Suas Análises</h1>
-           </div>
-           <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-xl font-medium">
-              Dashboards de inteligência e mapeamento de performance para sua mentoria estratégica.
-           </p>
-        </header>
-
         <AnimatePresence mode="wait">
           {loading ? (
             <LoadingView />
@@ -88,7 +78,6 @@ export default function ResultadosPage() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-12"
             >
-              {/* 1. Visão da sua jornada (Full Width) 🚀 */}
               <section className="p-10 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3rem] shadow-sm relative overflow-hidden group">
                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
                     <Compass size={120} className="text-[var(--text-primary)]" />
@@ -106,10 +95,8 @@ export default function ResultadosPage() {
                  </div>
               </section>
 
-              {/* 2. Grid de Split (1/3 Sidebar | 2/3 Content) 📋 */}
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
                 
-                {/* Sidebar: Assessments (1/3) */}
                 <aside className="space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)] px-6">Perfil & Assessments</h3>
                   
@@ -124,6 +111,18 @@ export default function ResultadosPage() {
                      </div>
                   </div>
 
+                  {/* Pré-Análise Comportamental */}
+                  {preAnaliseResult && (
+                     <MiniCard 
+                        title="Análise Comportamental" 
+                        subtitle="Mapeamento" 
+                        data={[]} 
+                        isReleased={preAnaliseResult.isReleased}
+                        submittedAt={preAnaliseResult.submittedAt}
+                        icon={<Brain size={14} className="text-[var(--accent-start)]" />}
+                     />
+                  )}
+
                   {/* Aprendizado (VACD) */}
                   {aprendizadoResult && (
                      <MiniCard 
@@ -131,6 +130,7 @@ export default function ResultadosPage() {
                         subtitle="VACD" 
                         data={vacdData} 
                         isReleased={aprendizadoResult.isReleased}
+                        submittedAt={aprendizadoResult.submittedAt}
                         icon={<Sparkles size={14} className="text-pink-500" />}
                      />
                   )}
@@ -142,6 +142,7 @@ export default function ResultadosPage() {
                         subtitle="Linguagem" 
                         data={reconhecimentoData} 
                         isReleased={reconhecimentoResult.isReleased}
+                        submittedAt={reconhecimentoResult.submittedAt}
                         icon={<Heart size={14} className="text-red-500" />}
                      />
                   )}
@@ -153,6 +154,7 @@ export default function ResultadosPage() {
                         subtitle="Energia" 
                         data={triadData} 
                         isReleased={gestaoResult.isReleased}
+                        submittedAt={gestaoResult.submittedAt}
                         icon={<Clock size={14} className="text-blue-500" />}
                      />
                   )}
@@ -162,10 +164,11 @@ export default function ResultadosPage() {
                 <div className="space-y-8 min-h-[600px] bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3.5rem] shadow-sm relative overflow-hidden flex flex-col items-center justify-center group/main">
                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-start)]/[0.03] to-transparent opacity-0 group-hover/main:opacity-100 transition-opacity duration-1000" />
                    <div className="relative text-center space-y-4 opacity-20 group-hover/main:opacity-40 transition-all duration-500">
-                      <div className="p-8 rounded-full border border-dashed border-[var(--border-primary)] inline-block bg-[var(--bg-primary)]/50">
-                         <Layout size={40} className="text-[var(--text-primary)]" />
+                      <Layout size={48} className="mx-auto text-[var(--accent-start)]" />
+                      <div>
+                         <h4 className="text-sm font-black uppercase tracking-[0.3em] text-[var(--text-primary)]">Conteúdo em Curadoria</h4>
+                         <p className="text-[10px] font-medium text-[var(--text-muted)] mt-2 italic">Aguardando definição da régua estratégica de mentoria.</p>
                       </div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--text-primary)] font-mono">Conteúdo em curadoria</p>
                    </div>
                 </div>
 
@@ -192,35 +195,58 @@ function LoadingView() {
   );
 }
 
-function MiniCard({ title, subtitle, data, icon, isReleased }: any) {
+/**
+ * MiniCard: Compact Assessment View
+ */
+function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt }: any) {
+  const formattedDate = submittedAt ? new Date(submittedAt.seconds ? submittedAt.seconds * 1000 : submittedAt).toLocaleDateString("pt-BR") : null;
+
   return (
-    <section className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 transition-all duration-300 shadow-sm relative overflow-hidden ${!isReleased ? 'opacity-70 group' : 'hover:translate-y-[-4px]'}`}>
-        <header className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-                {icon && <div className="p-2 bg-[var(--bg-primary)]/50 rounded-xl">{icon}</div>}
-                <div className="space-y-0.5">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">{subtitle}</p>
-                    <h2 className="text-sm font-bold text-[var(--text-primary)]">{title}</h2>
-                </div>
-            </div>
-            {!isReleased && (
-              <span className="text-[7px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-start)] animate-pulse">
-                Diagnosticando
-              </span>
-            )}
-        </header>
-
-        <div className={`scale-90 -mx-4 transition-all ${!isReleased ? 'blur-md grayscale opacity-20' : ''}`}>
-            <TriadDonutChart data={data} mini />
+    <section className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group/card shadow-sm ${!isReleased ? 'opacity-70 grayscale-[0.5]' : 'hover:translate-y-[-4px] hover:shadow-xl hover:shadow-[var(--accent-start)]/5'}`}>
+      <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center shadow-inner group-hover/card:bg-[var(--accent-soft)] transition-colors">
+            {icon}
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">{title}</h4>
+            <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight opacity-60 group-hover/card:opacity-100 transition-opacity">{subtitle}</p>
+          </div>
         </div>
-
+        
+        {/* Status Badge */}
         {!isReleased && (
-          <div className="absolute inset-0 flex items-center justify-center pt-10">
-             <div className="p-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl shadow-xl">
-               <AlertCircle size={14} className="text-[var(--text-muted)] opacity-40 animate-bounce" />
-             </div>
+          <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+            <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+            <span className="text-[7px] font-black uppercase tracking-[0.15em] text-amber-600">
+              Diagnosticando
+            </span>
           </div>
         )}
+      </div>
+
+      {/* Donut Chart with Blur Effect if Pending */}
+      <div className={`scale-90 -mx-4 transition-all duration-700 ${!isReleased ? 'blur-md grayscale opacity-30 select-none' : 'opacity-100 group-hover/card:scale-95'}`}>
+        {data.length > 0 ? (
+          <TriadDonutChart data={data} mini />
+        ) : (
+          <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
+             <Heart size={16} className="text-[var(--accent-start)] opacity-20" />
+          </div>
+        )}
+      </div>
+
+      {/* Discreet Submission Date */}
+      {formattedDate && (
+        <div className="pt-2 border-t border-[var(--border-primary)] border-dashed opacity-30 group-hover/card:opacity-60 transition-opacity text-center">
+           <p className="text-[8px] font-medium uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center justify-center gap-1.5">
+              Mapeado em {formattedDate}
+           </p>
+        </div>
+      )}
+
+      {/* Decorative Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
     </section>
   );
 }
