@@ -26,10 +26,10 @@ export default function ResultadosPage() {
     async function load() {
       try {
         const [gestao, aprendizado, reconhecimento, preAnalise] = await Promise.all([
-          getGestaoTempoResult(user!.uid),
-          getPreferenciasAprendizadoResult(user!.uid),
-          getPreferenciasReconhecimentoResult(user!.uid),
-          getPreAnaliseComportamentalResult(user!.uid)
+          getGestaoTempoResult(user!.uid, user!.email || undefined),
+          getPreferenciasAprendizadoResult(user!.uid, user!.email || undefined),
+          getPreferenciasReconhecimentoResult(user!.uid, user!.email || undefined),
+          getPreAnaliseComportamentalResult(user!.uid, user!.email || undefined)
         ]);
         setGestaoResult(gestao);
         setAprendizadoResult(aprendizado);
