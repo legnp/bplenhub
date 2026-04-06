@@ -101,3 +101,35 @@ export async function syncDataToSheet(
     },
   });
 }
+
+/**
+ * 4. Carregador de Arquivos (Mídia)
+ * Realiza o upload de um arquivo binário para o Google Drive.
+ */
+export async function uploadFileToDrive(
+  drive: drive_v3.Drive,
+  parentFolderId: string,
+  fileName: string,
+  mimeType: string,
+  body: any
+): Promise<{ id: string; webViewLink: string }> {
+  const file = await drive.files.create({
+    supportsAllDrives: true,
+    requestBody: {
+      name: fileName,
+      parents: [parentFolderId],
+    },
+    media: {
+      mimeType,
+      body,
+    },
+    fields: "id, webViewLink",
+  });
+
+  if (!file.data.id) throw new Error(`Falha ao fazer upload do arquivo: ${fileName}`);
+  
+  return {
+    id: file.data.id,
+    webViewLink: file.data.webViewLink || ""
+  };
+}

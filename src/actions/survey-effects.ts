@@ -147,15 +147,26 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
       const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Check-in - ${matricula}`);
 
-      const headers = ["Timestamp", "Matrícula", "Nicho", "Desafios", "Objetivos", "Regime"];
+      const headers = [
+        "Timestamp", "Matrícula", "Nicho", "Desafios", "Objetivos", "Regime",
+        "CV Drive", "Portfólio Drive", "LinkedIn", "Instagram", "Web/Portfolio", "Banco Talentos", "Comentários Carreira"
+      ];
       const rowData: (string | number | boolean | null)[] = [
         new Date().toLocaleString("pt-BR"),
         matricula,
         String((responses.nicho_cascata as any)?.primary || "N/A"),
         Array.isArray(responses.desafios_multi) ? responses.desafios_multi.join(", ") : "N/A",
         String(responses.objetivos_timeline || "N/A"),
-        String(responses.regime_choice || "N/A")
+        String(responses.regime_choice || "N/A"),
+        (responses.cv_upload as any)?.url || "N/A",
+        (responses.portfolio_upload as any)?.url || "N/A",
+        String(responses.linkedin_url || "N/A"),
+        String(responses.instagram_url || "N/A"),
+        `${responses.web_url || ""} | ${responses.portfolio_url || ""}`,
+        String(responses.banco_talentos || "N/A"),
+        String(responses.comentarios_carreira || "N/A")
       ];
+
 
       await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
       console.log(`✅ [Effects] Check-in sincronizado com Drive: ${matricula}`);

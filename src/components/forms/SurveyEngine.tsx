@@ -18,6 +18,9 @@ import { CurrencyGroup } from "./SurveyFields/CurrencyGroup";
 import { LikertScale } from "./SurveyFields/LikertScale";
 import { RankingField } from "./SurveyFields/RankingField";
 import { LikertGroup } from "./SurveyFields/LikertGroup";
+import { FileField } from "./SurveyFields/FileField";
+import { resolveUserIdentity } from "@/actions/survey-effects";
+
 
 
 interface SurveyEngineProps {
@@ -39,8 +42,22 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [startTime] = useState<number>(Date.now());
+  const [matricula, setMatricula] = useState<string>("");
+  const [pendingUploads, setPendingUploads] = useState<number>(0);
+
+
+  useEffect(() => {
+    async function loadMatricula() {
+      if (userUid) {
+        const mat = await resolveUserIdentity(config.id, {}, userUid);
+        setMatricula(mat);
+      }
+    }
+    loadMatricula();
+  }, [userUid, config.id]);
 
   const currentStep = config.steps[currentStepIndex];
+
   const isLastStep = currentStepIndex === config.steps.length - 1;
 
   // Lógica de Interpolação de Texto Reativa (Suporta {{nickname}} e {User-nickname})
@@ -172,6 +189,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
         }
         return (
           <div className="space-y-4">
+            {field.label && (
+              <label className="text-xs font-bold uppercase tracking-tight text-[var(--text-muted)] ml-1">
+                {field.label}
+              </label>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {(field.options as string[])?.map((opt) => (
                 <ChoiceButton
@@ -185,6 +207,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             </div>
             
             {/* Campo Condicional "Outro" 🧬 */}
+
             {rawValue === "Outro" && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -246,7 +269,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
         return (
           <LikertScale
             value={rawValue as any}
-            onChange={(val) => updateResponse(field.id, val)}
+            onChange={(val: any) => updateResponse(field.id, val)}
             options={field.options as string[]}
           />
         );
@@ -256,9 +279,10 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           <LikertGroup
             statements={field.options as string[]}
             value={(rawValue as Record<string, number>) || {}}
-            onChange={(val) => updateResponse(field.id, val)}
+            onChange={(val: Record<string, number>) => updateResponse(field.id, val)}
           />
         );
+
 
       
       case "ranking":
@@ -272,7 +296,12 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
       case "text":
         return (
-          <div className="pt-2">
+          <div className="space-y-2 pt-2">
+            {field.label && (
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--accent-start)] ml-1">
+                {field.label}
+              </label>
+            )}
             <InputGlass
               autoFocus={field.autoFocus}
               placeholder={field.placeholder || "Escreva aqui..."}
@@ -284,7 +313,12 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
       case "textarea":
         return (
-          <div className="pt-2">
+          <div className="space-y-2 pt-2">
+            {field.label && (
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--accent-start)] ml-1">
+                {field.label}
+              </label>
+            )}
             <TextareaGlass
               autoFocus={field.autoFocus}
               placeholder={field.placeholder || "Descreva aqui..."}
@@ -294,6 +328,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             />
           </div>
         );
+
 
       case "scale":
         const scaleOptions = (field.options as string[]) || ["1", "2", "3", "4", "5"];
@@ -334,7 +369,24 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           </div>
         );
 
+      case "file":
+        return (
+          <FileField
+            id={field.id}
+            label={field.label}
+            type={field.id.includes("portfolio") ? "Portfolio" : "CV"}
+            matricula={matricula}
+            value={(rawValue as any) || null}
+            maxSizeMB={field.id.includes("portfolio") ? 20 : 5}
+            onChange={(val: { url: string; fileName: string } | null) => {
+              updateResponse(field.id, val);
+            }}
+          />
+
+        );
+
       case "info":
+
         return (
           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
             <p className="text-sm text-[var(--text-muted)] leading-relaxed italic">
@@ -458,7 +510,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                   ) : (
                     <div className="flex justify-end">
                       <AnimatePresence>
-                        {showNextButton && canProgress && (
+                        {showNextButton && canProgress && !pendingUploads && (
                           <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -469,6 +521,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                             />
                           </motion.div>
                         )}
+
                       </AnimatePresence>
                     </div>
                   )}

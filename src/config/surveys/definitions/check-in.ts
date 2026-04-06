@@ -196,7 +196,8 @@ export const check_in_v1: SurveyConfig = {
     {
       id: "q8c_pacote",
       question: "Como está o seu pacote de remuneração e benefícios atual?",
-      nextStepId: "q9_como_podemos_ajudar",
+      nextStepId: "q8d_carreira_profissional",
+
       fields: [
         {
           id: "beneficios_pacote",
@@ -214,6 +215,7 @@ export const check_in_v1: SurveyConfig = {
     {
         id: "q8c_pacote_anterior",
         question: "Como o seu último pacote de remuneração e benefícios era composto?",
+        nextStepId: "q8d_carreira_profissional",
         fields: [
           {
             id: "beneficios_pacote", // Reaproveita ID para unificar dados no banco
@@ -228,6 +230,68 @@ export const check_in_v1: SurveyConfig = {
           }
         ]
       },
+    {
+      id: "q8d_carreira_profissional",
+      question: "{User_Nickname}, sua Carreira Profissional",
+      description: "Queremos conhecer sua trajetória! Anexe seus documentos e nos conte sobre seus canais profissionais.",
+      fields: [
+        {
+          id: "cv_upload",
+          type: "file",
+          label: "Currículo / Resumo (PDF)",
+          required: false
+        },
+        {
+          id: "portfolio_upload",
+          type: "file",
+          label: "Portfólio / Projetos (PDF/IMG)",
+          required: false
+        },
+        {
+          id: "linkedin_url",
+          type: "text",
+          label: "LinkedIn (URL)",
+          placeholder: "linkedin.com/in/..."
+        },
+        {
+          id: "instagram_url",
+          type: "text",
+          label: "Instagram (URL)",
+          placeholder: "@seunome"
+        },
+        {
+          id: "web_url",
+          type: "text",
+          label: "Página Web Profissional",
+          placeholder: "www.seusite.com.br"
+        },
+        {
+          id: "portfolio_url",
+          type: "text",
+          label: "Página de Portfólio (Behance, GitHub, etc)",
+          placeholder: "behance.net/..."
+        },
+        {
+          id: "comentarios_carreira",
+          type: "textarea",
+          label: "Comentários sobre sua carreira profissional",
+          placeholder: "Fale um pouco mais sobre sua trajetória..."
+        },
+        {
+          id: "banco_talentos",
+          type: "choice",
+          label: "Quero participar do Banco de Talentos da BPlen",
+          options: ["Sim, quero fazer parte", "Não, obrigado"],
+          required: true
+        },
+        {
+          id: "info_banco",
+          type: "info",
+          label: "Este banco de talentos não é para trabalhar na BPlen, mas para fazer parte do banco que a BPlen compartilha com empresas parceiras e clientes. Não significa que há vagas abertas no momento ou emprego garantido, mas seu perfil poderá ser consultado para indicações. Você poderá revogar sua participação a qualquer momento."
+        }
+      ]
+    },
+
     {
       id: "q9_como_podemos_ajudar",
       question: "{User_Nickname}, porque você deu sua permissão a BPlen para te ajudar na jornada do desenvolvimento da sua carreira, o que você espera encontrar por aqui? Como podemos te ajudar?",
