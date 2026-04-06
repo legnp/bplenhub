@@ -6,7 +6,7 @@ import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { getAuth } from "firebase/auth";
 import { getGestaoTempoResult } from "@/actions/get-user-results";
 import { motion, AnimatePresence } from "framer-motion";
-import { Time, Clock, MessageCircle, AlertCircle } from "lucide-react";
+import { Clock, MessageCircle, AlertCircle } from "lucide-react";
 
 /**
  * Hub - Área de Resultados do Membro 🧬
