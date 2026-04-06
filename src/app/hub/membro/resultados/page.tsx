@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { HubShell } from "@/components/hub/HubShell";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { getAuth } from "firebase/auth";
 import { getGestaoTempoResult, getPreferenciasAprendizadoResult, getPreferenciasReconhecimentoResult } from "@/actions/get-user-results";
@@ -11,7 +10,7 @@ import { HomeFooter } from "@/components/home/HomeFooter";
 
 /**
  * Hub - Área de Resultados do Membro 🧬
- * Layout v4.0: Estrutura em Split (Sidebar 1/3) para Alta Performance.
+ * Versão Refinada (Sem duplicação e com Contraste Inteligente)
  */
 export default function ResultadosPage() {
   const [gestaoResult, setGestaoResult] = useState<any>(null);
@@ -65,117 +64,115 @@ export default function ResultadosPage() {
   ] : [];
 
   return (
-    <HubShell>
-      <div className="min-h-screen flex flex-col">
-        <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-12 flex-1 w-full">
-          
-          <header className="space-y-3">
-             <div className="flex items-center gap-3">
-                <div className="bg-[var(--accent-soft)] p-2.5 rounded-2xl text-[var(--accent-start)]">
-                   <Layout size={20} />
-                </div>
-                <h1 className="text-4xl font-black tracking-tight text-[var(--text-primary)]">Suas Análises</h1>
-             </div>
-             <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-xl">
-                Dashboards de inteligência e mapeamento de performance para sua mentoria estratégica.
-             </p>
-          </header>
+    <div className="flex flex-col min-h-screen animate-fade-in">
+      <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-12 flex-1 w-full">
+        
+        <header className="space-y-3">
+           <div className="flex items-center gap-3">
+              <div className="bg-[var(--accent-soft)] p-2.5 rounded-2xl text-[var(--accent-start)]">
+                 <Layout size={20} />
+              </div>
+              <h1 className="text-4xl font-black tracking-tight text-[var(--text-primary)]">Suas Análises</h1>
+           </div>
+           <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-xl font-medium">
+              Dashboards de inteligência e mapeamento de performance para sua mentoria estratégica.
+           </p>
+        </header>
 
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <LoadingView />
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-12"
-              >
-                {/* 1. Visão da sua jornada (Full Width) 🚀 */}
-                <section className="p-10 blur-glass border border-white/10 rounded-[3rem] bg-white/5 relative overflow-hidden group">
-                   <div className="absolute top-0 right-0 p-8 opacity-5">
-                      <Compass size={120} className="text-white" />
-                   </div>
-                   <div className="relative space-y-4">
-                      <div className="flex items-center gap-3 mb-2">
-                         <Target size={18} className="text-[var(--accent-start)]" />
-                         <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Visão da sua jornada</h2>
-                      </div>
-                      <div className="h-24 flex items-center border border-dashed border-white/5 rounded-2xl px-6">
-                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-30 italic">
-                            Evolução estratégica em processamento...
-                         </p>
-                      </div>
-                   </div>
-                </section>
-
-                {/* 2. Grid de Split (1/3 Sidebar | 2/3 Content) 📋 */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
-                  
-                  {/* Sidebar: Assessments (1/3) */}
-                  <aside className="space-y-6">
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)] px-6">Perfil & Assessments</h3>
-                    
-                    {/* DISC Placeholder */}
-                    <div className="p-8 blur-glass border border-white/10 rounded-[2.5rem] bg-white/5 space-y-4 opacity-50 grayscale hover:grayscale-0 transition-all group">
-                       <div className="flex items-center justify-between mb-4">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Assessment DISC</span>
-                          <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/5">Em Breve</span>
-                       </div>
-                       <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-white/10 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-center text-[var(--text-muted)] opacity-30">Perfil<br/>Comportamental</span>
-                       </div>
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <LoadingView />
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-12"
+            >
+              {/* 1. Visão da sua jornada (Full Width) 🚀 */}
+              <section className="p-10 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3rem] shadow-sm relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                    <Compass size={120} className="text-[var(--text-primary)]" />
+                 </div>
+                 <div className="relative space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                       <Target size={18} className="text-[var(--accent-start)]" />
+                       <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Visão da sua jornada</h2>
                     </div>
+                    <div className="h-24 flex items-center border border-dashed border-[var(--border-primary)] rounded-2xl px-6 bg-[var(--bg-primary)]/50">
+                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40 italic">
+                          Evolução estratégica em processamento...
+                       </p>
+                    </div>
+                 </div>
+              </section>
 
-                    {/* Aprendizado (VACD) */}
-                    {aprendizadoResult && aprendizadoResult.isReleased && (
-                       <MiniCard 
-                          title="Aprendizado" 
-                          subtitle="VACD" 
-                          data={vacdData} 
-                          icon={<Sparkles size={14} className="text-pink-500" />}
-                       />
-                    )}
-
-                    {/* Reconhecimento */}
-                    {reconhecimentoResult && reconhecimentoResult.isReleased && (
-                       <MiniCard 
-                          title="Reconhecimento" 
-                          subtitle="Linguagem" 
-                          data={reconhecimentoData} 
-                          icon={<Heart size={14} className="text-red-500" />}
-                       />
-                    )}
-
-                    {/* Gestão do Tempo (Tríade) */}
-                    {gestaoResult && gestaoResult.isReleased && (
-                       <MiniCard 
-                          title="Tríade do Tempo" 
-                          subtitle="Energia" 
-                          data={triadData} 
-                          icon={<Clock size={14} className="text-blue-500" />}
-                       />
-                    )}
-                  </aside>
-
-                  {/* Main: Journey Insights (2/3) */}
-                  <div className="space-y-8 h-full min-h-[600px] blur-glass border border-white/5 rounded-[3.5rem] bg-white/[0.02] relative overflow-hidden flex flex-col items-center justify-center group/main">
-                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-start)]/5 to-transparent opacity-0 group-hover/main:opacity-100 transition-opacity duration-1000" />
-                     <div className="relative text-center space-y-4 opacity-20 group-hover/main:opacity-40 transition-opacity">
-                        <div className="p-8 rounded-full border border-dashed border-white/20 inline-block">
-                           <Layout size={40} className="text-white" />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white">Conteúdo em curadoria</p>
+              {/* 2. Grid de Split (1/3 Sidebar | 2/3 Content) 📋 */}
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
+                
+                {/* Sidebar: Assessments (1/3) */}
+                <aside className="space-y-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)] px-6">Perfil & Assessments</h3>
+                  
+                  {/* DISC Placeholder */}
+                  <div className="p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 opacity-60 grayscale hover:grayscale-0 transition-all group shadow-sm">
+                     <div className="flex items-center justify-between mb-4">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Assessment DISC</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)]">Em Breve</span>
+                     </div>
+                     <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
+                        <span className="text-[10px] font-bold text-center text-[var(--text-muted)] opacity-30">Perfil<br/>Comportamental</span>
                      </div>
                   </div>
 
+                  {/* Aprendizado (VACD) */}
+                  {aprendizadoResult && aprendizadoResult.isReleased && (
+                     <MiniCard 
+                        title="Aprendizado" 
+                        subtitle="VACD" 
+                        data={vacdData} 
+                        icon={<Sparkles size={14} className="text-pink-500" />}
+                     />
+                  )}
+
+                  {/* Reconhecimento */}
+                  {reconhecimentoResult && reconhecimentoResult.isReleased && (
+                     <MiniCard 
+                        title="Reconhecimento" 
+                        subtitle="Linguagem" 
+                        data={reconhecimentoData} 
+                        icon={<Heart size={14} className="text-red-500" />}
+                     />
+                  )}
+
+                  {/* Gestão do Tempo (Tríade) */}
+                  {gestaoResult && gestaoResult.isReleased && (
+                     <MiniCard 
+                        title="Tríade do Tempo" 
+                        subtitle="Energia" 
+                        data={triadData} 
+                        icon={<Clock size={14} className="text-blue-500" />}
+                     />
+                  )}
+                </aside>
+
+                {/* Main: Journey Insights (2/3) */}
+                <div className="space-y-8 min-h-[600px] bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3.5rem] shadow-sm relative overflow-hidden flex flex-col items-center justify-center group/main">
+                   <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-start)]/[0.03] to-transparent opacity-0 group-hover/main:opacity-100 transition-opacity duration-1000" />
+                   <div className="relative text-center space-y-4 opacity-20 group-hover/main:opacity-40 transition-all duration-500">
+                      <div className="p-8 rounded-full border border-dashed border-[var(--border-primary)] inline-block bg-[var(--bg-primary)]/50">
+                         <Layout size={40} className="text-[var(--text-primary)]" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--text-primary)] font-mono">Conteúdo em curadoria</p>
+                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <HomeFooter />
+
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </HubShell>
+      <HomeFooter />
+    </div>
   );
 }
 
