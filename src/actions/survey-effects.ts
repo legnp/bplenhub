@@ -420,14 +420,25 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const groups = ["grupo1", "grupo2", "grupo3", "grupo4", "grupo5"];
     
     groups.forEach(gId => {
-      const resp = (responses[gId] as Record<string, number>) || {};
-      Object.entries(resp).forEach(([label, value]) => {
-        if (label.startsWith("A.")) totalA += value;
-        else if (label.startsWith("B.")) totalB += value;
-        else if (label.startsWith("C.")) totalC += value;
-        else if (label.startsWith("D.")) totalD += value;
-        else if (label.startsWith("E.")) totalE += value;
-      });
+      const resp = responses[gId];
+      
+      // ✅ Suporte para Escolha Única (String) ou Múltipla (Objeto)
+      if (typeof resp === "string") {
+         if (resp.startsWith("A.")) totalA += 1;
+         if (resp.startsWith("B.")) totalB += 1;
+         if (resp.startsWith("C.")) totalC += 1;
+         if (resp.startsWith("D.")) totalD += 1;
+         if (resp.startsWith("E.")) totalE += 1;
+      } else if (typeof resp === "object" && resp !== null) {
+         Object.entries(resp).forEach(([label, value]) => {
+           const v = Number(value) || 0;
+           if (label.startsWith("A.")) totalA += v;
+           else if (label.startsWith("B.")) totalB += v;
+           else if (label.startsWith("C.")) totalC += v;
+           else if (label.startsWith("D.")) totalD += v;
+           else if (label.startsWith("E.")) totalE += v;
+         });
+      }
     });
 
     const totalGeral = totalA + totalB + totalC + totalD + totalE;
