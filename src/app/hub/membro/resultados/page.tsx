@@ -25,18 +25,22 @@ export default function ResultadosPage() {
     
     async function load() {
       try {
+        console.log("🔍 [ResultadosPage] Iniciando carga de dados para UID:", user!.uid);
         const [gestao, aprendizado, reconhecimento, preAnalise] = await Promise.all([
           getGestaoTempoResult(user!.uid, user!.email || undefined),
           getPreferenciasAprendizadoResult(user!.uid, user!.email || undefined),
           getPreferenciasReconhecimentoResult(user!.uid, user!.email || undefined),
           getPreAnaliseComportamentalResult(user!.uid, user!.email || undefined)
         ]);
+
+        console.log("🔍 [ResultadosPage] Dados recebidos:", { gestao, aprendizado, reconhecimento, preAnalise });
+        
         setGestaoResult(gestao);
         setAprendizadoResult(aprendizado);
         setReconhecimentoResult(reconhecimento);
         setPreAnaliseResult(preAnalise);
-      } catch (err) {
-        console.error("Erro ao carregar resultados:", err);
+      } catch (error) {
+        console.error("❌ [ResultadosPage] Erro ao carregar resultados:", error);
       } finally {
         setLoading(false);
       }

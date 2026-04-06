@@ -11,20 +11,68 @@ import { SurveyValue } from "@/types/survey";
  */
 
 /**
- * Resolve ou Gera a Matrícula do usuário.
- * Se for um Welcome Survey de um novo usuário, gera a matrícula de forma atômica.
+ * Resolve ou Gera a Matrícula do usuário (🧬 Soberania de Identidade)
+ * Implementa triplo-fallback: AuthMap -> UID Search -> Email Search.
+ * NUNCA permite fallback anônimo para usuários autenticados.
  */
-export async function resolveUserIdentity(surveyId: string, responses: Record<string, SurveyValue>, userUid: string): Promise<string> {
+export async function resolveUserIdentity(surveyId: string, responses: Record<string, SurveyValue>, userUid?: string): Promise<string> {
   const db: admin.firestore.Firestore = getAdminDb();
-  const authMapRef = db.doc(`_AuthMap/${userUid}`);
-  const authMapSnap = await authMapRef.get();
-
-  if (authMapSnap.exists) {
-    return authMapSnap.data()?.matricula;
+  
+  // 1. Caso Anônimo (Visitante sem Login)
+  if (!userUid) {
+     console.log(`⚠️ [Effects:Identity] Acesso anônimo detectado para survey: ${surveyId}`);
+     return `BP-ANON-${new Date().getTime()}`;
   }
 
-  // Se não existe mapa e é a Welcome Survey, geramos agora 🛡️
+  console.log(`🔍 [Effects:Identity] Resolvendo identidade para UID: ${userUid}`);
+  
+  // 2. Tentar Mapeamento Direto (AuthMap) - Alta Performance
+  const authMapRef = db.doc(`_AuthMap/${userUid}`);
+  const authMapSnap = await authMapRef.get();
+  if (authMapSnap.exists && authMapSnap.data()?.matricula) {
+    const mat = authMapSnap.data()?.matricula;
+    console.log(`🔍 [Effects:Identity] Matrícula direta encontrada: ${mat}`);
+    return mat;
+  }
+
+  // 3. Fallback: Buscar na base User por ID de Autenticação (UID)
+  const userByUidSnap = await db.collection("User").where("uid", "==", userUid).limit(1).get();
+  if (!userByUidSnap.empty) {
+    const matricula = userByUidSnap.docs[0].id;
+    console.log(`🔍 [Effects:Identity] Matrícula recuperada via UID Search: ${matricula}`);
+    await authMapRef.set({ matricula, recoveredAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    return matricula;
+  }
+
+  // 4. Fallback: Buscar por E-mail (Compatibilidade de Importação/Legacy)
+  let userEmail = (responses.email as string) || "";
+  if (!userEmail) {
+     try {
+        const userAuth = await getAdminAuth().getUser(userUid);
+        userEmail = userAuth.email || "";
+     } catch(e) {}
+  }
+
+  if (userEmail) {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    console.log(`🔍 [Effects:Identity] Tentando busca por e-mail normalizado: ${normalizedEmail}`);
+    
+    const userByEmailSnap = await db.collection("User").where("email", "==", normalizedEmail).limit(1).get();
+    if (!userByEmailSnap.empty) {
+      const matricula = userByEmailSnap.docs[0].id;
+      console.log(`🔍 [Effects:Identity] Matrícula recuperada via Email Search: ${matricula}`);
+      
+      // Auto-Healing: Atualiza o UID no documento do User e cria o AuthMap
+      await userByEmailSnap.docs[0].ref.update({ uid: userUid });
+      await authMapRef.set({ matricula, recoveredAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      
+      return matricula;
+    }
+  }
+
+  // 5. Caso Especial: Welcome Survey (Geração de Nova Matrícula)
   if (surveyId === "welcome_survey") {
+    console.log(`✨ [Effects:Identity] Iniciando geração de nova matrícula BP para usuário: ${userUid}`);
     return await db.runTransaction(async (transaction) => {
       const counterRef = db.doc("_internal/counters/user/global");
       const counterSnap = await transaction.get(counterRef);
@@ -40,7 +88,6 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
       const seq = count.toString().padStart(3, "0");
       const userTypeRaw = (responses.userType as string) || "PF";
       const type = userTypeRaw.includes("empresa") || userTypeRaw.includes("PJ") ? "PJ" : "PF";
-      
       const now = new Date();
       const aammdd = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
       
@@ -51,8 +98,9 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
     });
   }
 
-  // Fallback para anônimos/rastreio
-  return `BP-ANON-${new Date().getTime()}`;
+  // 🚨 CRITICAL: Se chegou aqui e é autenticado, não permitimos prosseguir sem matrícula legítima
+  console.error(`❌ [Effects:Identity] Erro Crítico: Não foi possível resolver matrícula para usuário logado (UID: ${userUid})`);
+  throw new Error("Sua identidade BPlen não pôde ser resolvida. Por favor, complete o onboarding ou entre em contato com o suporte.");
 }
 
 /**
@@ -195,7 +243,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const metadata = (responses.metadata as any) || {};
 
     // 2. Persistência no Firestore (Privado até liberação)
-    const resultRef = db.doc(`User/${matricula}/results/gestao_tempo`);
+    const resultPath = `User/${matricula}/results/gestao_tempo`;
+    console.log(`🔍 [Effects:GestaoTempo] Salvando resultado em: ${resultPath}`);
+    const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
       matricula,
@@ -305,7 +355,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const metadata = (responses.metadata as any) || {};
 
     // 2. Persistência no Firestore
-    const resultRef = db.doc(`User/${matricula}/results/preferencias_aprendizado`);
+    const resultPath = `User/${matricula}/results/preferencias_aprendizado`;
+    console.log(`🔍 [Effects:Aprendizado] Salvando resultado em: ${resultPath}`);
+    const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
       matricula,
@@ -389,7 +441,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const metadata = (responses.metadata as any) || {};
 
     // 2. Persistência no Firestore
-    const resultRef = db.doc(`User/${matricula}/results/preferencias_reconhecimento`);
+    const resultPath = `User/${matricula}/results/preferencias_reconhecimento`;
+    console.log(`🔍 [Effects:Reconhecimento] Salvando resultado em: ${resultPath}`);
+    const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
       matricula,
@@ -452,7 +506,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     const metadata = (responses.metadata as any) || {};
 
     // 1. Persistência no Firestore
-    const resultRef = db.doc(`User/${matricula}/results/pre_analise_comportamental`);
+    const resultPath = `User/${matricula}/results/pre_analise_comportamental`;
+    console.log(`🔍 [Effects:PreAnalise] Salvando resultado em: ${resultPath}`);
+    const resultRef = db.doc(resultPath);
     await resultRef.set({
       surveyId,
       matricula,

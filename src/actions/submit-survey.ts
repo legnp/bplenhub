@@ -15,10 +15,15 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
     
     // 1. Resolver Matrícula e Identidade (Soberania de Acesso via Effects 🧬)
     const { resolveUserIdentity, handleSurveySideEffects } = await import("./survey-effects");
+    console.log(`🔍 [SubmitSurvey] Iniciando resolução para UID: ${userUid}`);
     const matricula = await resolveUserIdentity(config.id, responses, userUid);
+    console.log(`🔍 [SubmitSurvey] Matrícula Resolvida: ${matricula}`);
 
     // 2. Preparar Payload de Resposta (SurveyResponse)
-    const surveyRef = db.doc(`User/${matricula}/Surveys/${config.id}`);
+    const surveyPath = `User/${matricula}/Surveys/${config.id}`;
+    const surveyRef = db.doc(surveyPath);
+    console.log(`🔍 [SubmitSurvey] Gravando Resposta em: ${surveyPath}`);
+    
     const payload: SurveyResponse = {
       surveyId: config.id,
       matricula,
@@ -32,7 +37,6 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
     await surveyRef.set(payload, { merge: true });
 
     // 4. Disparar Efeitos Colaterais (Business Logic 🧠)
-    // O usuário espera aqui conforme solicitado (await) para garantir integridade.
     await handleSurveySideEffects(config.id, responses, matricula, userUid);
 
     console.log(`✅ [SurveyEngine Admin] Resposta enviada com sucesso: ${config.id} - ${matricula}`);
