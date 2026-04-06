@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TriadDonutChartProps {
   data: {
@@ -16,17 +16,21 @@ interface TriadDonutChartProps {
 }
 
 export function TriadDonutChart({ data, title, subtitle, mini = false }: TriadDonutChartProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   const size = mini ? 160 : 250;
   const center = size / 2;
   const radius = mini ? 60 : 90;
   const strokeWidth = mini ? 12 : 20;
   const circumference = 2 * Math.PI * radius;
 
+  const totalPercentage = Math.round(data.reduce((acc, curr) => acc + curr.percentage, 0));
+
   return (
     <div className={`w-full flex flex-col ${mini ? 'items-center' : 'md:flex-row items-center justify-center'} gap-8`}>
-      <div className="relative group">
-        <svg width={size} height={size} className="transform -rotate-90">
-          {/* Fundo do Donut (opcional, para visual mais robusto) */}
+      <div className="relative group/chart">
+        <svg width={size} height={size} className="transform -rotate-90 overflow-visible">
+          {/* Fundo do Donut */}
           <circle 
             cx={center} 
             cy={center} 
@@ -42,12 +46,20 @@ export function TriadDonutChart({ data, title, subtitle, mini = false }: TriadDo
               offset += (data[i].percentage / 100) * circumference;
             }
 
+            const isHovered = hoveredIndex === index;
+
             return (
               <motion.circle
                 key={item.label}
                 initial={{ strokeDasharray: `0 ${circumference}` }}
-                animate={{ strokeDasharray: `${(item.percentage / 100) * circumference} ${circumference}` }}
-                transition={{ duration: 1.5, delay: index * 0.2, ease: "circOut" }}
+                animate={{ 
+                  strokeDasharray: `${(item.percentage / 100) * circumference} ${circumference}`,
+                  strokeWidth: isHovered ? strokeWidth + 4 : strokeWidth,
+                }}
+                transition={{ 
+                  strokeDasharray: { duration: 1.5, delay: index * 0.2, ease: "circOut" },
+                  strokeWidth: { duration: 0.2 }
+                }}
                 cx={center}
                 cy={center}
                 r={radius}
@@ -56,21 +68,58 @@ export function TriadDonutChart({ data, title, subtitle, mini = false }: TriadDo
                 strokeWidth={strokeWidth}
                 strokeDashoffset={-offset}
                 strokeLinecap="round"
-                className="transition-all duration-500"
-                style={{ filter: `drop-shadow(0 0 4px ${item.color}30)` }}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className="cursor-pointer transition-all duration-300"
+                style={{ 
+                   filter: isHovered 
+                    ? `drop-shadow(0 0 8px ${item.color}60)` 
+                    : `drop-shadow(0 0 4px ${item.color}30)`,
+                   zIndex: isHovered ? 10 : 1
+                }}
               />
             );
           })}
         </svg>
 
-        {/* Info Central */}
+        {/* Info Central Dinâmica (🧬 Interativa) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-           <span className={`font-black tracking-tighter text-[var(--text-primary)] ${mini ? 'text-xl' : 'text-4xl'}`}>
-              {Math.round(data.reduce((acc, curr) => acc + curr.percentage, 0))}%
-           </span>
-           <span className={`font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-40 ${mini ? 'text-[6px]' : 'text-[9px]'}`}>
-              Total
-           </span>
+           <AnimatePresence mode="wait">
+             {hoveredIndex !== null ? (
+               <motion.div
+                 key="hovered"
+                 initial={{ opacity: 0, scale: 0.8 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0, scale: 0.8 }}
+                 className="flex flex-col items-center"
+               >
+                 <span 
+                    className={`font-black tracking-tighter transition-colors ${mini ? 'text-xl' : 'text-4xl'}`}
+                    style={{ color: data[hoveredIndex].color }}
+                 >
+                    {Math.round(data[hoveredIndex].percentage)}%
+                 </span>
+                 <span className={`font-black uppercase tracking-[0.2em] text-[var(--text-primary)] opacity-80 ${mini ? 'text-[7px]' : 'text-[10px]'}`}>
+                    {data[hoveredIndex].label}
+                 </span>
+               </motion.div>
+             ) : (
+               <motion.div
+                 key="total"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 exit={{ opacity: 0 }}
+                 className="flex flex-col items-center text-center"
+               >
+                 <span className={`font-black tracking-tighter text-[var(--text-primary)] ${mini ? 'text-xl' : 'text-4xl'}`}>
+                    {totalPercentage}%
+                 </span>
+                 <span className={`font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-40 ${mini ? 'text-[6px]' : 'text-[9px]'}`}>
+                    Total
+                 </span>
+               </motion.div>
+             )}
+           </AnimatePresence>
         </div>
       </div>
 
