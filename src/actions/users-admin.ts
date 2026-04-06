@@ -178,19 +178,20 @@ export async function updateUserPermissions(
  * forceIdentifyUser (Cura de Identidade 🧬)
  * Vincula manualmente um UID a uma matrícula existente.
  */
-export async function forceIdentifyUser(matricula: string, uid: string, adminToken?: string) {
+export async function forceIdentifyUser(matricula: string, targetUid: string, adminToken?: string) {
   try {
+    // 🛡️ Segurança Real no Servidor
     await requireAdmin(adminToken);
     const db = getAdminDb();
 
     // 1. Atualizar Documento do Usuário
     await db.doc(`User/${matricula}`).update({
-      uid: uid,
+      uid: targetUid,
       identityRecoveredAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // 2. Atualizar AuthMap
-    await db.doc(`_AuthMap/${uid}`).set({
+    // 2. Atualizar AuthMap (🧬 Vínculo Vital)
+    await db.doc(`_AuthMap/${targetUid}`).set({
       matricula,
       manualLink: true,
       linkedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -200,6 +201,6 @@ export async function forceIdentifyUser(matricula: string, uid: string, adminTok
     return { success: true };
   } catch (err: any) {
     console.error("❌ [forceIdentifyUser] Erro ao vincular manual:", err);
-    return { success: false, error: err.message };
+    return { success: false, error: err.message || "Erro desconhecido ao vincular." };
   }
 }

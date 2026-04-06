@@ -536,15 +536,25 @@ export default function UsersManagementPage() {
                                           const input = document.getElementById('manual-uid-input') as HTMLInputElement;
                                           if (!input.value) return;
                                           
-                                          const { forceIdentifyUser } = await import('@/actions/users-admin');
-                                          const res = await forceIdentifyUser(selectedUser.matricula, input.value.trim());
-                                          
-                                          if (res.success) {
-                                             alert('✅ Identidade vinculada com sucesso! Peça ao cliente para atualizar a página.');
-                                             input.value = '';
-                                             setSelectedUser(null);
-                                          } else {
-                                             alert('❌ Erro ao vincular: ' + res.error);
+                                          setLoadingAssessments(true);
+                                          try {
+                                             const token = await auth.currentUser?.getIdToken();
+                                             const { forceIdentifyUser } = await import('@/actions/users-admin');
+                                             const res = await forceIdentifyUser(selectedUser.matricula, input.value.trim(), token);
+                                             
+                                             if (res.success) {
+                                                alert('✅ Identidade vinculada com sucesso! Peça ao cliente para atualizar a página.');
+                                                input.value = '';
+                                                // Atualiza o estado local para mostrar o novo UID
+                                                setSelectedUser({ ...selectedUser, uid: input.value.trim() });
+                                                fetchUsers(); 
+                                             } else {
+                                                alert('❌ Erro ao vincular: ' + (res.error || 'Erro desconhecido'));
+                                             }
+                                          } catch (err: any) {
+                                             alert('❌ Erro crítico: ' + err.message);
+                                          } finally {
+                                             setLoadingAssessments(false);
                                           }
                                        }}
                                        className="px-6 bg-amber-500 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all flex items-center gap-2 shadow-xl shadow-amber-500/10 group"

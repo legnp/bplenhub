@@ -53,36 +53,51 @@ async function resolveMatricula(userUid: string, email?: string): Promise<string
  */
 
 export async function getGestaoTempoResult(userUid: string, email?: string) {
-  const db = getAdminDb();
   const matricula = await resolveMatricula(userUid, email);
   if (!matricula) return null;
 
-  const resPath = `User/${matricula}/results/gestao_tempo`;
-  const resultSnap = await db.doc(resPath).get();
-  console.log(`🔍 [GetResults:GestaoTempo] Lendo de ${resPath} | Existe: ${resultSnap.exists}`);
-  return resultSnap.exists ? resultSnap.data() : null;
+  const db = getAdminDb();
+  const res = await db.doc(`User/${matricula}/results/gestao_tempo`).get();
+  if (!res.exists) return null;
+  
+  const data = res.data() || {};
+  // 🔄 Normalização: Se os scores estiverem na raiz, movemos para .scores
+  if (!data.scores && (data.importancia || data.urgencia)) {
+    return { ...data, scores: data };
+  }
+  return data;
 }
 
-export async function getPreferenciasAprendizadoResult(userUid: string, email?: string) {
-  const db = getAdminDb();
-  const matricula = await resolveMatricula(userUid, email);
+export async function getAprendizadoResult(userUid: string, userEmail: string) {
+  const matricula = await resolveMatricula(userUid, userEmail);
   if (!matricula) return null;
 
-  const resPath = `User/${matricula}/results/preferencias_aprendizado`;
-  const resultSnap = await db.doc(resPath).get();
-  console.log(`🔍 [GetResults:Aprendizado] Lendo de ${resPath} | Existe: ${resultSnap.exists}`);
-  return resultSnap.exists ? resultSnap.data() : null;
+  const db = getAdminDb();
+  const res = await db.doc(`User/${matricula}/results/preferencias_aprendizado`).get();
+  if (!res.exists) return null;
+  
+  const data = res.data() || {};
+  // 🔄 Normalização: Se os scores estiverem na raiz, movemos para .scores
+  if (!data.scores && (data.visual || data.auditivo)) {
+    return { ...data, scores: data };
+  }
+  return data;
 }
 
-export async function getPreferenciasReconhecimentoResult(userUid: string, email?: string) {
-  const db = getAdminDb();
-  const matricula = await resolveMatricula(userUid, email);
+export async function getReconhecimentoResult(userUid: string, userEmail: string) {
+  const matricula = await resolveMatricula(userUid, userEmail);
   if (!matricula) return null;
 
-  const resPath = `User/${matricula}/results/preferencias_reconhecimento`;
-  const resultSnap = await db.doc(resPath).get();
-  console.log(`🔍 [GetResults:Reconhecimento] Lendo de ${resPath} | Existe: ${resultSnap.exists}`);
-  return resultSnap.exists ? resultSnap.data() : null;
+  const db = getAdminDb();
+  const res = await db.doc(`User/${matricula}/results/preferencias_reconhecimento`).get();
+  if (!res.exists) return null;
+  
+  const data = res.data() || {};
+  // 🔄 Normalização: Se os scores estiverem na raiz (como no print da Lisandra), movemos para .scores
+  if (!data.scores && (data.palavras || data.presentes || data.tempo)) {
+    return { ...data, scores: data };
+  }
+  return data;
 }
 
 export async function getPreAnaliseComportamentalResult(userUid: string, email?: string) {
