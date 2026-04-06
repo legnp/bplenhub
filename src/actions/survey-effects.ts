@@ -433,4 +433,74 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       console.error(`❌ [Effects] Erro na sincronização Drive Preferências de Reconhecimento:`, driveErr);
     }
   }
+
+  // EFEITOS: Pré-Análise Comportamental 🧬
+  if (surveyId === "pre_analise_comportamental") {
+    console.log(`📡 [Effects] Iniciando processamento Pré-Análise Comportamental: ${matricula}`);
+    
+    const metadata = (responses.metadata as any) || {};
+
+    // 1. Persistência no Firestore
+    const resultRef = db.doc(`User/${matricula}/results/pre_analise_comportamental`);
+    await resultRef.set({
+      surveyId,
+      matricula,
+      responses: Object.fromEntries(Object.entries(responses).filter(([k]) => k !== "metadata")),
+      durationSeconds: metadata.durationSeconds || 0,
+      isReleased: false,
+      submittedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 2. Sincronização Google Sheets
+    try {
+      const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
+      const { serverEnv } = await import("@/env");
+      const { ensureFolder, createSpreadsheet, syncDataToSheet } = await import("@/lib/drive-utils");
+
+      const drive = await getDriveClient();
+      const sheets = await getSheetsClient();
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+
+      const isPJ = matricula.includes("-PJ-");
+      const catFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, catFolderId, matricula);
+      const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
+      
+      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Pré-Análise Comportamental - ${matricula}`);
+
+      const headers = [
+        "Timestamp", "Matrícula", "Duração (s)", 
+        "Traços Selecionados",
+        "Vida: Destino/Sorte", "Vida: Caráter/Destino", "Vida: Confia Opiniões", "Vida: Vive como quer",
+        "Conflito", "Conflito (Outro)",
+        "Frases Guia", "Referência Humana", "Foco Temporal", "Autodescrição", "Qualidades Admiradas", "Palavra Resumo"
+      ];
+      
+      const resAfirmacoes = (responses.afirmacoes as Record<string, number>) || {};
+
+      const rowData = [
+        new Date().toLocaleString("pt-BR"),
+        matricula,
+        metadata.durationSeconds || 0,
+        Array.isArray(responses.tracos) ? responses.tracos.join(", ") : "N/A",
+        resAfirmacoes["A minha vida depende do destino ou da sorte"] || "N/A",
+        resAfirmacoes["É o caráter que molda o destino"] || "N/A",
+        resAfirmacoes["Eu confio nas opiniões de outras pessoas"] || "N/A",
+        resAfirmacoes["Eu vivo da forma como eu quero"] || "N/A",
+        responses.conflito || "N/A",
+        responses.conflito_other || "N/A",
+        responses.frases_vida || "N/A",
+        responses.referencia_humana || "N/A",
+        responses.reflexao_tempo || "N/A",
+        responses.autodescricao_3p || "N/A",
+        responses.qualidades_outros || "N/A",
+        responses.resumo_pessoa || "N/A"
+      ];
+
+      await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
+      console.log(`✅ [Effects] Pré-Análise Comportamental sincronizado com Drive: ${matricula}`);
+    } catch (driveErr) {
+      console.error(`❌ [Effects] Erro na sincronização Drive Pré-Análise Comportamental:`, driveErr);
+    }
+  }
 }

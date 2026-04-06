@@ -17,6 +17,8 @@ import { BenefitsPackage } from "./SurveyFields/BenefitsPackage";
 import { CurrencyGroup } from "./SurveyFields/CurrencyGroup";
 import { LikertScale } from "./SurveyFields/LikertScale";
 import { RankingField } from "./SurveyFields/RankingField";
+import { LikertGroup } from "./SurveyFields/LikertGroup";
+
 
 interface SurveyEngineProps {
   config: SurveyConfig;
@@ -169,18 +171,37 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           );
         }
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {(field.options as string[])?.map((opt) => (
-              <ChoiceButton
-                key={opt}
-                active={rawValue === opt}
-                onClick={() => updateResponse(field.id, opt)}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {(field.options as string[])?.map((opt) => (
+                <ChoiceButton
+                  key={opt}
+                  active={rawValue === opt}
+                  onClick={() => updateResponse(field.id, opt)}
+                >
+                  {opt}
+                </ChoiceButton>
+              ))}
+            </div>
+            
+            {/* Campo Condicional "Outro" 🧬 */}
+            {rawValue === "Outro" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="pt-2"
               >
-                {opt}
-              </ChoiceButton>
-            ))}
+                <InputGlass
+                  placeholder="Por favor, descreva aqui..."
+                  value={String(responses[`${field.id}_other`] || "")}
+                  onChange={(e) => updateResponse(`${field.id}_other`, e.target.value)}
+                  autoFocus
+                />
+              </motion.div>
+            )}
           </div>
         );
+
 
       case "multi_select":
         return (
@@ -229,6 +250,16 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             options={field.options as string[]}
           />
         );
+      
+      case "likert_group":
+        return (
+          <LikertGroup
+            statements={field.options as string[]}
+            value={(rawValue as Record<string, number>) || {}}
+            onChange={(val) => updateResponse(field.id, val)}
+          />
+        );
+
       
       case "ranking":
         return (
@@ -323,8 +354,12 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     if (f.type === "multi_select" || f.isMultiple) {
       const arr = (val as string[]) || [];
       const min = f.validation?.minSelections || 1;
-      return arr.length >= min;
+      const max = f.validation?.maxSelections;
+      if (arr.length < min) return false;
+      if (max && arr.length > max) return false;
+      return true;
     }
+
     if (f.type === "cascaded") {
       const v = (val as any) || {};
       return !!v.primary && !!v.secondary;
@@ -337,6 +372,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       const v = (val as any) || {};
       return !!v.score;
     }
+    if (f.type === "likert_group") {
+      const v = (val as Record<string, number>) || {};
+      return (f.options?.length || 0) > 0 && Object.keys(v).length === f.options?.length;
+    }
+
     if (f.type === "ranking") {
       const v = (val as Record<string, number>) || {};
       const usedRanks = Object.values(v);
