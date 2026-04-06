@@ -14,7 +14,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 export default function SurveyPlaygroundPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthContext();
+  const { user, nickname } = useAuthContext();
   const surveyId = params.id as string;
   
   const config = getSurveyConfig(surveyId);
@@ -72,7 +72,13 @@ export default function SurveyPlaygroundPage() {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl flex items-center">
           <SurveyEngine 
-            config={config} 
+            config={{
+              ...config,
+              templateData: {
+                ...(config.templateData || {}),
+                User_Nickname: nickname || "Membro BPlen"
+              }
+            }} 
             userUid={user.uid}
             onComplete={(mat) => {
               alert(`🎉 [PLAYGROUND] Survey concluída com sucesso!\nMatrícula: ${mat}\n\nNo ambiente real, o usuário seria redirecionado.`);

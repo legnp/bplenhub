@@ -255,21 +255,39 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       case "scale":
         const scaleOptions = (field.options as string[]) || ["1", "2", "3", "4", "5"];
         return (
-          <div className="flex justify-between items-center gap-2 pt-4 px-2">
-            {scaleOptions.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => updateResponse(field.id, opt)}
-                className={`
-                  w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center font-bold text-sm
-                  ${rawValue === opt 
-                    ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/30 scale-110" 
-                    : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:border-[var(--accent-start)]/40"}
-                `}
-              >
-                {opt}
-              </button>
-            ))}
+          <div className="space-y-8 pt-4">
+            <div className="flex justify-between items-center gap-2 px-2 max-w-[500px] mx-auto">
+              {scaleOptions.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => updateResponse(field.id, opt)}
+                  className={`
+                    w-9 h-9 rounded-full border transition-all flex items-center justify-center font-semibold text-xs
+                    ${rawValue === opt 
+                      ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 scale-110" 
+                      : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:border-[var(--accent-start)]/40 hover:bg-white/10"}
+                  `}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+
+            {/* Legenda Fixa e Delicada 🕊️ */}
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 px-4">
+               {[
+                 { v: "1", l: "Nunca" },
+                 { v: "2", l: "Raramente" },
+                 { v: "3", l: "Às vezes" },
+                 { v: "4", l: "Quase sempre" },
+                 { v: "5", l: "Sempre" }
+               ].map(item => (
+                 <div key={item.v} className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[9px] font-black w-3.5 h-3.5 flex items-center justify-center rounded-full bg-white/10 text-[var(--text-muted)]">{item.v}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium text-[var(--text-muted)]">{item.l}</span>
+                 </div>
+               ))}
+            </div>
           </div>
         );
 

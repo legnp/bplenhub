@@ -22,20 +22,14 @@ export const gestaoTempoSurvey: SurveyConfig = {
   steps: [
     {
       id: "intro_objetivo",
-      question: "Objetivo do Mapa",
-      description: "Olá! Este teste visa mapear a forma como você tende a gerenciar o seu tempo, organizar e priorizar suas tarefas.\n\nTempo estimado: 20 minutos.",
+      question: "Objetivo da Análise",
+      description: "Olá {User_Nickname}! Essa análise visa mapear a forma como você tende a gerenciar o seu tempo e, organizar e priorizar suas tarefas.\n\nTempo estimado: 20 minutos.\nInstruções: Reserve um lugar silencioso e sem interrupções. Uma vez iniciado, não será possível pausar.",
       nextLabel: "De acordo",
-      fields: [
-        {
-          id: "info_objetivo",
-          type: "info",
-          label: "Instruções: Reserve um lugar silencioso e sem interrupções. Uma vez iniciado, o mapa não poderá ser pausado."
-        }
-      ]
+      fields: []
     },
     {
       id: "intro_instrucoes",
-      question: "Instruções do Mapa",
+      question: "Instruções da Análise",
       description: "A seguir serão apresentadas algumas afirmações. Avalie com qual frequência cada uma acontece no seu dia a dia utilizando a escala abaixo:",
       nextLabel: "Iniciar",
       fields: [
@@ -99,7 +93,7 @@ export const gestaoTempoSurvey: SurveyConfig = {
     },
     {
       id: "q11",
-      question: "11. Posso afirmar que estou conseguindo realizar tudo que gostaria em minha vida e que o tempo está passando na realidade correta.",
+      question: "11. Posso afirmar que estou conseguindo realizar tudo que gostaria em minha vida e que o tempo está passando na velocidade correta.",
       fields: [{ id: "q11", type: "scale", options: ["1", "2", "3", "4", "5"], required: true }]
     },
     {
