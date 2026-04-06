@@ -19,7 +19,9 @@ import { LikertScale } from "./SurveyFields/LikertScale";
 import { RankingField } from "./SurveyFields/RankingField";
 import { LikertGroup } from "./SurveyFields/LikertGroup";
 import { FileField } from "./SurveyFields/FileField";
+import { NarrativeContent } from "./NarrativeContent";
 import { resolveUserIdentity } from "@/actions/survey-effects";
+
 
 
 
@@ -79,7 +81,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
   const currentQuestion = interpolate(currentStep.question);
   const currentDescription = currentStep.description ? interpolate(currentStep.description) : "";
-  const fullNarrative = currentDescription ? `${currentQuestion}\n\n${currentDescription}` : currentQuestion;
+
 
   useEffect(() => {
     setTypedComplete(false);
@@ -98,6 +100,14 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       setShowNextButton(true);
     }
   };
+
+  // Disparo automático se não houver descrição para digitar ⚡
+  useEffect(() => {
+    if (!currentDescription) {
+      onTypedComplete();
+    }
+  }, [currentDescription, currentStepIndex]);
+
 
   const handleNext = () => {
     // 1. Verificar Lógica Condicional (Salto de Grafo) 🧬
@@ -469,20 +479,32 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStepIndex}
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="min-h-[400px] flex flex-col justify-start relative pt-4 space-y-10"
+          exit={{ opacity: 0, y: -20 }}
+          className="min-h-[450px] flex flex-col justify-start relative pt-8"
         >
-          <div className="space-y-4">
-            <div className="text-[var(--text-primary)] text-[22px] md:text-[24px] font-medium leading-tight tracking-tight whitespace-pre-line">
-              <TypedText
-                text={fullNarrative}
-                onComplete={onTypedComplete}
+          {/* Bloco Narrativo Estabilizado 🎭 */}
+          <div className="space-y-6 mb-12 min-h-[160px]">
+            <h2 className="text-[26px] md:text-[32px] font-medium tracking-tighter text-[var(--accent-start)] leading-[1.1]">
+              <TypedText 
+                text={currentQuestion} 
+                speed={15} 
               />
-            </div>
+            </h2>
+
+            {currentDescription && (
+              <div className="max-w-[640px]">
+                <NarrativeContent 
+                  text={currentDescription} 
+                  speed={8}
+                  onComplete={onTypedComplete}
+                />
+              </div>
+            )}
           </div>
+
+
 
           <AnimatePresence>
             {typedComplete && (

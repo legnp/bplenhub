@@ -22,20 +22,22 @@ export const CheckboxItem = ({
 }: CheckboxItemProps) => {
   return (
     <label 
-      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer 
-                 hover:bg-[var(--accent-soft)] transition-all shadow-sm backdrop-blur-sm active:scale-[0.99]
+      className={`flex items-center gap-3 p-2.5 rounded-[14px] border-[1px] cursor-pointer 
+                 hover:bg-[var(--accent-soft)] transition-all shadow-sm backdrop-blur-md active:scale-[0.99]
                  ${checked 
-                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)]" 
-                   : "border-[var(--input-border)] bg-[var(--input-bg)]"
+                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)] text-[var(--accent-start)] font-medium" 
+                   : "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] opacity-90 hover:opacity-100"
                  } ${className}`}
     >
-      <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all
+
+      <div className={`w-4.5 h-4.5 rounded-[6px] flex items-center justify-center border-[1px] transition-all
                       ${checked 
-                        ? "bg-[var(--accent-start)] border-[var(--accent-start)]" 
-                        : "border-[var(--text-muted)]"
+                        ? "bg-[var(--accent-start)] border-[var(--accent-start)] shadow-sm" 
+                        : "border-[var(--input-border)] bg-white/5"
                       }`}>
-        {checked && <Check size={14} color="white" />}
+        {checked && <Check size={12} strokeWidth={3} color="white" />}
       </div>
+
       <input
         type="checkbox"
         className="hidden"

@@ -20,13 +20,14 @@ export const ChoiceButton = ({
   return (
     <button
       {...props}
-      className={`px-4 py-3 rounded-xl border text-sm text-left transition-all 
-                 hover:bg-[var(--accent-soft)] active:scale-[0.98] shadow-sm backdrop-blur-sm
+      className={`px-4 py-2.5 rounded-[18px] border-[1px] text-[14px] text-left transition-all 
+                 hover:bg-[var(--accent-soft)] active:scale-[0.98] shadow-sm backdrop-blur-md
                  ${active 
-                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)] text-[var(--accent-start)] font-medium" 
-                   : "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)]"
+                   ? "border-[var(--accent-start)] bg-[var(--accent-soft)] text-[var(--accent-start)] font-semibold" 
+                   : "border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] opacity-80 hover:opacity-100"
                  } ${className}`}
     >
+
       {children}
     </button>
   );

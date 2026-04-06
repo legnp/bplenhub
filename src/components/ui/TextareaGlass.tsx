@@ -20,11 +20,11 @@ export const TextareaGlass = ({ label, className = "", ...props }: TextareaGlass
       )}
       <textarea
         {...props}
-        className={`w-full bg-[var(--input-bg)] border border-[var(--input-border)] backdrop-blur-md rounded-xl px-4 py-3 
-                   text-sm placeholder:text-[var(--input-placeholder)] focus:outline-none focus:ring-1 
-                   focus:ring-[var(--accent-start)] text-[var(--text-primary)] resize-none transition-all 
-                   shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] ${className}`}
+        className={`w-full bg-[var(--input-bg)] border-[1px] border-[var(--input-border)] backdrop-blur-xl rounded-[14px] px-4 py-3 
+                   text-sm placeholder:text-[var(--input-placeholder)] focus:outline-none focus:border-[var(--accent-start)]/50 
+                   text-[var(--text-primary)] resize-none transition-all shadow-sm ${className}`}
       />
+
     </div>
   );
 };

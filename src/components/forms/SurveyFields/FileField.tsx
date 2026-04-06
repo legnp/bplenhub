@@ -87,25 +87,27 @@ export function FileField({ id, label, type = "CV", matricula, value, onChange, 
         />
         
         <div className={`
-          p-8 border-2 border-dashed rounded-[2.5rem] transition-all duration-300 flex flex-col items-center justify-center gap-4
+          p-6 border-[1px] border-dashed rounded-[2rem] transition-all duration-500 flex flex-col items-center justify-center gap-3
           ${uploading 
             ? "bg-white/5 border-[var(--accent-start)]/40 shadow-[0_0_20px_rgba(255,255,255,0.05)]" 
             : "bg-white/5 border-white/10 hover:border-[var(--accent-start)]/40 hover:bg-white/10"}
           ${value ? "border-green-500/40 bg-green-500/5 text-green-500 shadow-[0_0_30px_rgba(34,197,94,0.1)]" : ""}
           ${error ? "border-red-500/40 bg-red-500/5 text-red-500" : ""}
         `}>
+
           
           <div className="relative">
              {uploading ? (
-               <Loader2 className="animate-spin text-[var(--accent-start)]" size={32} />
+               <Loader2 className="animate-spin text-[var(--accent-start)]" size={24} />
              ) : value ? (
-               <Check size={32} />
+               <Check size={24} />
              ) : error ? (
-               <AlertCircle size={32} />
+               <AlertCircle size={24} />
              ) : (
-               <Upload size={32} className="opacity-40 transition-transform group-hover:scale-110" />
+               <Upload size={24} className="opacity-30 transition-transform group-hover:scale-110" />
              )}
           </div>
+
 
           <div className="text-center space-y-1">
             <p className="text-sm font-bold tracking-tight">

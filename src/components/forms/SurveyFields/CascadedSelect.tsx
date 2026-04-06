@@ -50,20 +50,22 @@ export function CascadedSelect({ options, value, onChange, labels }: CascadedSel
     <div className="space-y-8">
       {/* Nível 1: Primário (Nicho/Estágio) */}
       <div className="space-y-4">
-        <label className="text-xs font-bold uppercase tracking-widest text-[var(--accent-start)]">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-start)] ml-1">
           {labels.primary}
         </label>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           {options.map((opt) => (
             <ChoiceButton
               key={opt.value}
               active={value?.primary === opt.value}
               onClick={() => handlePrimaryChange(opt)}
+              className="py-2 flex items-center justify-center text-center"
             >
-              <span className="text-xs">{opt.label}</span>
+              <span className="text-[12px]">{opt.label}</span>
             </ChoiceButton>
           ))}
         </div>
+
         {value?.primary === "Outros" && (
            <InputGlass
             placeholder="Especifique..."
@@ -75,18 +77,19 @@ export function CascadedSelect({ options, value, onChange, labels }: CascadedSel
 
       {/* Nível 2: Secundário (Departamento/Anos Exp) - Só aparece após selecionar primário */}
       {selectedPrimary && (
-        <div className="space-y-4 animate-fade-in-up">
-           <label className="text-xs font-bold uppercase tracking-widest text-[var(--accent-start)]">
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+           <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--accent-start)] ml-1">
             {labels.secondary}
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             {selectedPrimary.subOptions?.map((sub) => (
               <ChoiceButton
                 key={sub}
                 active={value?.secondary === sub}
                 onClick={() => handleSecondaryChange(sub)}
+                className="py-2 flex items-center justify-center text-center"
               >
-                <span className="text-xs">{sub}</span>
+                <span className="text-[12px]">{sub}</span>
               </ChoiceButton>
             ))}
           </div>

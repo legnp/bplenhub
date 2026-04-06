@@ -45,20 +45,21 @@ export function LikertScale({ value = { score: "" }, onChange, options = ["1", "
               onMouseEnter={() => setHoveredScore(opt)}
               onMouseLeave={() => setHoveredScore(null)}
               onClick={() => handleScore(opt)}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              className="relative p-1 focus:outline-none"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative p-0.5 focus:outline-none"
             >
               <Star 
-                size={36}
-                strokeWidth={1.5}
+                size={32}
+                strokeWidth={1.2}
                 className={`
                   transition-all duration-300
                   ${isActive || isHovered 
-                    ? "fill-[#FFB800] text-[#FFB800] transform drop-shadow-[0_0_12px_rgba(255,184,0,0.6)]" 
-                    : "text-black/40 fill-black/5 dark:text-white/30 dark:fill-white/5"}
+                    ? "fill-[#FFB800] text-[#FFB800] transform drop-shadow-[0_0_10px_rgba(255,184,0,0.4)]" 
+                    : "text-black/20 fill-black/5 dark:text-white/20 dark:fill-white/5"}
                 `}
               />
+
               {isActive && (
                 <motion.div 
                   layoutId="activeStar"

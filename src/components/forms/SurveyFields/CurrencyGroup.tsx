@@ -31,7 +31,7 @@ export function CurrencyGroup({ value = {}, onChange, labels }: CurrencyGroupPro
 
   if (value?.declined) {
     return (
-      <div className="p-6 bg-white/[0.02] border border-white/10 rounded-3xl text-center">
+      <div className="p-4 bg-white/[0.02] border-[1px] border-white/10 rounded-[18px] text-center">
         <p className="text-sm text-[var(--text-muted)] italic">Você optou por não responder este campo.</p>
         <button 
           onClick={() => onChange({})} 
@@ -43,18 +43,20 @@ export function CurrencyGroup({ value = {}, onChange, labels }: CurrencyGroupPro
     );
   }
 
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {labels.map((label) => (
-          <div key={label} className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4 shadow-sm">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">
+          <div key={label} className="p-4 bg-white/[0.02] border-[1px] border-white/5 rounded-[18px] space-y-4 shadow-sm group">
+            <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)] opacity-60 ml-1">
               Rendimento {label}
             </label>
-            <div className="flex gap-3">
-              <div className="relative group">
+            <div className="flex gap-2">
+              <div className="relative group/select">
                 <select
-                  className="appearance-none bg-white/5 border border-white/10 rounded-2xl pl-4 pr-10 py-3 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all cursor-pointer"
+                  className="appearance-none bg-white/5 border-[1px] border-white/10 rounded-[14px] pl-3 pr-8 py-2.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-start)]/50 transition-all cursor-pointer"
+
                   value={value[label]?.currency || "BRL"}
                   onChange={(e) => updateCurrencyField(label, { currency: e.target.value })}
                 >

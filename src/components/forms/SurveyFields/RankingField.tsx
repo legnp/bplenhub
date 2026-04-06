@@ -43,7 +43,8 @@ export function RankingField({ options, value = {}, onChange }: RankingFieldProp
 
   return (
     <div className="space-y-10 pt-4">
-      <div className="grid gap-8">
+      <div className="grid gap-6">
+
         {options.map((opt, idx) => {
           const currentRank = value[opt];
           
@@ -74,14 +75,15 @@ export function RankingField({ options, value = {}, onChange }: RankingFieldProp
                       key={r}
                       onClick={() => handleRankClick(opt, r)}
                       className={`
-                        relative flex-1 h-12 rounded-2xl border text-[11px] font-black tracking-[0.2em] uppercase transition-all overflow-hidden
+                        relative flex-1 h-10 rounded-[12px] border-[1px] text-[11px] font-bold tracking-[0.1em] uppercase transition-all overflow-hidden
                         ${isActive 
-                          ? "bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 scale-[1.02] z-10" 
+                          ? "bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] border-[var(--accent-start)] text-white shadow-md shadow-[var(--accent-start)]/20 scale-[1.02] z-10" 
                           : isUsedElsewhere
-                            ? "bg-white/[0.02] border-white/5 text-[var(--text-muted)]/20 cursor-not-allowed opacity-40"
+                            ? "bg-white/[0.02] border-white/5 text-[var(--text-muted)]/10 cursor-not-allowed opacity-30"
                             : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:border-[var(--accent-start)]/40 hover:bg-white/10 active:scale-95"}
                       `}
                     >
+
                       {isActive && (
                         <motion.div 
                           layoutId={`active-rank-${opt}`}

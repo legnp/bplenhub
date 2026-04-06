@@ -43,15 +43,15 @@ export function LikertGroup({ statements, value = {}, onChange }: LikertGroupPro
                </p>
             </div>
 
-            <div className="flex justify-between items-center gap-1 md:gap-2 pl-10">
+            <div className="flex justify-between items-center gap-1 md:gap-1.5 pl-10">
               {options.map((num) => (
                 <button
                   key={num}
                   onClick={() => handleSelect(st, num)}
                   className={`
-                    flex-1 h-9 md:h-10 rounded-xl border text-[10px] md:text-xs font-bold transition-all
+                    flex-1 h-8 md:h-9 rounded-[10px] border-[1px] text-[10px] md:text-xs font-bold transition-all
                     ${currentScore === num
-                      ? "bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 scale-105 z-10"
+                      ? "bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] border-[var(--accent-start)] text-white shadow-md shadow-[var(--accent-start)]/20 scale-105 z-10"
                       : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:border-[var(--accent-start)]/40 hover:bg-white/10"}
                   `}
                 >
@@ -59,6 +59,7 @@ export function LikertGroup({ statements, value = {}, onChange }: LikertGroupPro
                 </button>
               ))}
             </div>
+
           </motion.div>
         );
       })}

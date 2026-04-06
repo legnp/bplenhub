@@ -101,7 +101,8 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
           const selectValue = isKnownInsurer ? currentInsurer : currentInsurer ? "Outro" : "";
 
           return (
-            <div key={opt} className={`p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4 transition-all ${isEnabled ? "ring-1 ring-[var(--accent-start)]/30 bg-white/[0.08]" : ""}`}>
+            <div key={opt} className={`p-3.5 bg-white/5 border-[1px] border-white/10 rounded-[18px] space-y-4 transition-all ${isEnabled ? "ring-1 ring-[var(--accent-start)]/20 bg-white/[0.07]" : ""}`}>
+
               <CheckboxItem
                 label={opt}
                 checked={isEnabled}
@@ -304,7 +305,8 @@ export function BenefitsPackage({ value = {}, onChange, options }: BenefitsPacka
 
         {/* Campo Expectativa Salarial (Movido para aqui) */}
         {options.includes("Expectativa Salarial") && (
-            <div className={`p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4 transition-all ${value["Expectativa Salarial"]?.enabled ? "ring-1 ring-[var(--accent-start)]/30 bg-white/[0.08]" : ""}`}>
+            <div className={`p-3.5 bg-white/5 border-[1px] border-white/10 rounded-[18px] space-y-4 transition-all ${value["Expectativa Salarial"]?.enabled ? "ring-1 ring-[var(--accent-start)]/20 bg-white/[0.07]" : ""}`}>
+
                 <CheckboxItem
                     label="Expectativa Salarial"
                     checked={value["Expectativa Salarial"]?.enabled || false}
