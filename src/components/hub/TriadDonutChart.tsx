@@ -12,13 +12,15 @@ interface TriadData {
 
 interface TriadDonutChartProps {
   data: TriadData[];
+  title?: string;
+  subtitle?: string;
 }
 
 /**
  * TriadDonutChart (SVG Premium 🎨)
  * Gráfico de rosca dinâmico com animações fluidas e design BPlen.
  */
-export function TriadDonutChart({ data }: TriadDonutChartProps) {
+export function TriadDonutChart({ data, title = "Tempo", subtitle = "Tríade do" }: TriadDonutChartProps) {
   const size = 300;
   const strokeWidth = 35;
   const center = size / 2;
@@ -77,13 +79,13 @@ export function TriadDonutChart({ data }: TriadDonutChartProps) {
 
         {/* Centro do Gráfico (Label) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Tríade do</span>
-            <span className="text-3xl font-bold tracking-tighter text-[var(--text-primary)]">Tempo</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 leading-none mb-1">{subtitle}</span>
+            <span className="text-3xl font-bold tracking-tighter text-[var(--text-primary)] leading-none">{title}</span>
         </div>
       </div>
 
       {/* Legendas & Detalhes */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full mt-4">
         {data.map((item) => (
           <motion.div 
             key={item.label}
@@ -99,7 +101,7 @@ export function TriadDonutChart({ data }: TriadDonutChartProps) {
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{item.label}</span>
                 <span className="text-2xl font-bold" style={{ color: item.color }}>{item.percentage}%</span>
              </div>
-             <p className="text-xs text-[var(--text-muted)] leading-relaxed">{item.description}</p>
+             <p className="text-[10px] text-[var(--text-muted)] leading-relaxed h-12 overflow-hidden line-clamp-3">{item.description}</p>
           </motion.div>
         ))}
       </div>

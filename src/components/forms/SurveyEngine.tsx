@@ -16,6 +16,7 @@ import { CascadedSelect } from "./SurveyFields/CascadedSelect";
 import { BenefitsPackage } from "./SurveyFields/BenefitsPackage";
 import { CurrencyGroup } from "./SurveyFields/CurrencyGroup";
 import { LikertScale } from "./SurveyFields/LikertScale";
+import { RankingField } from "./SurveyFields/RankingField";
 
 interface SurveyEngineProps {
   config: SurveyConfig;
@@ -228,6 +229,15 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             options={field.options as string[]}
           />
         );
+      
+      case "ranking":
+        return (
+          <RankingField
+            options={field.options as string[]}
+            value={(rawValue as Record<string, number>) || {}}
+            onChange={(val) => updateResponse(field.id, val)}
+          />
+        );
 
       case "text":
         return (
@@ -326,6 +336,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     if (f.type === "likert") {
       const v = (val as any) || {};
       return !!v.score;
+    }
+    if (f.type === "ranking") {
+      const v = (val as Record<string, number>) || {};
+      const usedRanks = Object.values(v);
+      return usedRanks.length === 4 && new Set(usedRanks).size === 4;
     }
     if (f.type === "info") return true;
     return val !== undefined && val !== null && String(val).trim().length > 0;
