@@ -482,21 +482,21 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   return (
     <div className="w-full max-w-[750px] mx-auto relative">
       <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStepIndex}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="min-h-[450px] flex flex-col justify-start relative pt-8"
-        >
-          {/* Bloco Narrativo Estabilizado v3.2 🎭 */}
-          <div className="space-y-6 mb-8 min-h-[160px]">
-            <NarrativeReveal 
-              text={currentQuestion} 
-              variant="h2"
-              speed={40} 
-              onComplete={handleQuestionComplete}
-            />
+          <motion.div
+            key={currentStepIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="min-h-[380px] flex flex-col justify-start relative pt-4"
+          >
+            {/* Bloco Narrativo Estabilizado v3.2 🎭 */}
+            <div className="space-y-4 mb-6 min-h-[60px]">
+              <NarrativeReveal 
+                text={currentQuestion} 
+                variant="h2"
+                speed={40} 
+                onComplete={handleQuestionComplete}
+              />
 
             <div className="max-w-[640px] min-h-[0.5em]">
               {questionComplete && currentDescription && (
