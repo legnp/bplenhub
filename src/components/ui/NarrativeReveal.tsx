@@ -71,7 +71,7 @@ export function NarrativeReveal({
       clearTimeout(delayTimeout);
       if (intervalId) clearInterval(intervalId);
     };
-  }, [normalizedText, rawTextForCounting.length, speed, delay]);
+  }, [normalizedText, rawTextForCounting.length, speed, delay, active]);
 
   // Parser de Revelação: Renderiza a estrutura final e controla opacidade por spans
   const renderStructuredContent = () => {
