@@ -23,7 +23,6 @@ export default function ResultadosPage() {
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);
   const [reconhecimentoResult, setReconhecimentoResult] = useState<any>(null);
-  const [preAnaliseResult, setPreAnaliseResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,13 +35,12 @@ export default function ResultadosPage() {
         const results = await Promise.allSettled([
           getGestaoTempoResult(user!.uid, user!.email || ''),
           getAprendizadoResult(user!.uid, user!.email || ''),
-          getReconhecimentoResult(user!.uid, user!.email || ''),
-          getPreAnaliseComportamentalResult(user!.uid, user!.email || '')
+          getReconhecimentoResult(user!.uid, user!.email || '')
         ]);
 
         // Processar resultados individualmente
         results.forEach((res, index) => {
-          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento", "Pré-Análise"];
+          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento"];
           const name = names[index];
 
           if (res.status === "fulfilled") {
@@ -52,7 +50,6 @@ export default function ResultadosPage() {
             if (index === 0) setGestaoResult(data);
             if (index === 1) setAprendizadoResult(data);
             if (index === 2) setReconhecimentoResult(data);
-            if (index === 3) setPreAnaliseResult(data);
           } else {
             console.error(`❌ [ResultadosPage] ${name}: Falha crítica na Server Action. Motivo:`, res.reason);
           }
@@ -176,18 +173,6 @@ export default function ResultadosPage() {
                         icon={<Target size={14} className="text-[var(--accent-start)]" />}
                         chart={<StackedBarChart data={reconhecimentoData} />}
                         data={reconhecimentoData}
-                     />
-                  )}
-
-                  {/* Pré-Análise Comportamental */}
-                  {preAnaliseResult && (
-                     <MiniCard 
-                        title="Pré-Análise Comportamental" 
-                        subtitle="Perfil Inicial" 
-                        data={[]} 
-                        isReleased={preAnaliseResult.isReleased !== false}
-                        submittedAt={preAnaliseResult.submittedAt}
-                        icon={<Brain size={14} className="text-[var(--accent-start)]" />}
                      />
                   )}
                 </aside>
