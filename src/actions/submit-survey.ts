@@ -37,9 +37,10 @@ export async function submitSurvey(config: SurveyConfig, responses: Record<strin
     await surveyRef.set(payload, { merge: true });
 
     // 4. Disparar Efeitos Colaterais (Business Logic 🧠)
+    console.log(`📡 [SubmitSurvey:Trigger] Acionando Side Effects para ${config.id}...`);
     await handleSurveySideEffects(config.id, responses, matricula, userUid);
+    console.log(`✅ [SubmitSurvey:Finish] Fluxo completo para ${config.id}`);
 
-    console.log(`✅ [SurveyEngine Admin] Resposta enviada com sucesso: ${config.id} - ${matricula}`);
     return { success: true, matricula };
   } catch (err: unknown) {
     const error = err as Error;

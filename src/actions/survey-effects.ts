@@ -109,7 +109,7 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
  */
 export async function handleSurveySideEffects(surveyId: string, responses: Record<string, SurveyValue>, matricula: string, userUid: string) {
   const db = getAdminDb();
-  console.log(`🚀 [Effects:Main] Iniciando Side Effects para: ${surveyId} | Matrícula: ${matricula}`);
+  console.log(`🔥 [Effects:DEBUG] CHAMADA RECEBIDA! ID: "${surveyId}" | Matrícula: ${matricula}`);
 
   try {
   if (surveyId === "welcome_survey") {
