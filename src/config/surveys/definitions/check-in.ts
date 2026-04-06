@@ -7,13 +7,13 @@ const TEMPOS_EXPERIENCIA_GLOBAIS = ["Até 2 anos", "2 a 5 anos", "5 a 10 anos", 
  * BPlen HUB — Survey: Check-in (V1.0) 📊
  * Coleta dados profundos sobre a carreira e desafios do usuário.
  */
-export const check_in_v1: SurveyConfig = {
-  id: "check_in_v1",
+export const checkInSurvey: SurveyConfig = {
+  id: "check_in",
   kind: "survey",
-  title: "Check-in de Carreira",
+  title: "Check-in BPlen",
   submitLabel: "Finalizar Check-in",
   analytics: {
-    surveyId: "check_in_v1",
+    surveyId: "check_in",
     domain: "SURVEY",
     context: "HUB_ADMIN",
     tags: ["carreira", "onboarding", "maturidade"]

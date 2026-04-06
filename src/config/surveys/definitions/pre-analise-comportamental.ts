@@ -23,7 +23,7 @@ export const preAnaliseComportamentalSurvey: SurveyConfig = {
     {
       id: "apresentacao",
       question: "Objetivo da Análise",
-      description: "Olá {User_Nickname}! Este instrumento visa a identificação preliminar do seu perfil comportamental.\\n\\nTempo estimado: 10 minutos.\\n\\nInstruções Importantes:\\n• Reserve um lugar silencioso e sem distrações;\\n• Uma vez iniciado, não será possível pausar;\\n• Suas respostas não ficam salvas até a conclusão total.",
+      description: "Olá {User_Nickname}! Este instrumento visa a identificação preliminar do seu perfil comportamental.\n\nTempo estimado: 10 minutos.\n\nInstruções Importantes:\n• Reserve um lugar silencioso e sem distrações;\n• Uma vez iniciado, não será possível pausar;\n• Suas respostas não ficam salvas até a conclusão total.",
       nextLabel: "De acordo",
       fields: []
     },

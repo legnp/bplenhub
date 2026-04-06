@@ -27,12 +27,14 @@ export function TypedText({
   useEffect(() => {
     // Resetar quando o texto mudar
     setDisplayedText("");
+    const processedText = text.replaceAll("\\n", "\n");
     let currentText = "";
     let currentIndex = 0;
 
     const interval = setInterval(() => {
-      if (currentIndex < text.length) {
-        currentText += text[currentIndex];
+      if (currentIndex < processedText.length) {
+        currentText += processedText[currentIndex];
+
         setDisplayedText(currentText);
         currentIndex++;
       } else {

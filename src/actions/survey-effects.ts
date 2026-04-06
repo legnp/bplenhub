@@ -126,9 +126,9 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     console.log(`✨ [Effects] Fluxo de Onboarding finalizado: ${matricula}`);
   }
 
-  // EFEITOS: Check-in de Carreira 📊
-  if (surveyId === "check_in_v1") {
-    console.log(`📡 [Effects] Iniciando processamento Check-in: ${matricula}`);
+  // EFEITOS: Check-in BPlen 📊
+  if (surveyId === "check_in" || surveyId === "check_in_v1") {
+    console.log(`📡 [Effects] Iniciando processamento Check-in BPlen: ${matricula}`);
     
     try {
       const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");

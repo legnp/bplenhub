@@ -1,6 +1,6 @@
 import { welcomeSurveyConfig } from "./welcome";
-import { pilotSurveyConfig } from "./pilot";
-import { check_in_v1 } from "./definitions/check-in";
+import { checkInSurvey } from "./definitions/check-in";
+
 import { gestaoTempoSurvey } from "./definitions/gestao-tempo";
 import { preferenciasAprendizadoSurvey } from "./definitions/preferencias-aprendizado";
 import { preferenciasReconhecimentoSurvey } from "./definitions/preferencias-reconhecimento";
@@ -13,8 +13,8 @@ import { preAnaliseComportamentalSurvey } from "./definitions/pre-analise-compor
  */
 export const surveys = {
   welcome_survey: welcomeSurveyConfig,
-  pilot_survey: pilotSurveyConfig,
-  check_in_v1,
+  check_in: checkInSurvey,
+
   "gestao_tempo": gestaoTempoSurvey,
   "preferencias_aprendizado": preferenciasAprendizadoSurvey,
   "preferencias_reconhecimento": preferenciasReconhecimentoSurvey,
