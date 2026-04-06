@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
-import { getGestaoTempoResult, getPreferenciasAprendizadoResult, getPreferenciasReconhecimentoResult, getPreAnaliseComportamentalResult } from "@/actions/get-user-results";
+import { 
+  getGestaoTempoResult, 
+  getAprendizadoResult, 
+  getReconhecimentoResult,
+  getPreAnaliseComportamentalResult 
+} from "@/actions/get-user-results";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MessageCircle, AlertCircle, Sparkles, Heart, Compass, Layout, Target, Brain } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
@@ -27,10 +32,10 @@ export default function ResultadosPage() {
       try {
         console.log("🔍 [ResultadosPage] Iniciando carga de dados para UID:", user!.uid);
         const [gestao, aprendizado, reconhecimento, preAnalise] = await Promise.all([
-          getGestaoTempoResult(user!.uid, user!.email || undefined),
-          getPreferenciasAprendizadoResult(user!.uid, user!.email || undefined),
-          getPreferenciasReconhecimentoResult(user!.uid, user!.email || undefined),
-          getPreAnaliseComportamentalResult(user!.uid, user!.email || undefined)
+          getGestaoTempoResult(user!.uid, user!.email || ''),
+          getAprendizadoResult(user!.uid, user!.email || ''),
+          getReconhecimentoResult(user!.uid, user!.email || ''),
+          getPreAnaliseComportamentalResult(user!.uid, user!.email || '')
         ]);
 
         console.log("🔍 [ResultadosPage] Dados recebidos:", { gestao, aprendizado, reconhecimento, preAnalise });
