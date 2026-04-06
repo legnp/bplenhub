@@ -49,66 +49,180 @@ async function resolveMatricula(userUid: string, email?: string): Promise<string
 }
 
 /**
- * Funções de Busca com Resolução Robusta
+ * Helper para Serialização Segura (🛡️)
+ * Converte Timestamps do Firestore para strings/números simples
+ * para evitar erros de serialização no Next.js (Server -> Client).
+ */
+function serializeData(data: any) {
+  if (!data) return null;
+  
+  const serialized = JSON.parse(JSON.stringify(data, (key, value) => {
+    // Se for um Timestamp do Firestore (objeto com ._seconds ou .seconds)
+    if (value && typeof value === 'object' && (value.seconds !== undefined || value._seconds !== undefined)) {
+      const seconds = value.seconds ?? value._seconds;
+      return new Date(seconds * 1000).toISOString();
+    }
+    return value;
+  }));
+
+  return serialized;
+}
+
+/**
+ * Funções de Busca com Resolução Robusta (Mínimo Payload 🛡️)
  */
 
 export async function getGestaoTempoResult(userUid: string, email?: string) {
   const matricula = await resolveMatricula(userUid, email);
-  if (!matricula) return null;
+  if (!matricula) {
+    console.warn(`⚠️ [GetResults:GestaoTempo] Matrícula não resolvida para UID: ${userUid}`);
+    return null;
+  }
 
   const db = getAdminDb();
-  const res = await db.doc(`User/${matricula}/results/gestao_tempo`).get();
-  if (!res.exists) return null;
+  const path = `User/${matricula}/results/gestao_tempo`;
   
-  const data = res.data() || {};
-  // 🔄 Normalização: Se os scores estiverem na raiz, movemos para .scores
-  if (!data.scores && (data.importancia || data.urgencia)) {
-    return { ...data, scores: data };
+  try {
+    const res = await db.doc(path).get();
+    if (!res.exists) {
+      console.log(`ℹ️ [GetResults:GestaoTempo] Nenhum documento em ${path}`);
+      return null;
+    }
+    
+    let rawData = res.data() || {};
+    
+    // Normalização básica de schema
+    let scores = rawData.scores;
+    if (!scores && (rawData.importancia || rawData.urgencia)) {
+      scores = rawData;
+    }
+
+    const payload = serializeData({
+      surveyId: rawData.surveyId || 'gestao_tempo',
+      scores: scores || null,
+      isReleased: rawData.isReleased !== false,
+      submittedAt: rawData.submittedAt || null
+    });
+
+    console.log(`✅ [GetResults:GestaoTempo] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
+    return payload;
+  } catch (error: any) {
+    console.error(`🚨 [GetResults:GestaoTempo] Erro fatal lendo ${path}:`, error.message);
+    throw error; // Propaga para ser capturado pelo Promise.allSettled na UI
   }
-  return data;
 }
 
 export async function getAprendizadoResult(userUid: string, userEmail: string) {
   const matricula = await resolveMatricula(userUid, userEmail);
-  if (!matricula) return null;
+  if (!matricula) {
+    console.warn(`⚠️ [GetResults:Aprendizado] Matrícula não resolvida para UID: ${userUid}`);
+    return null;
+  }
 
   const db = getAdminDb();
-  const res = await db.doc(`User/${matricula}/results/preferencias_aprendizado`).get();
-  if (!res.exists) return null;
-  
-  const data = res.data() || {};
-  // 🔄 Normalização: Se os scores estiverem na raiz, movemos para .scores
-  if (!data.scores && (data.visual || data.auditivo)) {
-    return { ...data, scores: data };
+  const path = `User/${matricula}/results/preferencias_aprendizado`;
+
+  try {
+    const res = await db.doc(path).get();
+    if (!res.exists) {
+      console.log(`ℹ️ [GetResults:Aprendizado] Nenhum documento em ${path}`);
+      return null;
+    }
+    
+    let rawData = res.data() || {};
+    
+    // Normalização básica de schema
+    let scores = rawData.scores;
+    if (!scores && (rawData.visual || rawData.auditivo)) {
+      scores = rawData;
+    }
+
+    const payload = serializeData({
+      surveyId: rawData.surveyId || 'preferencias_aprendizado',
+      scores: scores || null,
+      isReleased: rawData.isReleased !== false,
+      submittedAt: rawData.submittedAt || null
+    });
+
+    console.log(`✅ [GetResults:Aprendizado] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
+    return payload;
+  } catch (error: any) {
+    console.error(`🚨 [GetResults:Aprendizado] Erro fatal lendo ${path}:`, error.message);
+    throw error;
   }
-  return data;
 }
 
 export async function getReconhecimentoResult(userUid: string, userEmail: string) {
   const matricula = await resolveMatricula(userUid, userEmail);
-  if (!matricula) return null;
+  if (!matricula) {
+    console.warn(`⚠️ [GetResults:Reconhecimento] Matrícula não resolvida para UID: ${userUid}`);
+    return null;
+  }
 
   const db = getAdminDb();
-  const res = await db.doc(`User/${matricula}/results/preferencias_reconhecimento`).get();
-  if (!res.exists) return null;
-  
-  const data = res.data() || {};
-  // 🔄 Normalização: Se os scores estiverem na raiz (como no print da Lisandra), movemos para .scores
-  if (!data.scores && (data.palavras || data.presentes || data.tempo)) {
-    return { ...data, scores: data };
+  const path = `User/${matricula}/results/preferencias_reconhecimento`;
+
+  try {
+    const res = await db.doc(path).get();
+    if (!res.exists) {
+      console.log(`ℹ️ [GetResults:Reconhecimento] Nenhum documento em ${path}`);
+      return null;
+    }
+    
+    let rawData = res.data() || {};
+    
+    // Normalização básica de schema
+    let scores = rawData.scores;
+    if (!scores && (rawData.afirmacao || rawData.palavras || rawData.presentes || rawData.tempo)) {
+      scores = rawData;
+    }
+
+    const payload = serializeData({
+      surveyId: rawData.surveyId || 'preferencias_reconhecimento',
+      scores: scores || null,
+      isReleased: rawData.isReleased !== false,
+      submittedAt: rawData.submittedAt || null
+    });
+
+    console.log(`✅ [GetResults:Reconhecimento] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
+    return payload;
+  } catch (error: any) {
+    console.error(`🚨 [GetResults:Reconhecimento] Erro fatal lendo ${path}:`, error.message);
+    throw error;
   }
-  return data;
 }
 
 export async function getPreAnaliseComportamentalResult(userUid: string, email?: string) {
-  const db = getAdminDb();
   const matricula = await resolveMatricula(userUid, email);
-  if (!matricula) return null;
+  if (!matricula) {
+    console.warn(`⚠️ [GetResults:PreAnalise] Matrícula não resolvida para UID: ${userUid}`);
+    return null;
+  }
 
-  const resPath = `User/${matricula}/results/pre_analise_comportamental`;
-  const resultSnap = await db.doc(resPath).get();
-  console.log(`🔍 [GetResults:PreAnalise] Lendo de ${resPath} | Existe: ${resultSnap.exists}`);
-  return resultSnap.exists ? resultSnap.data() : null;
+  const db = getAdminDb();
+  const path = `User/${matricula}/results/pre_analise_comportamental`;
+
+  try {
+    const res = await db.doc(path).get();
+    if (!res.exists) {
+      console.log(`ℹ️ [GetResults:PreAnalise] Nenhum documento em ${path}`);
+      return null;
+    }
+
+    const rawData = res.data() || {};
+    const payload = serializeData({
+      surveyId: rawData.surveyId || 'pre_analise_comportamental',
+      scores: rawData.scores || null, // Nota: Este assessment pode ser qualitativo (scores null)
+      isReleased: rawData.isReleased !== false,
+      submittedAt: rawData.submittedAt || null
+    });
+
+    console.log(`✅ [GetResults:PreAnalise] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
+    return payload;
+  } catch (error: any) {
+    console.error(`🚨 [GetResults:PreAnalise] Erro fatal lendo ${path}:`, error.message);
+    throw error;
+  }
 }
 
 

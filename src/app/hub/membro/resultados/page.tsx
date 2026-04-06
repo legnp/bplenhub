@@ -30,22 +30,35 @@ export default function ResultadosPage() {
     
     async function load() {
       try {
-        console.log("🔍 [ResultadosPage] Iniciando carga de dados para UID:", user!.uid);
-        const [gestao, aprendizado, reconhecimento, preAnalise] = await Promise.all([
+        console.log("🔍 [ResultadosPage] Iniciando carga resiliente para UID:", user!.uid);
+        
+        const results = await Promise.allSettled([
           getGestaoTempoResult(user!.uid, user!.email || ''),
           getAprendizadoResult(user!.uid, user!.email || ''),
           getReconhecimentoResult(user!.uid, user!.email || ''),
           getPreAnaliseComportamentalResult(user!.uid, user!.email || '')
         ]);
 
-        console.log("🔍 [ResultadosPage] Dados recebidos:", { gestao, aprendizado, reconhecimento, preAnalise });
-        
-        setGestaoResult(gestao);
-        setAprendizadoResult(aprendizado);
-        setReconhecimentoResult(reconhecimento);
-        setPreAnaliseResult(preAnalise);
+        // Processar resultados individualmente
+        results.forEach((res, index) => {
+          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento", "Pré-Análise"];
+          const name = names[index];
+
+          if (res.status === "fulfilled") {
+            const data = res.value;
+            console.log(`✅ [ResultadosPage] ${name}: Carregado com sucesso.`, data ? "Docs existem." : "Sem docs.");
+            
+            if (index === 0) setGestaoResult(data);
+            if (index === 1) setAprendizadoResult(data);
+            if (index === 2) setReconhecimentoResult(data);
+            if (index === 3) setPreAnaliseResult(data);
+          } else {
+            console.error(`❌ [ResultadosPage] ${name}: Falha crítica na Server Action. Motivo:`, res.reason);
+          }
+        });
+
       } catch (error) {
-        console.error("❌ [ResultadosPage] Erro ao carregar resultados:", error);
+        console.error("🚨 [ResultadosPage] Erro inesperado no orquestrador:", error);
       } finally {
         setLoading(false);
       }
@@ -55,24 +68,24 @@ export default function ResultadosPage() {
 
   // Mapeamento dinâmico para os gráficos (conforme estrutura do Firestore)
   const triadData = gestaoResult?.scores ? [
-    { label: 'Importância', value: gestaoResult.scores.importancia?.percentage || 0, color: '#ec4899' },
-    { label: 'Urgência', value: gestaoResult.scores.urgencia?.percentage || 0, color: '#facc15' },
-    { label: 'Circunstância', value: gestaoResult.scores.circunstancia?.percentage || 0, color: '#94a3b8' },
+    { label: 'Importância', percentage: gestaoResult.scores.importancia?.percentage || 0, color: '#ec4899' },
+    { label: 'Urgência', percentage: gestaoResult.scores.urgencia?.percentage || 0, color: '#facc15' },
+    { label: 'Circunstância', percentage: gestaoResult.scores.circunstancia?.percentage || 0, color: '#94a3b8' },
   ] : [];
 
   const vacdData = aprendizadoResult?.scores ? [
-    { label: 'Vis', value: aprendizadoResult.scores.visual?.percentage || 0, color: '#ec4899' },
-    { label: 'Aud', value: aprendizadoResult.scores.auditivo?.percentage || 0, color: '#3b82f6' },
-    { label: 'Cin', value: aprendizadoResult.scores.cinestesico?.percentage || 0, color: '#10b981' },
-    { label: 'Dig', value: aprendizadoResult.scores.digital?.percentage || 0, color: '#f59e0b' },
+    { label: 'Vis', percentage: aprendizadoResult.scores.visual?.percentage || 0, color: '#ec4899' },
+    { label: 'Aud', percentage: aprendizadoResult.scores.auditivo?.percentage || 0, color: '#3b82f6' },
+    { label: 'Cin', percentage: aprendizadoResult.scores.cinestesico?.percentage || 0, color: '#10b981' },
+    { label: 'Dig', percentage: aprendizadoResult.scores.digital?.percentage || 0, color: '#f59e0b' },
   ] : [];
 
   const reconhecimentoData = reconhecimentoResult?.scores ? [
-    { label: 'Pal', value: reconhecimentoResult.scores.palavras?.percentage || 0, color: '#ef4444' },
-    { label: 'Tem', value: reconhecimentoResult.scores.tempo?.percentage || 0, color: '#3b82f6' },
-    { label: 'Pre', value: reconhecimentoResult.scores.presentes?.percentage || 0, color: '#10b981' },
-    { label: 'Ser', value: reconhecimentoResult.scores.servico?.percentage || 0, color: '#f59e0b' },
-    { label: 'Toq', value: reconhecimentoResult.scores.toque?.percentage || 0, color: '#ec4899' },
+    { label: 'Afi', percentage: reconhecimentoResult.scores.afirmacao?.percentage || 0, color: '#ef4444' },
+    { label: 'Tem', percentage: reconhecimentoResult.scores.tempo?.percentage || 0, color: '#3b82f6' },
+    { label: 'Pre', percentage: reconhecimentoResult.scores.presentes?.percentage || 0, color: '#10b981' },
+    { label: 'Ser', percentage: reconhecimentoResult.scores.servico?.percentage || 0, color: '#f59e0b' },
+    { label: 'Toq', percentage: reconhecimentoResult.scores.toque?.percentage || 0, color: '#ec4899' },
   ] : [];
 
   return (
@@ -126,39 +139,51 @@ export default function ResultadosPage() {
                      </div>
                   </div>
 
+                  {/* Gestão do Tempo */}
+                  {gestaoResult && (
+                     <MiniCard 
+                        title="Gestão do Tempo" 
+                        subtitle="Tríade do Tempo" 
+                        data={triadData} 
+                        isReleased={gestaoResult.isReleased !== false} // Resiliente: se não for explicitamente falso, mostramos
+                        submittedAt={gestaoResult.submittedAt}
+                        icon={<Clock size={14} className="text-[var(--accent-start)]" />}
+                     />
+                  )}
+
                   {/* Aprendizado (VACD) */}
                   {aprendizadoResult && (
                      <MiniCard 
-                        title="Aprendizado" 
-                        subtitle="VACD" 
+                        title="Preferências de Aprendizado" 
+                        subtitle="Mapeamento VACD" 
                         data={vacdData} 
-                        isReleased={aprendizadoResult.isReleased}
+                        isReleased={aprendizadoResult.isReleased !== false}
                         submittedAt={aprendizadoResult.submittedAt}
-                        icon={<Sparkles size={14} className="text-pink-500" />}
+                        icon={<Sparkles size={14} className="text-[var(--accent-start)]" />}
                      />
                   )}
 
-                  {/* Reconhecimento */}
+                  {/* Linguagens de Reconhecimento */}
                   {reconhecimentoResult && (
                      <MiniCard 
-                        title="Reconhecimento" 
-                        subtitle="Linguagem" 
+                        title="Linguagens de Reconhecimento" 
+                        subtitle="Análise Premiações" 
                         data={reconhecimentoData} 
-                        isReleased={reconhecimentoResult.isReleased}
+                        isReleased={reconhecimentoResult.isReleased !== false}
                         submittedAt={reconhecimentoResult.submittedAt}
-                        icon={<Heart size={14} className="text-red-500" />}
+                        icon={<Target size={14} className="text-[var(--accent-start)]" />}
                      />
                   )}
 
-                  {/* Gestão do Tempo (Tríade) */}
-                  {gestaoResult && (
+                  {/* Pré-Análise Comportamental */}
+                  {preAnaliseResult && (
                      <MiniCard 
-                        title="Tríade do Tempo" 
-                        subtitle="Energia" 
-                        data={triadData} 
-                        isReleased={gestaoResult.isReleased}
-                        submittedAt={gestaoResult.submittedAt}
-                        icon={<Clock size={14} className="text-blue-500" />}
+                        title="Pré-Análise Comportamental" 
+                        subtitle="Perfil Inicial" 
+                        data={[]} 
+                        isReleased={preAnaliseResult.isReleased !== false}
+                        submittedAt={preAnaliseResult.submittedAt}
+                        icon={<Brain size={14} className="text-[var(--accent-start)]" />}
                      />
                   )}
                 </aside>

@@ -544,9 +544,10 @@ export default function UsersManagementPage() {
                                              
                                              if (res.success) {
                                                 alert('✅ Identidade vinculada com sucesso! Peça ao cliente para atualizar a página.');
+                                                // Atualiza o estado local para mostrar o novo UID (capturado antes de limpar)
+                                                const newUid = input.value.trim();
+                                                setSelectedUser({ ...selectedUser, uid: newUid });
                                                 input.value = '';
-                                                // Atualiza o estado local para mostrar o novo UID
-                                                setSelectedUser({ ...selectedUser, uid: input.value.trim() });
                                                 fetchUsers(); 
                                              } else {
                                                 alert('❌ Erro ao vincular: ' + (res.error || 'Erro desconhecido'));
