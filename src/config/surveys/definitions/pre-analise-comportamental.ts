@@ -35,6 +35,7 @@ export const preAnaliseComportamentalSurvey: SurveyConfig = {
         {
           id: "tracos",
           type: "multi_select",
+          cols: 4,
           options: [
             "Introvertido", "Extrovertido", "Confiante", "Inseguro", "Crítico", "Acolhedor", 
             "Entusiasta", "Controlado", "Organizado", "Desorganizado", "Líder", "Seguidor", 

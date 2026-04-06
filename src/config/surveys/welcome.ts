@@ -47,6 +47,7 @@ export const welcomeSurveyConfig: SurveyConfig = {
           id: "topics",
           type: "choice",
           isMultiple: true, 
+          cols: 2,
           label: "Temas de Interesse",
           options: [
             "Melhorar meu currículo",

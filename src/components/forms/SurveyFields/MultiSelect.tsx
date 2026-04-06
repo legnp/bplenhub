@@ -9,9 +9,10 @@ interface MultiSelectProps {
   onChange: (updated: string[]) => void;
   minSelections?: number;
   maxSelections?: number;
+  cols?: 1 | 2 | 3 | 4;
 }
 
-export function MultiSelect({ options, selected, onChange, minSelections, maxSelections }: MultiSelectProps) {
+export function MultiSelect({ options, selected, onChange, minSelections, maxSelections, cols }: MultiSelectProps) {
   const toggleOption = (opt: string) => {
     const current = [...selected];
     const index = current.indexOf(opt);
@@ -26,6 +27,17 @@ export function MultiSelect({ options, selected, onChange, minSelections, maxSel
     onChange(current);
   };
 
+  const getGridCols = () => {
+    if (cols === 1) return "grid-cols-1";
+    if (cols === 2) return "grid-cols-1 md:grid-cols-2";
+    if (cols === 3) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+    if (cols === 4) return "grid-cols-2 md:grid-cols-4";
+
+    // Default dinâmico para multi_select (geralmente mais denso, mantemos 1 col se longo)
+    if (options.length <= 6) return "grid-cols-1 md:grid-cols-2";
+    return "grid-cols-1";
+  };
+
   return (
     <div className="space-y-3">
       {minSelections || maxSelections ? (
@@ -36,7 +48,7 @@ export function MultiSelect({ options, selected, onChange, minSelections, maxSel
         </p>
       ) : null}
       
-      <div className="grid grid-cols-1 gap-2">
+      <div className={`grid gap-2 ${getGridCols()}`}>
         {options.map((opt) => (
           <CheckboxItem
             key={opt}

@@ -184,6 +184,29 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     handleInteraction();
   };
 
+  const getFieldGridCols = (field: SurveyFieldConfig) => {
+    // 1. Prioridade para configuração explícita 🎯
+    if (field.cols === 1) return "grid-cols-1";
+    if (field.cols === 2) return "grid-cols-1 md:grid-cols-2";
+    if (field.cols === 3) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+    if (field.cols === 4) return "grid-cols-2 md:grid-cols-4";
+
+    // 2. Regra Global Padrão (Smart Default) 💎
+    const options = (field.options as any[]) || [];
+    const isShortList = options.length <= 6;
+    const allShortLabels = options.every(opt => {
+        const label = typeof opt === "string" ? opt : opt?.label;
+        return (label?.length || 0) < 20;
+    });
+
+    // Se a lista for curta e os nomes pequenos, usamos 2 colunas por padrão no desktop
+    if (isShortList && allShortLabels && options.length > 2) {
+        return "grid-cols-1 md:grid-cols-2";
+    }
+
+    return "grid-cols-1";
+  };
+
   // Renderizador de Átomos Narrativos (Extendido)
   const renderField = (field: SurveyFieldConfig) => {
     const rawValue = responses[field.id];
@@ -199,6 +222,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
               onChange={(val) => updateResponse(field.id, val)}
               minSelections={field.validation?.minSelections}
               maxSelections={field.validation?.maxSelections}
+              cols={field.cols}
             />
           );
         }
@@ -209,7 +233,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
                 {field.label}
               </label>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${getFieldGridCols(field)}`}>
               {(field.options as string[])?.map((opt) => (
                 <ChoiceButton
                   key={opt}
@@ -249,6 +273,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
             onChange={(val) => updateResponse(field.id, val)}
             minSelections={field.validation?.minSelections}
             maxSelections={field.validation?.maxSelections}
+            cols={field.cols}
           />
         );
 

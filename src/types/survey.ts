@@ -62,6 +62,7 @@ export interface SurveyFieldConfig {
     maxSelections?: number;
     pattern?: string;
   };
+  cols?: 1 | 2 | 3 | 4;
 }
 
 export interface SurveyStepConfig {
