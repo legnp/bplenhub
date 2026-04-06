@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SurveyConfig, SurveyFieldConfig, SurveyValue } from "@/types/survey";
-import { TypedText } from "@/components/ui/TypedText";
+import { NarrativeReveal } from "@/components/ui/NarrativeReveal";
 import { NavButton } from "@/components/ui/NavButton";
 import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { InputGlass } from "@/components/ui/InputGlass";
@@ -489,15 +489,14 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
           exit={{ opacity: 0, y: -20 }}
           className="min-h-[450px] flex flex-col justify-start relative pt-8"
         >
-          {/* Bloco Narrativo Estabilizado 🎭 */}
+          {/* Bloco Narrativo Estabilizado v3.2 🎭 */}
           <div className="space-y-6 mb-8 min-h-[160px]">
-            <h2 className="text-[26px] md:text-[32px] font-medium tracking-tighter text-[var(--accent-start)] leading-[1.1]">
-              <TypedText 
-                text={currentQuestion} 
-                speed={40} 
-                onComplete={handleQuestionComplete}
-              />
-            </h2>
+            <NarrativeReveal 
+              text={currentQuestion} 
+              variant="h2"
+              speed={40} 
+              onComplete={handleQuestionComplete}
+            />
 
             <div className="max-w-[640px] min-h-[0.5em]">
               {questionComplete && currentDescription && (

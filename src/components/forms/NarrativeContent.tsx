@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
-import { TypedText } from "@/components/ui/TypedText";
+import { NarrativeReveal } from "@/components/ui/NarrativeReveal";
 
 interface NarrativeContentProps {
   text: string;
@@ -11,41 +10,38 @@ interface NarrativeContentProps {
 }
 
 /**
- * NarrativeContent (Componente de Hierarquia Tipográfica ✍️)
- * Processa strings com markdown-lite e aplica estilos institucionais.
- * Markdown suportado: **negrito**, ### subtítulo, [instrucao] texto [/instrucao]
+ * NarrativeContent (Orquestrador de Revelação v3.2 🎭)
+ * Gere a sequência de blocos narrativos usando a nova estratégia de Reveal Estável.
  */
 export function NarrativeContent({ text, onComplete, speed = 25 }: NarrativeContentProps) {
-  const [visibleBlockIndex, setVisibleBlockIndex] = React.useState(0);
-  const [complete, setComplete] = React.useState(false);
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const [allComplete, setAllComplete] = React.useState(false);
   const blocks = React.useMemo(() => parseNarrativeBlocks(text), [text]);
 
-  const handleBlockComplete = (index: number) => {
-    if (index === blocks.length - 1) {
-      setComplete(true);
+  const handleBlockComplete = (idx: number) => {
+    if (idx === blocks.length - 1) {
+      setAllComplete(true);
       if (onComplete) onComplete();
     } else {
-      setVisibleBlockIndex(index + 1);
+      setActiveIndex(idx + 1);
     }
   };
 
   return (
     <div className="space-y-4">
       {blocks.map((block, i) => {
-        const isVisible = i <= visibleBlockIndex || complete;
-        const isCurrent = i === visibleBlockIndex && !complete;
-        
+        const isQueued = i > activeIndex;
+        const reached = i <= activeIndex || allComplete;
+
         return (
-          <div 
-            key={i} 
-            className={!isVisible ? "opacity-0 pointer-events-none select-none" : "opacity-100"}
-          >
-            {renderBlockContent(
-              block, 
-              !isCurrent, // isStatic
-              speed, 
-              () => handleBlockComplete(i)
-            )}
+          <div key={i} className={isQueued ? "opacity-0 select-none pointer-events-none" : "opacity-100"}>
+             <NarrativeReveal
+                text={block.content}
+                variant={block.type as any}
+                speed={speed}
+                active={reached}
+                onComplete={() => handleBlockComplete(i)}
+             />
           </div>
         );
       })}
@@ -53,7 +49,7 @@ export function NarrativeContent({ text, onComplete, speed = 25 }: NarrativeCont
   );
 }
 
-// Auxiliares para suporte a blocos narrativos sequenceáveis 🧬
+// Auxiliares de Parsing mantidos para compatibilidade gramatical 🧬
 
 interface NarrativeBlockData {
   type: "h3" | "p-muted" | "p-normal";
@@ -72,81 +68,17 @@ function parseNarrativeBlocks(text: string): NarrativeBlockData[] {
   });
 }
 
-function renderBlockContent(block: NarrativeBlockData, isStatic: boolean, speed?: number, onComplete?: () => void) {
-  const classNameMap = {
-    "h3": "text-lg font-semibold text-[var(--text-primary)] mt-6 mb-2 tracking-tight",
-    "p-muted": "text-[13px] text-[var(--text-muted)] italic leading-relaxed pl-1 border-l border-white/5",
-    "p-normal": "text-[15px] text-[var(--text-secondary)] leading-relaxed"
-  };
-
-  const Tag = block.type === "h3" ? "h3" : "p";
-
-  if (isStatic) {
-    return <Tag className={classNameMap[block.type]}>{processInlineStyles(block.content)}</Tag>;
-  }
-
-  return (
-    <Tag className={classNameMap[block.type]}>
-      <TypedText text={block.content} speed={speed} onComplete={onComplete} />
-    </Tag>
-  );
-}
-
-
 /**
- * NarrativeBlock (Componente Estático para Visualização Imediata 🖼️)
- * Útil para estados onde a animação já terminou ou para previews.
+ * NarrativeBlock (Manteve-se estático para previews)
  */
 export function NarrativeBlock({ text }: { text: string }) {
   if (!text) return null;
-  return <div className="space-y-4">{parseNarrative(text)}</div>;
-}
-
-
-/**
- * Utility: parseNarrative (Para uso quando o texto já estiver completo)
- * Se quisermos renderizar o texto instantaneamente com estilos.
- */
-export function parseNarrative(text: string) {
-  if (!text) return null;
-
-  // 1. Quebras de linha
-  const paragraphs = text.split('\n\n');
-
-  return paragraphs.map((p, i) => {
-    // 2. Detectar Subtítulo ###
-    if (p.startsWith('###')) {
-      return (
-        <h3 key={i} className="text-lg font-semibold text-[var(--text-primary)] mt-6 mb-2 tracking-tight">
-          {p.replace('###', '').trim()}
-        </h3>
-      );
-    }
-
-    // 3. Detectar Instrução [instrucao] ou Estilo Muted
-    if (p.includes('•') || p.toLowerCase().includes('instruções') || p.toLowerCase().includes('importante')) {
-       return (
-         <p key={i} className="text-[13px] text-[var(--text-muted)] italic leading-relaxed pl-1 border-l border-white/5">
-           {processInlineStyles(p)}
-         </p>
-       );
-    }
-
-    return (
-      <p key={i} className="text-[15px] text-[var(--text-secondary)] leading-relaxed">
-        {processInlineStyles(p)}
-      </p>
-    );
-  });
-}
-
-function processInlineStyles(text: string) {
-  // Processamento de **negrito** simplificado
-  const parts = text.split(/(\*\*.*?\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-bold text-[var(--accent-start)]">{part.slice(2, -2)}</strong>;
-    }
-    return part;
-  });
+  const blocks = parseNarrativeBlocks(text);
+  return (
+    <div className="space-y-4">
+      {blocks.map((b, i) => (
+        <NarrativeReveal key={i} text={b.content} variant={b.type as any} active={true} speed={0} />
+      ))}
+    </div>
+  );
 }
