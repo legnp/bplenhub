@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
+import { StackedBarChart } from "@/components/hub/StackedBarChart";
 import { 
   getGestaoTempoResult, 
   getAprendizadoResult, 
@@ -144,10 +145,11 @@ export default function ResultadosPage() {
                      <MiniCard 
                         title="Gestão do Tempo" 
                         subtitle="Tríade do Tempo" 
-                        data={triadData} 
-                        isReleased={gestaoResult.isReleased !== false} // Resiliente: se não for explicitamente falso, mostramos
+                        isReleased={gestaoResult.isReleased !== false}
                         submittedAt={gestaoResult.submittedAt}
                         icon={<Clock size={14} className="text-[var(--accent-start)]" />}
+                        chart={<TriadDonutChart data={triadData} mini />}
+                        data={triadData} 
                      />
                   )}
 
@@ -156,10 +158,11 @@ export default function ResultadosPage() {
                      <MiniCard 
                         title="Preferências de Aprendizado" 
                         subtitle="Mapeamento VACD" 
-                        data={vacdData} 
                         isReleased={aprendizadoResult.isReleased !== false}
                         submittedAt={aprendizadoResult.submittedAt}
                         icon={<Sparkles size={14} className="text-[var(--accent-start)]" />}
+                        chart={<TriadDonutChart data={vacdData} mini />}
+                        data={vacdData}
                      />
                   )}
 
@@ -168,10 +171,11 @@ export default function ResultadosPage() {
                      <MiniCard 
                         title="Linguagens de Reconhecimento" 
                         subtitle="Análise Premiações" 
-                        data={reconhecimentoData} 
                         isReleased={reconhecimentoResult.isReleased !== false}
                         submittedAt={reconhecimentoResult.submittedAt}
                         icon={<Target size={14} className="text-[var(--accent-start)]" />}
+                        chart={<StackedBarChart data={reconhecimentoData} />}
+                        data={reconhecimentoData}
                      />
                   )}
 
@@ -235,7 +239,7 @@ function LoadingView() {
 /**
  * MiniCard: Compact Assessment View
  */
-function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt }: any) {
+function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart }: any) {
   const formattedDate = submittedAt ? new Date(submittedAt.seconds ? submittedAt.seconds * 1000 : submittedAt).toLocaleDateString("pt-BR") : null;
 
   return (
@@ -262,16 +266,30 @@ function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt }: any)
         )}
       </div>
 
-      {/* Donut Chart with Blur Effect if Pending */}
-      <div className={`scale-90 -mx-4 transition-all duration-700 ${!isReleased ? 'blur-md grayscale opacity-30 select-none' : 'opacity-100 group-hover/card:scale-95'}`}>
-        {data.length > 0 ? (
-          <TriadDonutChart data={data} mini />
+      {/* Chart Area with Blur Effect if Pending */}
+      <div className={`transition-all duration-700 ${!isReleased ? 'blur-md grayscale opacity-30 select-none' : 'opacity-100 group-hover/card:scale-[0.98]'}`}>
+        {(data && data.length > 0) ? (
+          chart
         ) : (
           <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
              <Heart size={16} className="text-[var(--accent-start)] opacity-20" />
           </div>
         )}
       </div>
+
+      {/* Legend for Mini Chart */}
+      {isReleased && data.length > 0 && (
+         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-4 transition-all duration-500 opacity-70 group-hover/card:opacity-100">
+            {data.map((item: any) => (
+               <div key={item.label} className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-[7.5px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                     {item.label}
+                  </span>
+               </div>
+            ))}
+         </div>
+      )}
 
       {/* Discreet Submission Date */}
       {formattedDate && (
