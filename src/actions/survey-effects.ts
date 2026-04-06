@@ -347,4 +347,90 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       console.error(`❌ [Effects] Erro na sincronização Drive Preferências de Aprendizado:`, driveErr);
     }
   }
+
+  // EFEITOS: Preferências de Reconhecimento (Linguagens de Apreciação) 💖
+  if (surveyId === "preferencias_reconhecimento") {
+    console.log(`📡 [Effects] Iniciando processamento Preferências de Reconhecimento: ${matricula}`);
+    
+    let totalA = 0, totalB = 0, totalC = 0, totalD = 0, totalE = 0;
+    const groups = ["grupo1", "grupo2", "grupo3", "grupo4", "grupo5"];
+    
+    groups.forEach(gId => {
+      const resp = (responses[gId] as Record<string, number>) || {};
+      Object.entries(resp).forEach(([label, value]) => {
+        if (label.startsWith("A.")) totalA += value;
+        else if (label.startsWith("B.")) totalB += value;
+        else if (label.startsWith("C.")) totalC += value;
+        else if (label.startsWith("D.")) totalD += value;
+        else if (label.startsWith("E.")) totalE += value;
+      });
+    });
+
+    const totalGeral = totalA + totalB + totalC + totalD + totalE;
+    const getPct = (val: number) => totalGeral > 0 ? Math.round((val / totalGeral) * 100) : 0;
+
+    const pctA = getPct(totalA);
+    const pctB = getPct(totalB);
+    const pctC = getPct(totalC);
+    const pctD = getPct(totalD);
+    const pctE = getPct(totalE);
+
+    const metadata = (responses.metadata as any) || {};
+
+    // 2. Persistência no Firestore
+    const resultRef = db.doc(`User/${matricula}/results/preferencias_reconhecimento`);
+    await resultRef.set({
+      surveyId,
+      matricula,
+      scores: {
+        afirmacao: { total: totalA, percentage: pctA },
+        servico: { total: totalB, percentage: pctB },
+        presentes: { total: totalC, percentage: pctC },
+        tempo: { total: totalD, percentage: pctD },
+        toque: { total: totalE, percentage: pctE },
+        totalGeral
+      },
+      responses: Object.fromEntries(Object.entries(responses).filter(([k]) => k !== "metadata")),
+      durationSeconds: metadata.durationSeconds || 0,
+      isReleased: false,
+      submittedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Sincronização Google Sheets
+    try {
+      const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
+      const { serverEnv } = await import("@/env");
+      const { ensureFolder, createSpreadsheet, syncDataToSheet } = await import("@/lib/drive-utils");
+
+      const drive = await getDriveClient();
+      const sheets = await getSheetsClient();
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+
+      const isPJ = matricula.includes("-PJ-");
+      const catFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, catFolderId, matricula);
+      const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
+      
+      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Preferências de Reconhecimento - ${matricula}`);
+
+      const headers = [
+        "Timestamp", "Matrícula", "Duração (s)", 
+        "% Afirmação", "% Serviço", "% Presentes", "% Tempo", "% Toque",
+        "Análise Interpessoal"
+      ];
+      
+      const rowData = [
+        new Date().toLocaleString("pt-BR"),
+        matricula,
+        metadata.durationSeconds || 0,
+        pctA, pctB, pctC, pctD, pctE,
+        String(responses.comunicacao_relacoes || "N/A")
+      ];
+
+      await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
+      console.log(`✅ [Effects] Preferências de Reconhecimento sincronizado com Drive: ${matricula}`);
+    } catch (driveErr) {
+      console.error(`❌ [Effects] Erro na sincronização Drive Preferências de Reconhecimento:`, driveErr);
+    }
+  }
 }

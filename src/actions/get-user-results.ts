@@ -42,3 +42,23 @@ export async function getPreferenciasAprendizadoResult(userUid: string) {
   return resultSnap.data();
 }
 
+/**
+ * getPreferenciasReconhecimentoResult
+ * Busca o resultado da pesquisa de preferências de reconhecimento (Linguagens).
+ */
+export async function getPreferenciasReconhecimentoResult(userUid: string) {
+  const db = getAdminDb();
+  
+  const authMapSnap = await db.doc(`_AuthMap/${userUid}`).get();
+  if (!authMapSnap.exists) return null;
+  
+  const matricula = authMapSnap.data()?.matricula;
+  if (!matricula) return null;
+
+  const resultSnap = await db.doc(`User/${matricula}/results/preferencias_reconhecimento`).get();
+  if (!resultSnap.exists) return null;
+  
+  return resultSnap.data();
+}
+
+

@@ -3,6 +3,7 @@ import { pilotSurveyConfig } from "./pilot";
 import { check_in_v1 } from "./definitions/check-in";
 import { gestaoTempoSurvey } from "./definitions/gestao-tempo";
 import { preferenciasAprendizadoSurvey } from "./definitions/preferencias-aprendizado";
+import { preferenciasReconhecimentoSurvey } from "./definitions/preferencias-reconhecimento";
 
 /**
  * BPlen HUB — Survey Registry (🗂️)
@@ -14,7 +15,8 @@ export const surveys = {
   pilot_survey: pilotSurveyConfig,
   check_in_v1,
   "gestao_tempo": gestaoTempoSurvey,
-  "preferencias_aprendizado": preferenciasAprendizadoSurvey
+  "preferencias_aprendizado": preferenciasAprendizadoSurvey,
+  "preferencias_reconhecimento": preferenciasReconhecimentoSurvey
 };
 
 export const SURVEY_REGISTRY = Object.values(surveys);

@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { HubShell } from "@/components/hub/HubShell";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { getAuth } from "firebase/auth";
-import { getGestaoTempoResult, getPreferenciasAprendizadoResult } from "@/actions/get-user-results";
+import { getGestaoTempoResult, getPreferenciasAprendizadoResult, getPreferenciasReconhecimentoResult } from "@/actions/get-user-results";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MessageCircle, AlertCircle, Sparkles } from "lucide-react";
+import { Clock, MessageCircle, AlertCircle, Sparkles, Heart } from "lucide-react";
 
 /**
  * Hub - Área de Resultados do Membro 🧬
@@ -15,6 +15,7 @@ import { Clock, MessageCircle, AlertCircle, Sparkles } from "lucide-react";
 export default function ResultadosPage() {
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);
+  const [reconhecimentoResult, setReconhecimentoResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +24,14 @@ export default function ResultadosPage() {
         const auth = getAuth();
         const user = auth.currentUser;
         if (user) {
-          const [gestao, aprendizado] = await Promise.all([
+          const [gestao, aprendizado, reconhecimento] = await Promise.all([
             getGestaoTempoResult(user.uid),
-            getPreferenciasAprendizadoResult(user.uid)
+            getPreferenciasAprendizadoResult(user.uid),
+            getPreferenciasReconhecimentoResult(user.uid)
           ]);
           setGestaoResult(gestao);
           setAprendizadoResult(aprendizado);
+          setReconhecimentoResult(reconhecimento);
         }
       } catch (err) {
         console.error("Erro ao carregar resultados:", err);
@@ -87,7 +90,40 @@ export default function ResultadosPage() {
     }
   ] : [];
 
-  const hasResults = gestaoResult || aprendizadoResult;
+  const reconhecimentoData = reconhecimentoResult?.scores ? [
+    { 
+      label: "Afirmação", 
+      percentage: reconhecimentoResult.scores.afirmacao.percentage, 
+      color: "#FF7F50", // Coral
+      description: "Valoriza elogios, palavras de encorajamento e reconhecimento verbal."
+    },
+    { 
+      label: "Serviço", 
+      percentage: reconhecimentoResult.scores.servico.percentage, 
+      color: "#10B981", // Esmeralda
+      description: "Sente-se apreciado quando alguém realiza tarefas para aliviar sua carga."
+    },
+    { 
+      label: "Presentes", 
+      percentage: reconhecimentoResult.scores.presentes.percentage, 
+      color: "#FFD700", // Ouro
+      description: "Aprecia o gesto e o pensamento por trás de lembranças físicas."
+    },
+    { 
+      label: "Tempo", 
+      percentage: reconhecimentoResult.scores.tempo.percentage, 
+      color: "#007FFF", // Azure
+      description: "Valoriza a atenção plena e momentos de qualidade compartilhados."
+    },
+    { 
+      label: "Toque", 
+      percentage: reconhecimentoResult.scores.toque.percentage, 
+      color: "#DC143C", // Carmesim
+      description: "Reconhecimento através da proximidade física e contato afetuoso."
+    }
+  ] : [];
+
+  const hasResults = gestaoResult || aprendizadoResult || reconhecimentoResult;
 
   return (
     <HubShell>
@@ -136,7 +172,7 @@ export default function ResultadosPage() {
                     key="results-grid"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="grid grid-cols-1 gap-12"
+                    className="grid grid-cols-1 gap-16"
                 >
                     {/* Seção 1: Gestão do Tempo */}
                     {gestaoResult && (
@@ -147,7 +183,6 @@ export default function ResultadosPage() {
                                 <ResultCard 
                                     title="Tríade do Tempo" 
                                     subtitle="Tempo"
-                                    type="Tríade do"
                                     submittedAt={gestaoResult.submittedAt}
                                     data={triadData}
                                     analysis={gestaoResult.responses.auto_avaliacao}
@@ -165,11 +200,28 @@ export default function ResultadosPage() {
                                 <ResultCard 
                                     title="Preferências" 
                                     subtitle="Mapa de"
-                                    type="Estilo de"
                                     submittedAt={aprendizadoResult.submittedAt}
                                     data={vacdData}
                                     analysis={aprendizadoResult.responses.habitos_aprendizagem}
                                     icon={<Sparkles size={18} className="text-pink-500" />}
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    {/* Seção 3: Reconhecimento */}
+                    {reconhecimentoResult && (
+                        <div className="space-y-6">
+                            {!reconhecimentoResult.isReleased ? (
+                                <WaitingBanner title="Mapa de Reconhecimento" />
+                            ) : (
+                                <ResultCard 
+                                    title="Reconhecimento" 
+                                    subtitle="Mapa de"
+                                    submittedAt={reconhecimentoResult.submittedAt}
+                                    data={reconhecimentoData}
+                                    analysis={reconhecimentoResult.responses.comunicacao_relacoes}
+                                    icon={<Heart size={18} className="text-red-500" />}
                                 />
                             )}
                         </div>

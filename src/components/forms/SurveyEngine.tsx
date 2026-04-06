@@ -340,7 +340,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     if (f.type === "ranking") {
       const v = (val as Record<string, number>) || {};
       const usedRanks = Object.values(v);
-      return usedRanks.length === 4 && new Set(usedRanks).size === 4;
+      return usedRanks.length === f.options?.length && new Set(usedRanks).size === f.options?.length;
     }
     if (f.type === "info") return true;
     return val !== undefined && val !== null && String(val).trim().length > 0;

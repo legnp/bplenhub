@@ -14,7 +14,8 @@ interface RankingFieldProps {
  * Permite a ordenação de 1 a 4 das opções, com lógica de exclusividade.
  */
 export function RankingField({ options, value = {}, onChange }: RankingFieldProps) {
-  const ranks = [4, 3, 2, 1]; // Ordem decrescente conforme pedido (4 Melhor, 1 Menos)
+  const ranks = Array.from({ length: options.length }, (_, i) => options.length - i);
+
   
   const handleRankClick = (option: string, rank: number) => {
     const newValue = { ...value };
@@ -36,9 +37,9 @@ export function RankingField({ options, value = {}, onChange }: RankingFieldProp
     onChange(newValue);
   };
 
-  // Verifica se todos os 4 ranks foram atribuídos
+  // Verifica se todos os ranks foram atribuídos
   const usedRanks = Object.values(value);
-  const isComplete = usedRanks.length === 4 && new Set(usedRanks).size === 4;
+  const isComplete = usedRanks.length === options.length && new Set(usedRanks).size === options.length;
 
   return (
     <div className="space-y-10 pt-4">
@@ -110,12 +111,12 @@ export function RankingField({ options, value = {}, onChange }: RankingFieldProp
              <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--accent-start)] animate-pulse" />
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--text-muted)]">
-                  Atribua de 1 a 4 sem repetir
+                  Atribua de 1 a {options.length} sem repetir
                 </span>
              </div>
              <div className="flex gap-4">
-                <span className="text-[9px] uppercase font-black tracking-tighter text-[var(--text-muted)]">4 = Mais relevante</span>
-                <span className="text-[9px] uppercase font-black tracking-tighter text-[var(--text-muted)]">1 = Menos relevante</span>
+                <span className="text-[9px] uppercase font-black tracking-tighter text-[var(--text-muted)]">{options.length} = Mais apreciado</span>
+                <span className="text-[9px] uppercase font-black tracking-tighter text-[var(--text-muted)]">1 = Menos apreciado</span>
              </div>
           </motion.div>
         ) : (
