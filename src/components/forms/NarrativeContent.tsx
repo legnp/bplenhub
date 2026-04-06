@@ -32,37 +32,21 @@ export function NarrativeContent({ text, onComplete, speed = 25 }: NarrativeCont
   return (
     <div className="space-y-4">
       {blocks.map((block, i) => {
-        const isPast = i < visibleBlockIndex;
+        const isVisible = i <= visibleBlockIndex || complete;
         const isCurrent = i === visibleBlockIndex && !complete;
-        const isFuture = i > visibleBlockIndex;
-        const isFinal = complete;
-
-        if (isFuture) {
-           // Reservar espaço com opacidade 0 para evitar reflow massivo
-           return (
-             <div key={i} className="opacity-0 pointer-events-none select-none">
-               {renderBlockContent(block, true)}
-             </div>
-           );
-        }
-
-        if (isCurrent) {
-          return (
-            <div key={i}>
-              {renderBlockContent(block, false, speed, () => handleBlockComplete(i))}
-            </div>
-          );
-        }
-
-        // Past ou Final (Estático)
+        
         return (
-          <motion.div 
-            key={i}
-            initial={isFinal && i === blocks.length - 1 ? { opacity: 0 } : false}
-            animate={{ opacity: 1 }}
+          <div 
+            key={i} 
+            className={!isVisible ? "opacity-0 pointer-events-none select-none" : "opacity-100"}
           >
-            {renderBlockContent(block, true)}
-          </motion.div>
+            {renderBlockContent(
+              block, 
+              !isCurrent, // isStatic
+              speed, 
+              () => handleBlockComplete(i)
+            )}
+          </div>
         );
       })}
     </div>

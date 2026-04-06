@@ -47,12 +47,8 @@ export function TypedText({
   }, [text, speed]); // Removido onComplete dependência para evitar resets
 
   return (
-    <motion.span
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className={`text-left whitespace-pre-wrap ${className}`}
-    >
+    <span className={`text-left whitespace-pre-wrap ${className}`}>
       {displayedText}
-    </motion.span>
+    </span>
   );
 }

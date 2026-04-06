@@ -39,6 +39,7 @@ interface SurveyEngineProps {
 export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, SurveyValue>>({});
+  const [questionComplete, setQuestionComplete] = useState(false);
   const [typedComplete, setTypedComplete] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,6 +85,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
 
 
   useEffect(() => {
+    setQuestionComplete(false);
     setTypedComplete(false);
     setShowNextButton(false);
   }, [currentStepIndex]);
@@ -101,12 +103,15 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     }
   };
 
-  // Disparo automático se não houver descrição para digitar ⚡
-  useEffect(() => {
+  const handleQuestionComplete = () => {
+    setQuestionComplete(true);
     if (!currentDescription) {
       onTypedComplete();
     }
-  }, [currentDescription, currentStepIndex]);
+  };
+
+  /* Removido: Gatilho automático precoce que causava reflow. 
+     Agora a conclusão é coordenada pelo fluxo de digitação real. 🚀 */
 
 
   const handleNext = () => {
@@ -490,18 +495,19 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
               <TypedText 
                 text={currentQuestion} 
                 speed={40} 
+                onComplete={handleQuestionComplete}
               />
             </h2>
 
-            {currentDescription && (
-              <div className="max-w-[640px]">
+            <div className="max-w-[640px] min-h-[0.5em]">
+              {questionComplete && currentDescription && (
                 <NarrativeContent 
                   text={currentDescription} 
                   speed={30}
                   onComplete={onTypedComplete}
                 />
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
 
