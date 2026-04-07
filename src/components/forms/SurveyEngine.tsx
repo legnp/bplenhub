@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search, Rocket, Link2, ExternalLink } from "lucide-react";
 import { SurveyConfig, SurveyFieldConfig, SurveyValue } from "@/types/survey";
 import { NarrativeReveal } from "@/components/ui/NarrativeReveal";
 import { NavButton } from "@/components/ui/NavButton";
@@ -20,7 +21,7 @@ import { RankingField } from "./SurveyFields/RankingField";
 import { LikertGroup } from "./SurveyFields/LikertGroup";
 import { FileField } from "./SurveyFields/FileField";
 import { NarrativeContent } from "./NarrativeContent";
-import { resolveUserIdentity } from "@/actions/survey-effects";
+import { resolveUserIdentity, getUserMetadata } from "@/actions/survey-effects";
 
 
 
@@ -39,6 +40,7 @@ interface SurveyEngineProps {
 export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, SurveyValue>>({});
+  const [userMetadata, setUserMetadata] = useState<Record<string, any>>({});
   const [questionComplete, setQuestionComplete] = useState(false);
   const [typedComplete, setTypedComplete] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
@@ -54,6 +56,8 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       if (userUid) {
         const mat = await resolveUserIdentity(config.id, {}, userUid);
         setMatricula(mat);
+        const meta = await getUserMetadata(userUid);
+        setUserMetadata(meta);
       }
     }
     loadMatricula();
@@ -426,12 +430,46 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
         );
 
       case "info":
-
         return (
           <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
             <p className="text-sm text-[var(--text-muted)] leading-relaxed italic">
               {field.label || "Informação adicional importante."}
             </p>
+          </div>
+        );
+
+      case "portal_link":
+        const targetUrl = userMetadata.disc_link || "#";
+        return (
+          <div className="flex flex-col items-center justify-center py-10 gap-6 glass bg-white/5 rounded-[2rem] border-white/10">
+             <div className="p-5 rounded-3xl bg-[var(--accent-start)]/10 text-[var(--accent-start)]">
+                <Rocket size={32} className="animate-pulse" />
+             </div>
+             <div className="text-center space-y-2">
+                <h4 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Plataforma de Diagnóstico Ativada</h4>
+                <p className="text-[10px] font-medium text-[var(--text-muted)] max-w-[280px] leading-relaxed">
+                   Você será redirecionado para o portal oficial do DISC. Após concluir, retorne aqui para finalizar.
+                </p>
+             </div>
+             <a 
+               href={targetUrl}
+               target="_blank"
+               rel="noopener noreferrer"
+               onPointerDown={() => updateResponse(field.id, "linked_portal_opened")}
+               className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all flex items-center gap-2 ${
+                  !userMetadata.disc_link 
+                  ? "bg-gray-500/20 text-gray-500 cursor-not-allowed" 
+                  : "bg-[var(--accent-start)] text-white shadow-[var(--accent-start)]/20 hover:scale-[1.02] active:scale-[0.98]"
+               }`}
+             >
+                <Rocket size={16} />
+                Iniciar Diagnóstico Agora
+             </a>
+             {!userMetadata.disc_link && (
+               <p className="text-[10px] font-black text-red-500 uppercase tracking-widest animate-bounce">
+                  ⚠️ Link não configurado. Contate o administrador.
+               </p>
+             )}
           </div>
         );
 

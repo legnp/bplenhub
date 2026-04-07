@@ -43,6 +43,10 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
       role?: UserRole;
       services?: UserServices;
       admin?: boolean;
+      metadata?: {
+        disc_link?: string;
+        [key: string]: any;
+      };
     }
     
     const permissionsMap = new Map<string, AccessDocData>();
@@ -82,6 +86,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
         isAdmin: resolvedRole === "admin",
         role: resolvedRole,
         services: perm.services || {},
+        metadata: perm.metadata || {},
         onboardStatus: data.hasCompletedWelcome ? "completed" : "pending",
         createdAt: createdAtData,
       });
@@ -100,7 +105,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
  */
 export async function updateUserPermissions(
   targetMatricula: string, 
-  updates: { role?: UserRole; services?: UserServices },
+  updates: { role?: UserRole; services?: UserServices; metadata?: { disc_link?: string } },
   adminToken?: string
 ) {
   try {
@@ -114,6 +119,7 @@ export async function updateUserPermissions(
        role?: UserRole;
        admin?: boolean;
        services?: UserServices;
+       metadata?: { disc_link?: string; [key: string]: any };
     } = {
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: `ADMIN:${session.email || session.uid}`
@@ -137,6 +143,10 @@ export async function updateUserPermissions(
           }
        });
        dataToSave.services = validatedServices;
+    }
+    
+    if (updates.metadata) {
+      dataToSave.metadata = updates.metadata;
     }
 
     // 2. Proteção Anti-Lockout 🚨

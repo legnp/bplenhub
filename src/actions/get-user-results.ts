@@ -225,6 +225,40 @@ export async function getPreAnaliseComportamentalResult(userUid: string, email?:
   }
 }
 
+export async function getDiscResult(userUid: string, email?: string) {
+  const matricula = await resolveMatricula(userUid, email);
+  if (!matricula) {
+    console.warn(`⚠️ [GetResults:DISC] Matrícula não resolvida para UID: ${userUid}`);
+    return null;
+  }
+
+  const db = getAdminDb();
+  const path = `User/${matricula}/results/disc`;
+
+  try {
+    const res = await db.doc(path).get();
+    if (!res.exists) {
+      console.log(`ℹ️ [GetResults:DISC] Nenhum documento em ${path}`);
+      return null;
+    }
+
+    const rawData = res.data() || {};
+    const payload = serializeData({
+      surveyId: 'disc',
+      scores: rawData.scores || null,
+      file: rawData.file || null,
+      isReleased: rawData.isReleased !== false,
+      submittedAt: rawData.submittedAt || null
+    });
+
+    console.log(`✅ [GetResults:DISC] Sucesso para ${matricula}`);
+    return payload;
+  } catch (error: any) {
+    console.error(`🚨 [GetResults:DISC] Erro fatal lendo ${path}:`, error.message);
+    throw error;
+  }
+}
+
 
 
 

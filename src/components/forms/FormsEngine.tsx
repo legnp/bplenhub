@@ -9,12 +9,16 @@ import { ChoiceButton } from "@/components/ui/ChoiceButton";
 import { CheckboxItem } from "@/components/ui/CheckboxItem";
 import { TextareaGlass } from "@/components/ui/TextareaGlass";
 import { SelectGlass } from "@/components/ui/SelectGlass";
+import { FileField } from "@/components/forms/SurveyFields/FileField";
 import { submitGenericForm } from "@/actions/generic-form";
+import { resolveUserIdentity } from "@/actions/survey-effects";
+import { Loader2, FileCheck, AlertCircle } from "lucide-react";
 
 interface FormsEngineProps {
   config: FormConfig;
   userUid: string;
   onComplete?: (matricula: string) => void;
+  customSubmit?: (responses: FormResponse) => Promise<void>;
 }
 
 /**
@@ -22,10 +26,21 @@ interface FormsEngineProps {
  * Evoluído para suportar Seções Operacionais (Forms_Global).
  * Mantém retrocompatibilidade automática com o modelo de 'steps'.
  */
-export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
+export function FormsEngine({ config, userUid, onComplete, customSubmit }: FormsEngineProps) {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [responses, setResponses] = useState<FormResponse>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [matricula, setMatricula] = useState<string>("");
+
+  React.useEffect(() => {
+    async function loadMatricula() {
+      if (userUid) {
+        const mat = await resolveUserIdentity(config.id, {}, userUid);
+        setMatricula(mat);
+      }
+    }
+    loadMatricula();
+  }, [userUid, config.id]);
 
   // Normalização: Prioriza 'sections', fallback para 'steps'
   const activeSections: FormSectionConfig[] = config.sections || config.steps || [];
@@ -52,8 +67,12 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const res = await submitGenericForm(config, responses, userUid);
-      if (onComplete) onComplete(res.matricula);
+      if (customSubmit) {
+        await customSubmit(responses);
+      } else {
+        const res = await submitGenericForm(config, responses, userUid);
+        if (onComplete) onComplete(res.matricula);
+      }
     } catch (err: unknown) {
       const error = err as Error;
       console.error("Erro na submissão do FormsEngine:", error);
@@ -163,6 +182,32 @@ export function FormsEngine({ config, userUid, onComplete }: FormsEngineProps) {
               })}
             </SelectGlass>
           </div>
+        );
+      case "number":
+        const numValue = typeof rawValue === "number" ? rawValue : "";
+        return (
+          <div className="space-y-2">
+            {field.label && <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">{field.label}</label>}
+            <InputGlass
+              type="number"
+              autoFocus={field.autoFocus}
+              placeholder={field.placeholder}
+              onChange={(e) => updateResponse(field.id, Number(e.target.value))}
+              value={numValue}
+            />
+          </div>
+        );
+      case "file":
+        return (
+          <FileField
+            id={field.id}
+            label={field.label}
+            type="Portfolio" // Genérico para forms operacionais
+            matricula={matricula}
+            value={(rawValue as any) || null}
+            maxSizeMB={(field.metadata?.maxSizeMB as number) || 5}
+            onChange={(val) => updateResponse(field.id, val)}
+          />
         );
       case "info":
         return (

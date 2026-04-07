@@ -41,4 +41,10 @@ export interface AdminUser {
   
   // 🏗️ Serviços/Entitlements (Acesso Granular)
   services: UserServices;
+
+  // 📝 Metadados Operacionais
+  metadata?: {
+    disc_link?: string;
+    [key: string]: any;
+  };
 }

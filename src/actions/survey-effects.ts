@@ -104,6 +104,35 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
 }
 
 /**
+ * Recupera metadados de permissão do usuário (ex: links externos de assessments) 🧬
+ */
+export async function getUserMetadata(userUid: string) {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Resolver matrícula primeiro
+    const authMapSnap = await db.doc(`_AuthMap/${userUid}`).get();
+    let matricula = authMapSnap.data()?.matricula;
+    
+    if (!matricula) {
+      // Fallback para busca por UID no User
+      const userSnap = await db.collection("User").where("uid", "==", userUid).limit(1).get();
+      if (userSnap.empty) return {};
+      matricula = userSnap.docs[0].id;
+    }
+
+    // 2. Buscar metadados no documento de acesso
+    const accessSnap = await db.doc(`User/${matricula}/User_Permissions/access`).get();
+    if (!accessSnap.exists) return {};
+    
+    return accessSnap.data()?.metadata || {};
+  } catch (err) {
+    console.error("❌ [Effects:Metadata] Falha ao recuperar metadados:", err);
+    return {};
+  }
+}
+
+/**
  * Processa todos os efeitos colaterais após o salvamento da pesquisa.
  * Bloqueante por design conforme solicitado (o usuário deve esperar).
  */

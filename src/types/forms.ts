@@ -14,11 +14,12 @@ export type FormFieldType =
   | "select" 
   | "number"
   | "date"
-  | "info";
+  | "info"
+  | "file";
 
 export type FormMode = "create" | "edit" | "view" | "submitted";
 export type FormStatus = "draft" | "submitted" | "updated" | "archived";
-export type FormValue = string | string[] | boolean | number | null | undefined;
+export type FormValue = string | string[] | boolean | number | null | undefined | { url: string; fileName: string };
 
 export interface FormFieldOption {
   label: string;

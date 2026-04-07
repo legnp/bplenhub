@@ -3,14 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { StackedBarChart } from "@/components/hub/StackedBarChart";
+import { DiscChart } from "@/components/hub/DiscChart";
 import { 
   getGestaoTempoResult, 
   getAprendizadoResult, 
   getReconhecimentoResult,
-  getPreAnaliseComportamentalResult 
+  getPreAnaliseComportamentalResult,
+  getDiscResult
 } from "@/actions/get-user-results";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MessageCircle, AlertCircle, Sparkles, Heart, Compass, Layout, Target, Brain } from "lucide-react";
+import { Clock, MessageCircle, AlertCircle, Sparkles, Heart, Compass, Layout, Target, Brain, FileDown } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
 
@@ -23,6 +25,7 @@ export default function ResultadosPage() {
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);
   const [reconhecimentoResult, setReconhecimentoResult] = useState<any>(null);
+  const [discResult, setDiscResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,12 +38,13 @@ export default function ResultadosPage() {
         const results = await Promise.allSettled([
           getGestaoTempoResult(user!.uid, user!.email || ''),
           getAprendizadoResult(user!.uid, user!.email || ''),
-          getReconhecimentoResult(user!.uid, user!.email || '')
+          getReconhecimentoResult(user!.uid, user!.email || ''),
+          getDiscResult(user!.uid, user!.email || '')
         ]);
 
         // Processar resultados individualmente
         results.forEach((res, index) => {
-          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento"];
+          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento", "DISC"];
           const name = names[index];
 
           if (res.status === "fulfilled") {
@@ -50,6 +54,7 @@ export default function ResultadosPage() {
             if (index === 0) setGestaoResult(data);
             if (index === 1) setAprendizadoResult(data);
             if (index === 2) setReconhecimentoResult(data);
+            if (index === 3) setDiscResult(data);
           } else {
             console.error(`❌ [ResultadosPage] ${name}: Falha crítica na Server Action. Motivo:`, res.reason);
           }
@@ -84,6 +89,13 @@ export default function ResultadosPage() {
     { label: 'Pre', percentage: reconhecimentoResult.scores.presentes?.percentage || 0, color: '#10b981' },
     { label: 'Ser', percentage: reconhecimentoResult.scores.servico?.percentage || 0, color: '#f59e0b' },
     { label: 'Toq', percentage: reconhecimentoResult.scores.toque?.percentage || 0, color: '#ec4899' },
+  ] : [];
+
+  const discData = discResult?.scores ? [
+    { label: 'Executor', percentage: discResult.scores.executor?.percentage || 0, color: '#3b82f6' },
+    { label: 'Comunicador', percentage: discResult.scores.comunicador?.percentage || 0, color: '#facc15' },
+    { label: 'Planejador', percentage: discResult.scores.planejador?.percentage || 0, color: '#10b981' },
+    { label: 'Analista', percentage: discResult.scores.analista?.percentage || 0, color: '#ef4444' },
   ] : [];
 
   return (
@@ -126,15 +138,56 @@ export default function ResultadosPage() {
                 <aside className="space-y-6">
                   <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)] px-6">Perfil & Assessments</h3>
                   
-                  {/* DISC Placeholder */}
-                  <div className="p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 opacity-60 grayscale hover:grayscale-0 transition-all group shadow-sm">
-                     <div className="flex items-center justify-between mb-4">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Assessment DISC</span>
-                        <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)]">Em Breve</span>
+                  {/* Assessment DISC (Lógica Híbrida 🧬🚀) */}
+                  <div className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group shadow-sm ${!discResult ? 'opacity-60 grayscale' : 'hover:translate-y-[-4px] hover:shadow-xl hover:shadow-blue-500/5'}`}>
+                     <div className="flex items-center justify-between mb-4 relative z-10">
+                        <div className="flex flex-col">
+                           <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Assessment DISC</span>
+                           <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Perfil Comportamental</h4>
+                        </div>
+                        {discResult?.isReleased === false ? (
+                           <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              <span className="text-[7px] font-black uppercase tracking-[0.15em] text-amber-600">
+                                Diagnóstico Ativo
+                              </span>
+                           </div>
+                        ) : discResult ? (
+                           <div className="flex items-center gap-2 px-2.5 py-1 bg-green-500/10 border border-green-500/10 rounded-full">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                              <span className="text-[7px] font-black uppercase tracking-[0.15em] text-green-600">
+                                Concluído
+                              </span>
+                           </div>
+                        ) : (
+                           <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)] opacity-50">Manual</span>
+                        )}
                      </div>
-                     <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
-                        <span className="text-[10px] font-bold text-center text-[var(--text-muted)] opacity-30">Perfil<br/>Comportamental</span>
-                     </div>
+
+                     {discResult ? (
+                        <div className="space-y-6 relative z-10">
+                           <DiscChart data={discData} mini />
+                           
+                           {discResult.file?.url && (
+                              <a 
+                                href={discResult.file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3.5 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 mt-4"
+                              >
+                                <FileDown size={14} />
+                                Relatório Completo PDF
+                              </a>
+                           )}
+                        </div>
+                     ) : (
+                        <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
+                           <Brain size={24} className="text-[var(--text-muted)] opacity-20" />
+                        </div>
+                     )}
+                     
+                     {/* Decorative Background */}
+                     {discResult && <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />}
                   </div>
 
                   {/* Gestão do Tempo */}

@@ -19,13 +19,15 @@ import {
   CreditCard,
   Rocket,
   ShieldAlert,
-  Link2
+  Link2,
+  Trophy
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
 import { getAdminUsersList, updateUserPermissions } from "@/actions/users-admin";
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
+import { DiscDevolutivaModal } from "@/components/admin/DiscDevolutivaModal";
 
 /**
  * BPlen HUB — Gestão de Usuários e Governança 👥🏗️🛡️
@@ -62,6 +64,16 @@ export default function UsersManagementPage() {
   const [activeTab, setActiveTab] = useState<"services" | "assessments">("services");
   const [userAssessments, setUserAssessments] = useState<any[]>([]);
   const [loadingAssessments, setLoadingAssessments] = useState(false);
+  const [discLinkInput, setDiscLinkInput] = useState("");
+  const [savingDisc, setSavingDisc] = useState(false);
+  const [showDiscDevolutiva, setShowDiscDevolutiva] = useState(false);
+
+  // Sincronizar input do DISC quando o usuário mudar
+  useEffect(() => {
+    if (selectedUser) {
+      setDiscLinkInput(selectedUser.metadata?.disc_link || "");
+    }
+  }, [selectedUser]);
 
   // Carregar Assessments quando o modal abre
   useEffect(() => {
@@ -164,6 +176,34 @@ export default function UsersManagementPage() {
       setLoadingAssessments(false);
     }
   };
+
+  const handleSaveDiscLink = async () => {
+    if (!selectedUser) return;
+    setSavingDisc(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      await updateUserPermissions(
+        selectedUser.matricula, 
+        { metadata: { ...selectedUser.metadata, disc_link: discLinkInput } }, 
+        token
+      );
+      
+      // Atualizar estado local
+      setUsers(prev => prev.map(u => 
+        u.matricula === selectedUser.matricula 
+          ? { ...u, metadata: { ...u.metadata, disc_link: discLinkInput } } 
+          : u
+      ));
+      setSelectedUser(prev => prev ? { ...prev, metadata: { ...prev.metadata, disc_link: discLinkInput } } : null);
+      
+      alert("Link DISC salvo com sucesso!");
+    } catch (err: any) {
+      alert(err.message || "Erro ao salvar link DISC.");
+    } finally {
+      setSavingDisc(false);
+    }
+  };
+
 
   return (
     <div className="space-y-8 pb-20">
@@ -466,7 +506,7 @@ export default function UsersManagementPage() {
                         {loadingAssessments ? (
                           <div className="flex flex-col items-center justify-center py-20 gap-4">
                              <Loader2 size={32} className="animate-spin text-[var(--accent-start)]" />
-                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Mapeando Pesquisas...</p>
+                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Mapeando Pesquisas... (Admin)</p>
                           </div>
                         ) : userAssessments.length > 0 ? (
                            <div className="grid grid-cols-1 gap-4">
@@ -508,6 +548,45 @@ export default function UsersManagementPage() {
                               <p className="text-sm font-bold text-[var(--text-muted)] opacity-60">Nenhuma pesquisa submetida por este usuário.</p>
                            </div>
                          )}
+
+                         {/* Link DISC Custom (Assessment de Terceiros) 🧬 */}
+                         <div className="p-7 bg-blue-500/[0.03] border border-blue-500/10 rounded-[2rem] space-y-5">
+                            <div className="flex items-center gap-3">
+                               <div className="p-2 bg-blue-500/10 rounded-xl text-blue-600">
+                                  <Link2 size={16} />
+                               </div>
+                               <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Portal DISC (External Link)</h6>
+                            </div>
+                            <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-relaxed max-w-sm ml-1 opacity-60">
+                               Insira o link individual gerado no portal DISC para este membro. O botão "Iniciar" na plataforma levará o usuário para este endereço.
+                            </p>
+                            
+                            <div className="flex gap-2">
+                               <input 
+                                  type="text"
+                                  placeholder="https://vrs.com.br/disc/resultado/..."
+                                  value={discLinkInput}
+                                  onChange={(e) => setDiscLinkInput(e.target.value)}
+                                  className="bg-black/5 border border-blue-500/20 rounded-2xl px-5 py-3.5 text-[10px] font-mono flex-1 text-[var(--text-primary)] focus:border-blue-500/50 outline-none transition-all placeholder:opacity-30"
+                               />
+                               <button 
+                                  onClick={handleSaveDiscLink}
+                                  disabled={savingDisc}
+                                  className="px-6 bg-blue-500/10 text-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 border border-blue-500/20 disabled:opacity-30 self-stretch"
+                               >
+                                  {savingDisc ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
+                                  Salvar Link
+                               </button>
+                            </div>
+
+                            <button 
+                               onClick={() => setShowDiscDevolutiva(true)}
+                               className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+                            >
+                               <Trophy size={16} className="group-hover:rotate-12 transition-transform" />
+                               Lançar Devolutiva DISC (Inject Results)
+                            </button>
+                         </div>
 
                          {/* Seção de Recuperação de Identidade (Bugfix 🧬) */}
                          <div className="pt-12 border-t border-[var(--border-primary)] border-dashed space-y-6">
@@ -598,6 +677,19 @@ export default function UsersManagementPage() {
                 )}
              </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDiscDevolutiva && selectedUser && (
+          <DiscDevolutivaModal 
+            user={selectedUser} 
+            onClose={() => setShowDiscDevolutiva(false)} 
+            onSuccess={() => {
+              alert("✅ Devolutiva publicada e injetada com sucesso!");
+              fetchUsers();
+            }}
+          />
         )}
       </AnimatePresence>
 
