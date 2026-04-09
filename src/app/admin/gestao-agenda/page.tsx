@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import Calendar from "@/components/ui/Calendar";
 import { getSyncedEvents, GoogleCalendarEvent } from "@/actions/calendar";
