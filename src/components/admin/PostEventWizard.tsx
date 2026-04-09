@@ -25,10 +25,15 @@ import {
   AttendanceStatus,
   getEventAttendees,
   closeEventAction,
-  closeAttendeeAction
+  closeAttendeeAction,
+  adminAddAttendeeAction,
+  generateEventSummarySheetAction
 } from "@/actions/calendar";
 import { uploadPostEventDocAction } from "@/actions/upload-to-drive";
+import { getAdminUsersList } from "@/actions/users-admin";
+import { AdminUser } from "@/types/users";
 import { useAuthContext } from "@/context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -61,6 +66,13 @@ export default function PostEventWizard({ isOpen, onClose, event, onSuccess }: P
     participantTasks: string;
     participantDocs: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
   }>>({});
+
+  // User Search State
+  const [isUserSearchOpen, setIsUserSearchOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
 
   useEffect(() => {
     if (isOpen && event) {
@@ -100,30 +112,96 @@ export default function PostEventWizard({ isOpen, onClose, event, onSuccess }: P
     }
   };
 
-  const handleFileUpload = async (file: File, type: 'minutes' | 'individual', attendeeUserId?: string) => {
-    if (!user || !event) return;
-    
-    // For minutes, we use the matricula of the first attendee as a host, 
-    // but the system will replicate it. For now, let's use the first attendee or a default.
-    // Actually, uploadPostEventDocAction needs a matricula.
-    const targetMatricula = attendeeUserId 
-      ? attendees.find(a => a.userId === attendeeUserId)?.matricula 
-      : attendees[0]?.matricula;
+  const loadAllUsers = async () => {
+    if (!user) return;
+    setIsSearchingUsers(true);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await getAdminUsersList(idToken);
+      if (res.success && res.data) {
+        setAllUsers(res.data);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar lista de usuários:", error);
+    } finally {
+      setIsSearchingUsers(false);
+    }
+  };
 
-    if (!targetMatricula) {
-      alert("Nenhum participante encontrado para vincular o documento.");
+  const handleAddParticipant = async (matricula: string) => {
+    if (!event || !user) return;
+    
+    // Check if already in attendees list
+    if (attendees.some(a => a.matricula === matricula)) {
+      alert("Este aluno já está na lista deste evento.");
       return;
     }
 
-    if (type === 'minutes') setIsUploadingMinutes(true);
+    setIsSaving(true);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await adminAddAttendeeAction(event.id, matricula, idToken);
+      
+      if (res.success) {
+        setIsUserSearchOpen(false);
+        setSearchQuery("");
+        await loadAttendees(); // Reload list
+        alert("Participante adicionado com sucesso!");
+      } else {
+        alert("Erro ao adicionar participante: " + res.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Erro crítico ao adicionar participante.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleConcludeFlow = async () => {
+    if (!event || !user) return;
+    
+    setIsGeneratingSheet(true);
+    try {
+      const idToken = await user.getIdToken();
+      // Gerar a planilha de resumo administrativa
+      await generateEventSummarySheetAction(event.id, idToken);
+      
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error("Erro ao gerar resumo final:", error);
+      // Mesmo com erro na planilha, permitimos fechar pois o grosso (atas/presença) já foi salvo.
+      onSuccess?.();
+      onClose();
+    } finally {
+      setIsGeneratingSheet(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File, type: 'minutes' | 'individual', attendeeUserId?: string) => {
+    if (!user || !event) return;
+    
+    const isGeneral = type === 'minutes';
+    const targetMatricula = attendeeUserId 
+      ? attendees.find(a => a.userId === attendeeUserId)?.matricula 
+      : (isGeneral ? "" : attendees[0]?.matricula);
+
+    if (!isGeneral && !targetMatricula) {
+      alert("Nenhum participante encontrado para vincular o documento individual.");
+      return;
+    }
+
+    if (isGeneral) setIsUploadingMinutes(true);
 
     try {
       const idToken = await user.getIdToken();
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("matricula", targetMatricula);
+      formData.append("matricula", targetMatricula || "");
       formData.append("eventId", event.id);
       formData.append("idToken", idToken);
+      formData.append("isGeneral", isGeneral.toString());
 
       const res = await uploadPostEventDocAction(formData);
 
@@ -343,8 +421,18 @@ export default function PostEventWizard({ isOpen, onClose, event, onSuccess }: P
           <div className="flex-1 flex gap-6 animate-in fade-in slide-in-from-left-4 duration-500">
             {/* Sidebar: List of Attendees */}
             <div className="w-1/3 bg-[var(--input-bg)]/50 rounded-[32px] border border-[var(--border-primary)] overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-[var(--border-primary)] bg-[var(--input-bg)]">
+              <div className="p-6 border-b border-[var(--border-primary)] bg-[var(--input-bg)] flex justify-between items-center">
                 <h4 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Inscritos ({attendees.length})</h4>
+                <button 
+                  onClick={() => {
+                    setIsUserSearchOpen(true);
+                    loadAllUsers();
+                  }}
+                  className="p-2 bg-[var(--accent-start)] text-white rounded-xl hover:scale-110 transition-all shadow-lg shadow-[var(--accent-start)]/20"
+                  title="Adicionar Participante Manual"
+                >
+                  <User size={14} className="stroke-[3]" />
+                </button>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
                 {isLoadingAttendees ? (
@@ -532,18 +620,92 @@ export default function PostEventWizard({ isOpen, onClose, event, onSuccess }: P
               </button>
               {step === 2 && (
                 <button
-                  onClick={() => {
-                    onSuccess?.();
-                    onClose();
-                  }}
-                  className="flex items-center gap-3 px-10 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-[32px] font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all"
+                  onClick={handleConcludeFlow}
+                  disabled={isGeneratingSheet}
+                  className="flex items-center gap-3 px-10 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-[32px] font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                 >
-                  Concluir Fluxo
+                  {isGeneratingSheet ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Gerando Relatório...
+                    </>
+                  ) : "Concluir Fluxo"}
                 </button>
               )}
            </div>
         </div>
       </div>
+
+      {/* Manual User Search Modal (Overlay) */}
+      <AnimatePresence>
+        {isUserSearchOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div 
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setIsUserSearchOpen(false)}
+            />
+            <div className="relative w-full max-w-md bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="p-8 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-black uppercase tracking-widest">Adicionar Participante</h3>
+                  <button onClick={() => setIsUserSearchOpen(false)} className="opacity-30 hover:opacity-100 transition-opacity">
+                    <XCircle size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      placeholder="Buscar por nome ou matrícula..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-12 pl-12 pr-4 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20"
+                      autoFocus
+                    />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-30" />
+                  </div>
+
+                  <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                    {isSearchingUsers ? (
+                      <div className="p-8 flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-start)]" />
+                      </div>
+                    ) : (
+                      allUsers
+                        .filter(u => 
+                          u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          u.matricula.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, 10) // Limit to avoid chaos
+                        .map(u => (
+                          <button
+                            key={u.matricula}
+                            onClick={() => handleAddParticipant(u.matricula)}
+                            disabled={isSaving}
+                            className="w-full p-4 bg-[var(--input-bg)] hover:bg-[var(--accent-soft)] border border-transparent hover:border-[var(--accent-start)]/20 rounded-2xl flex items-center justify-between transition-all group disabled:opacity-50"
+                          >
+                            <div className="text-left">
+                              <p className="text-[10px] font-black group-hover:text-[var(--accent-start)] transition-colors">{u.name}</p>
+                              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-wider">{u.matricula}</p>
+                            </div>
+                            <ChevronRight size={14} className="text-[var(--text-muted)] opacity-20 group-hover:opacity-100" />
+                          </button>
+                        ))
+                    )}
+                    {!isSearchingUsers && searchQuery && allUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.matricula.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                      <p className="text-center text-[9px] font-black uppercase text-[var(--text-muted)] opacity-40 py-8">Nenhum usuário encontrado.</p>
+                    )}
+                    {!isSearchingUsers && !searchQuery && (
+                      <p className="text-center text-[9px] font-black uppercase text-[var(--text-muted)] opacity-40 py-8">Digite para iniciar a busca...</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </GlassModal>
   );
 }

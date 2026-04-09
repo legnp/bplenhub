@@ -137,6 +137,16 @@ export default function ResultadosPage() {
     { label: 'Analista', percentage: discResult.scores.analista?.percentage || 0, color: '#ef4444' },
   ] : [];
 
+  const handleDownload = async (fileId: string) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      window.open(`/api/docs/${fileId}?token=${token}`, "_blank");
+    } catch (error) {
+      console.error("Erro ao gerar token para download:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen animate-fade-in">
       <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-12 flex-1 w-full">
@@ -207,16 +217,18 @@ export default function ResultadosPage() {
                         <div className="space-y-6 relative z-10">
                            <DiscChart data={discData} mini />
                            
-                           {discResult.file?.url && (
-                              <a 
-                                href={discResult.file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                           {discResult.file?.fileId && (
+                              <button 
+                                onClick={async () => {
+                                  if (!user) return;
+                                  const token = await user.getIdToken();
+                                  window.open(`/api/docs/${discResult.file.fileId}?token=${token}`, "_blank");
+                                }}
                                 className="w-full py-3.5 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 mt-4"
                               >
                                 <FileDown size={14} />
                                 Relatório Completo PDF
-                              </a>
+                              </button>
                            )}
                         </div>
                      ) : (
@@ -295,7 +307,7 @@ export default function ResultadosPage() {
                          </div>
                       ) : (
                          historyBookings.map((booking) => (
-                            <OutcomeCard key={booking.id} booking={booking} />
+                            <OutcomeCard key={booking.id} booking={booking} onDownload={handleDownload} />
                          ))
                       )}
                    </div>
@@ -406,7 +418,7 @@ function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart 
 /**
  * OutcomeCard: Compact view of mentorship results
  */
-function OutcomeCard({ booking }: { booking: UserBooking }) {
+function OutcomeCard({ booking, onDownload }: { booking: UserBooking, onDownload: (fileId: string) => void }) {
   const event = booking.eventDetail;
   if (!event) return null;
 
@@ -445,25 +457,23 @@ function OutcomeCard({ booking }: { booking: UserBooking }) {
              )}
              
              <div className="flex flex-wrap gap-2">
-                {booking.meetingMinutesFile && (
-                   <a 
-                     href={booking.meetingMinutesFile.url} 
-                     target="_blank" 
+                {booking.meetingMinutesFile?.fileId && (
+                   <button 
+                     onClick={() => onDownload(booking.meetingMinutesFile!.fileId)}
                      className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:border-[var(--accent-start)] transition-all"
                    >
                       <FileText size={12} className="text-[var(--accent-start)]" />
                       Ata da Reunião
-                   </a>
+                   </button>
                 )}
                 {booking.participantDocs && booking.participantDocs.length > 0 && booking.participantDocs.map((doc, idx) => (
-                   <a 
+                   <button 
                      key={idx}
-                     href={doc.url} 
-                     target="_blank" 
+                     onClick={() => onDownload(doc.fileId)}
                      className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:border-[var(--accent-start)] transition-all"
                    >
                       <ExternalLink size={12} className="text-[var(--text-muted)]" />
-                   </a>
+                   </button>
                 ))}
              </div>
           </div>

@@ -8,6 +8,7 @@ import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay
 import { ptBR } from "date-fns/locale";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
+import { requireAdmin } from "@/lib/auth-guards";
 
 import { calendar_v3 } from "googleapis";
 
@@ -45,6 +46,11 @@ export interface GoogleCalendarEvent {
   postEventUpdatedAt?: string | null;
   postEventUpdatedBy?: string;
   lastSync?: string | null;
+  
+  // Administrative Summary Sheet
+  summarySheetUrl?: string;
+  summarySheetId?: string;
+  summarySheetUpdatedAt?: string | null;
 }
 
 export interface UserBooking {
@@ -443,6 +449,261 @@ export async function bookEventAction(
     const err = error as Error;
     console.error("Erro no booking:", err);
     return { success: false, message: err.message };
+  }
+}
+
+/**
+ * Inclusão Manual de Participante (Apenas Admin) 🛡️
+ * Permite adicionar membros em um evento de última hora.
+ */
+export async function adminAddAttendeeAction(
+  eventId: string,
+  matricula: string,
+  adminToken: string,
+  oneToOneData?: { type: string; expectations: string }
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Validar Sessão Admin
+    const adminSession = await requireAdmin(adminToken);
+    
+    // 2. Buscar Dados do Usuário e do Evento
+    const userSnap = await db.doc(`User/${matricula}`).get();
+    if (!userSnap.exists) throw new Error(`Usuário ${matricula} não encontrado.`);
+    const userData = userSnap.data()!;
+    
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
+    const eventSnap = await eventRef.get();
+    if (!eventSnap.exists) throw new Error("Evento não encontrado.");
+    const eventData = eventSnap.data() as GoogleCalendarEvent;
+
+    // Dados resolvidos para o e-mail e registro
+    const userId = userData.uid || matricula;
+    const userEmail = userData.email || userData.User_Email;
+    const displayName = userData.User_Nickname || userData.Authentication_Name || "Membro BPlen";
+
+    if (!userEmail) throw new Error("Usuário não possui e-mail cadastrado.");
+
+    // 3. Execução Transacional
+    const trxResult = await db.runTransaction(async (transaction) => {
+      const currentRegistered = eventData.registeredCount || 0;
+      
+      const startTime = parseISO(eventData.start);
+      const week = getISOWeek(startTime);
+      const year = getYear(startTime);
+
+      let category = "geral";
+      const evSum = eventData.summary.toLowerCase();
+      if (evSum.includes("1 to 1")) category = "1to1";
+      else if (evSum.includes("orientação em grupo") || evSum.includes("orientacao em grupo")) category = "grupo";
+      else if (evSum.includes("orientação individual")) category = "individual";
+
+      const weekBookingId = `week_${week}_${year}_${category}`;
+      const weekBookingRef = db.collection("User").doc(matricula).collection("User_Bookings").doc(weekBookingId);
+
+      // Verificamos apenas a trava de semana, opcionalmente, mas Admin pode ter poder total. 
+      // Vou manter a trava para evitar duplicidade acidental no Dashboard.
+      const bookingSnap = await transaction.get(weekBookingRef);
+      if (bookingSnap.exists && bookingSnap.data()?.eventId !== eventId) {
+        throw new Error(`Este membro já possui um agendamento de ${category} para esta semana.`);
+      }
+
+      // [ESCRITAS]
+      // A. Registrar Participante no Evento
+      const attendeeRef = eventRef.collection("attendees").doc(userId);
+      transaction.set(attendeeRef, {
+        userId,
+        matricula,
+        nickname: displayName,
+        email: userEmail,
+        isLead: false,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        attendanceStatus: "pending",
+        addedByAdmin: adminSession.email,
+        ...oneToOneData
+      });
+
+      // B. Incrementar Contador
+      transaction.update(eventRef, {
+        registeredCount: currentRegistered + 1
+      });
+
+      // C. Criar Agendamento no Aluno
+      transaction.set(weekBookingRef, {
+        eventId,
+        week,
+        year,
+        category,
+        oneToOneData: oneToOneData || null,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        rating: 0,
+        feedback: "",
+        addedByAdmin: adminSession.email
+      });
+
+      return { 
+        success: true,
+        emailData: {
+          startTime,
+          summary: eventData.summary,
+          mentor: eventData.mentor,
+          theme: eventData.theme,
+          htmlLink: eventData.htmlLink
+        }
+      };
+    });
+
+    // 4. E-mail de Confirmação (Padrão HUB)
+    if (trxResult.success && trxResult.emailData) {
+      const { startTime, summary, mentor, theme, htmlLink } = trxResult.emailData;
+      try {
+        const dateStr = format(startTime, "dd 'de' MMMM", { locale: ptBR });
+        const timeStr = format(startTime, "HH:mm");
+        
+        await resend.emails.send({
+          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+          to: userEmail,
+          subject: `ADMIN: Você foi incluído no evento ${summary}!`,
+          html: `
+            <div style="font-family: sans-serif; color: #1d1d1f; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 20px;">
+              <h2 style="color: #667eea; margin-bottom: 5px;">📍 Inclusão Confirmada!</h2>
+              <p style="font-size: 16px; margin-top: 0;">Olá, <b>${displayName}</b>!</p>
+              <p style="font-size: 14px; color: #666;">Você foi adicionado manualmente a este evento por um administrador.</p>
+              
+              <div style="background: #fdfdfd; padding: 20px; border-radius: 16px; border: 1px solid #f0f0f0; margin: 20px 0;">
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>EVENTO</b></p>
+                <p style="margin: 5px 0 15px 0; font-size: 18px; color: #1d1d1f;"><b>${summary}</b></p>
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>DATA E HORA</b></p>
+                <p style="margin: 5px 0 15px 0; font-size: 14px;">${dateStr} às ${timeStr}h</p>
+                <p style="margin: 0; font-size: 12px; color: #999; text-transform: uppercase;"><b>ORIENTADOR</b></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">${mentor || "BPlen"}</p>
+              </div>
+
+              <div style="margin: 25px 0; text-align: center;">
+                <a href="${htmlLink}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">ACESSAR REUNIÃO</a>
+              </div>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error("Erro ao enviar e-mail adminAddAttendee:", err);
+      }
+    }
+
+    return { success: true, message: "Participante adicionado com sucesso!" };
+  } catch (error: any) {
+    console.error("Erro no adminAddAttendeeAction:", error);
+    return { success: false, message: error.message || "Erro desconhecido." };
+  }
+}
+
+import { getSheetsClient, getDriveClient } from "@/lib/google-auth";
+import { ensureFolder } from "@/lib/drive-utils";
+
+/**
+ * Geração de Planilha de Resumo (Google Sheets) 📊
+ * Consolida metadados e inscritos para auditoria administrativa.
+ */
+export async function generateEventSummarySheetAction(
+  eventId: string,
+  adminToken: string
+): Promise<{ success: boolean; url?: string; message?: string }> {
+  try {
+    const db = getAdminDb();
+    await requireAdmin(adminToken);
+
+    // 1. Buscar Dados Consolidados
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
+    const eventSnap = await eventRef.get();
+    if (!eventSnap.exists) throw new Error("Evento não encontrado.");
+    const eventData = eventSnap.data() as GoogleCalendarEvent;
+
+    const attendees = await getEventAttendees(eventId);
+
+    // 2. Preparar APIs Google
+    const drive = await getDriveClient();
+    const sheets = await getSheetsClient();
+
+    // 3. Garantir Pasta do Evento (Usando a mesma lógica das Atas)
+    const baseAtasFolderId = serverEnv.GOOGLE_DRIVE_ATAS_ID;
+    const eventFolderId = await ensureFolder(drive, baseAtasFolderId, eventId);
+
+    // 4. Verificar se a planilha já existe
+    const fileName = `Relatório_de_Consolidação_de_Eventos_${eventId}`;
+    const searchRes = await drive.files.list({
+      q: `name = '${fileName}' and '${eventFolderId}' in parents and trashed = false`,
+      fields: "files(id, webViewLink)",
+      spaces: "drive",
+    });
+
+    let spreadsheetId: string;
+    let spreadsheetUrl: string;
+
+    if (searchRes.data.files && searchRes.data.files.length > 0) {
+      spreadsheetId = searchRes.data.files[0].id!;
+      spreadsheetUrl = searchRes.data.files[0].webViewLink!;
+    } else {
+      // Criar nova planilha diretamente na pasta
+      const createRes = await drive.files.create({
+        requestBody: {
+          name: fileName,
+          mimeType: "application/vnd.google-apps.spreadsheet",
+          parents: [eventFolderId],
+        },
+        fields: "id, webViewLink",
+      });
+      spreadsheetId = createRes.data.id!;
+      spreadsheetUrl = createRes.data.webViewLink!;
+    }
+
+    // 5. Estruturar Dados para o Sheets
+    const headerRow = ["Matrícula", "Nome", "E-mail", "Presença", "Feedback Aluno", "Mentor: Feedback", "Mentor: Tarefas", "Documentos Aluno", "Ata Geral"];
+    const rows = attendees.map(a => [
+      a.matricula,
+      a.nickname,
+      a.email,
+      a.attendanceStatus === "present" ? "PRESENTE" : a.attendanceStatus === "absent" ? "AUSENTE" : "PENDENTE",
+      "", // Feedback aluno (Placeholder se não tiver no doc do attendee)
+      a.participantFeedback || "",
+      a.participantTasks || "",
+      a.participantDocs?.map(d => d.url).join("\n") || "",
+      eventData.meetingMinutesFile?.url || ""
+    ]);
+
+    const eventInfo = [
+      ["RESUMO DO EVENTO", eventData.summary],
+      ["DATA", eventData.start],
+      ["ORIENTADOR", eventData.mentor || "BPlen"],
+      ["TEMA", eventData.theme || "-"],
+      ["LINK REUNIÃO", eventData.htmlLink],
+      [""], // Espaçador
+      ["LISTA DE PARTICIPANTES"],
+      headerRow,
+      ...rows
+    ];
+
+    // 6. Atualizar Valores
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: "Sheet1!A1",
+      valueInputOption: "RAW",
+      requestBody: {
+        values: eventInfo,
+      },
+    });
+
+    // 7. Salvar link no Firestore para o Admin encontrar fácil
+    await eventRef.update({
+      summarySheetUrl: spreadsheetUrl,
+      summarySheetId: spreadsheetId,
+      summarySheetUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true, url: spreadsheetUrl };
+  } catch (error: any) {
+    console.error("Erro ao gerar planilha de resumo:", error);
+    return { success: false, message: error.message };
   }
 }
 

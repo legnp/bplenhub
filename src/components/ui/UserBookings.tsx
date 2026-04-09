@@ -223,31 +223,35 @@ function BookingCard({
               {/* Documents Grid */}
               <div className="grid grid-cols-2 gap-2">
                  {booking.meetingMinutesFile && (
-                    <a 
-                      href={booking.meetingMinutesFile.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-[var(--bg-primary)] rounded-2xl border border-[var(--accent-start)]/20 hover:border-[var(--accent-start)] transition-all group/doc"
+                    <button 
+                      onClick={async () => {
+                        if (!user) return;
+                        const token = await user.getIdToken();
+                        window.open(`/api/docs/${booking.meetingMinutesFile?.fileId}?token=${token}`, "_blank");
+                      }}
+                      className="flex items-center gap-3 p-3 bg-[var(--bg-primary)] rounded-2xl border border-[var(--accent-start)]/20 hover:border-[var(--accent-start)] transition-all group/doc w-full"
                     >
                        <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)] group-hover/doc:bg-[var(--accent-start)] group-hover/doc:text-white transition-all">
                           <FileText size={14} />
                        </div>
                        <span className="text-[9px] font-black uppercase tracking-widest truncate">Ata da Reunião</span>
-                    </a>
+                    </button>
                  )}
                  {booking.participantDocs && booking.participantDocs.length > 0 && booking.participantDocs.map((doc, idx) => (
-                    <a 
+                    <button 
                       key={idx}
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-[var(--input-bg)] rounded-2xl border border-[var(--border-primary)] hover:border-[var(--accent-start)] transition-all group/doc"
+                      onClick={async () => {
+                        if (!user) return;
+                        const token = await user.getIdToken();
+                        window.open(`/api/docs/${doc.fileId}?token=${token}`, "_blank");
+                      }}
+                      className="flex items-center gap-3 p-3 bg-[var(--input-bg)] rounded-2xl border border-[var(--border-primary)] hover:border-[var(--accent-start)] transition-all group/doc w-full"
                     >
                        <div className="p-2 bg-[var(--bg-primary)] rounded-xl text-[var(--text-muted)] group-hover/doc:bg-[var(--accent-start)] group-hover/doc:text-white transition-all">
                           <FileText size={14} />
                        </div>
                        <span className="text-[9px] font-black uppercase tracking-widest truncate">{doc.fileName}</span>
-                    </a>
+                    </button>
                  ))}
               </div>
            </div>

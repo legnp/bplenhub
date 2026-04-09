@@ -97,16 +97,24 @@ export async function uploadPostEventDocAction(formData: FormData) {
     await auth.verifyIdToken(idToken);
 
     // 2. Preparar estrutura de pastas no Drive 🗄️
-    // Caminho: Categoria -> Matrícula -> 2.Documentos -> Eventos -> {eventId}
     const drive = await getDriveClient();
-    const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
-    
-    const isPJ = matricula.includes("-PJ-");
-    const categoryFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
-    const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
-    const docsFolderId = await ensureFolder(drive, userFolderId, "2.Documentos");
-    const eventsBaseFolderId = await ensureFolder(drive, docsFolderId, "Eventos");
-    const eventFolderId = await ensureFolder(drive, eventsBaseFolderId, eventId);
+    const isGeneral = formData.get("isGeneral") === "true";
+    let targetFolderId: string;
+
+    if (isGeneral) {
+      // Governança de Ata Geral: Pasta Central de Atas -> {eventId}
+      const baseAtasFolderId = serverEnv.GOOGLE_DRIVE_ATAS_ID;
+      targetFolderId = await ensureFolder(drive, baseAtasFolderId, eventId);
+    } else {
+      // Governança Individual: Categoria -> Matrícula -> 2.Documentos -> Eventos -> {eventId}
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+      const isPJ = matricula.includes("-PJ-");
+      const categoryFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
+      const docsFolderId = await ensureFolder(drive, userFolderId, "2.Documentos");
+      const eventsBaseFolderId = await ensureFolder(drive, docsFolderId, "Eventos");
+      targetFolderId = await ensureFolder(drive, eventsBaseFolderId, eventId);
+    }
 
     // 3. Conversão para Stream 🔄
     const arrayBuffer = await file.arrayBuffer();
@@ -120,7 +128,7 @@ export async function uploadPostEventDocAction(formData: FormData) {
 
     const result = await uploadFileToDrive(
       drive,
-      eventFolderId,
+      targetFolderId,
       fileName,
       file.type,
       stream
