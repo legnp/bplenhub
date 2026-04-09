@@ -79,7 +79,7 @@ export async function submitDevolutivaDisc(
       const resultadosFolderId = await ensureFolder(drive, userFolderId, "2.Resultados");
       const discFolderId = await ensureFolder(drive, resultadosFolderId, "DISC");
       
-      const spreadsheetId = await createSpreadsheet(drive, discFolderId, `Devolutiva DISC - ${targetMatricula} - ${yymm}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, discFolderId, `Devolutiva DISC - ${targetMatricula} - ${yymm}`);
 
       const headers = ["Timestamp", "Matrícula", "Nome", "Nickname", "Executor", "Comunicador", "Planejador", "Analista", "Link PDF"];
       const rowData = [

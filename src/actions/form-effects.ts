@@ -30,7 +30,7 @@ export async function handleFormSideEffects(config: FormConfig, response: FormRe
 
     // C. Criar/Preparar Planilha
     const fileName = `${config.sheetNamePrefix || config.id} - ${matricula}`;
-    const spreadsheetId = await createSpreadsheet(drive, themeFolderId, fileName);
+    const { id: spreadsheetId } = await createSpreadsheet(drive, themeFolderId, fileName);
 
     // D. Formatar Dados para Sheets
     const headers = ["Timestamp", "Formulário", "Matrícula", ...Object.keys(response)];

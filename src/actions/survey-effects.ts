@@ -182,7 +182,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
 
       const catFolderId = await ensureFolder(drive, baseFolderId, userType === "PJ" ? "2.3.B2B" : "2.2.B2C");
       const userFolderId = await ensureFolder(drive, catFolderId, matricula);
-      const spreadsheetId = await createSpreadsheet(drive, userFolderId, `User_Welcome - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, userFolderId, `User_Welcome - ${matricula}`);
 
       const headers = ["Timestamp", "Matrícula", "UID", "Nickname", "Interesses", "Origem"];
       const rowData: (string | number | boolean | null)[] = [
@@ -223,7 +223,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       
       // Pasta específica para Surveys/Checkins dentro do usuário
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
-      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Check-in - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Check-in - ${matricula}`);
 
       const headers = [
         "Timestamp", "Matrícula", "Nicho", "Desafios", "Objetivos", "Regime",
@@ -306,7 +306,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       const userFolderId = await ensureFolder(drive, catFolderId, matricula);
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
       
-      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Gestão do Tempo - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Gestão do Tempo - ${matricula}`);
 
       const headers = [
         "Timestamp", "Matrícula", "Duração (s)", 
@@ -420,7 +420,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       const userFolderId = await ensureFolder(drive, catFolderId, matricula);
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
       
-      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Preferências de Aprendizado - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Preferências de Aprendizado - ${matricula}`);
 
       const headers = [
         "Timestamp", "Matrícula", "Duração (s)", 
@@ -519,7 +519,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       const userFolderId = await ensureFolder(drive, catFolderId, matricula);
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
       
-      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Preferências de Reconhecimento - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Preferências de Reconhecimento - ${matricula}`);
 
       const headers = [
         "Timestamp", "Matrícula", "Duração (s)", 
@@ -576,7 +576,7 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
       const userFolderId = await ensureFolder(drive, catFolderId, matricula);
       const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
       
-      const spreadsheetId = await createSpreadsheet(drive, surveyFolderId, `Pré-Análise Comportamental - ${matricula}`);
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Pré-Análise Comportamental - ${matricula}`);
 
       const headers = [
         "Timestamp", "Matrícula", "Duração (s)", 
