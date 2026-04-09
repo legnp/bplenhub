@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getActiveProducts } from "@/actions/products";
+import { getAdminProducts } from "@/actions/products";
 import { Product } from "@/types/products";
+// ... (outros imports omitidos)
 import { 
   Plus, 
   Package, 
@@ -32,7 +33,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     async function load() {
-      const data = await getActiveProducts();
+      const data = await getAdminProducts();
       setProducts(data);
       setLoading(false);
     }

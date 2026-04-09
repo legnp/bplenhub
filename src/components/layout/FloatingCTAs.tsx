@@ -8,6 +8,8 @@ import { Home, Menu, X, Phone, Globe, LogIn, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 
+import { ServiceSelectionModal } from "./ServiceSelectionModal";
+
 /**
  * FloatingCTAs — Menu lateral fixo (Top Right / Bottom Right)
  * No Mobile: Transforma-se em um Menu Sanduíche elegante no topo direito.
@@ -18,9 +20,12 @@ export function FloatingCTAs() {
   const router = useRouter();
   const { user, isLoggingIn, signInWithGoogle } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
+  
   const isHomePage = pathname === "/";
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleServiceModal = () => setIsServiceModalOpen(!isServiceModalOpen);
 
   const menuVariants = {
     closed: { opacity: 0, x: "100%" },
@@ -52,6 +57,11 @@ export function FloatingCTAs() {
 
   return (
     <>
+      <ServiceSelectionModal 
+        isOpen={isServiceModalOpen} 
+        onClose={() => setIsServiceModalOpen(false)} 
+      />
+
       {/* 🍔 BOTÃO DO MENU (APENAS MOBILE - TOPO DIREITO) */}
       <div className="fixed top-6 right-6 z-[201] md:hidden">
         <button
@@ -90,7 +100,7 @@ export function FloatingCTAs() {
                 <button 
                   onClick={() => {
                     toggleMenu();
-                    document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' });
+                    toggleServiceModal();
                   }} 
                   className="text-4xl font-black tracking-tighter hover:text-[var(--accent-start)] transition-colors flex items-center gap-4 group text-left"
                 >
@@ -185,21 +195,12 @@ export function FloatingCTAs() {
           )}
         </AnimatePresence>
 
-        {isHomePage ? (
-          <button 
-            onClick={() => document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' })}
-            className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
-          >
-            Nossos Serviços
-          </button>
-        ) : (
-          <Link 
-            href="/#servicos"
-            className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
-          >
-            Nossos Serviços
-          </Link>
-        )}
+        <button 
+          onClick={toggleServiceModal}
+          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
+        >
+          Nossos Serviços
+        </button>
 
         <Link 
           href="/agendar"

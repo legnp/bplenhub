@@ -226,30 +226,44 @@ function IdentityForm({ product, setProduct }: any) {
         </div>
       </div>
       
-      <div className="space-y-4 p-6 bg-[var(--accent-primary)]/5 border border-[var(--accent-primary)]/20 rounded-2xl max-w-xl">
-         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setProduct({...product, isStepJourney: !product.isStepJourney})}>
-            <div className={`w-10 h-6 rounded-full transition-all relative ${product.isStepJourney ? 'bg-[var(--accent-primary)]' : 'bg-gray-700'}`}>
-               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${product.isStepJourney ? 'left-5' : 'left-1'}`} />
-            </div>
-            <div>
-               <p className="text-[10px] font-black uppercase tracking-widest">Produto da Jornada (Step Journey)</p>
-               <p className="text-[8px] text-[var(--text-muted)] italic">Marque se este produto compõe a trilha estratégica no Dashboard.</p>
-            </div>
-         </div>
-         
-         {product.isStepJourney && (
-            <div className="pt-4 border-t border-[var(--accent-primary)]/10 space-y-2">
-               <label className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ordem na Jornada (1 a 6)</label>
-               <input 
-                 type="number" 
-                 min="1" 
-                 max="6"
-                 className="w-20 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg p-2 text-xs"
-                 value={product.order}
-                 onChange={(e) => setProduct({...product, order: parseInt(e.target.value)})}
-               />
-            </div>
-         )}
+      <div className="flex flex-wrap gap-6 items-start">
+        <div className="space-y-4 p-6 bg-[var(--accent-primary)]/5 border border-[var(--accent-primary)]/20 rounded-2xl flex-1 min-w-[300px]">
+           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setProduct({...product, isStepJourney: !product.isStepJourney})}>
+              <div className={`w-10 h-6 rounded-full transition-all relative ${product.isStepJourney ? 'bg-[var(--accent-primary)]' : 'bg-gray-700'}`}>
+                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${product.isStepJourney ? 'left-5' : 'left-1'}`} />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Produto da Jornada (Step Journey)</p>
+                 <p className="text-[8px] text-[var(--text-muted)] italic">Marque se este produto compõe a trilha estratégica no Dashboard.</p>
+              </div>
+           </div>
+           
+           {product.isStepJourney && (
+              <div className="pt-4 border-t border-[var(--accent-primary)]/10 space-y-2">
+                 <label className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ordem na Jornada (1 a 6)</label>
+                 <input 
+                   type="number" 
+                   min="1" 
+                   max="6"
+                   className="w-20 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg p-2 text-xs"
+                   value={product.order}
+                   onChange={(e) => setProduct({...product, order: parseInt(e.target.value)})}
+                 />
+              </div>
+           )}
+        </div>
+
+        <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-2xl flex-1 min-w-[300px]">
+           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setProduct({...product, status: product.status === 'active' ? 'draft' : 'active'})}>
+              <div className={`w-10 h-6 rounded-full transition-all relative ${product.status === 'active' ? 'bg-green-500' : 'bg-yellow-500/50'}`}>
+                 <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${product.status === 'active' ? 'left-5' : 'left-1'}`} />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Status do Produto: <span className={product.status === 'active' ? 'text-green-500' : 'text-yellow-500'}>{product.status === 'active' ? 'ATIVO' : 'RASCUNHO'}</span></p>
+                 <p className="text-[8px] text-[var(--text-muted)] italic">Ative para que o produto apareça nas páginas públicas de serviços.</p>
+              </div>
+           </div>
+        </div>
       </div>
     </div>
   );
@@ -320,6 +334,44 @@ function CapabilitiesForm({ product, setProduct }: any) {
                  >
                     <p className="text-[9px] font-black uppercase tracking-widest">{survey.id}</p>
                     <p className="text-[8px] opacity-60 mt-1 line-clamp-1">{survey.title}</p>
+                 </button>
+               )
+             })}
+          </div>
+       </div>
+
+       <div className="space-y-4">
+          <div className="flex items-center gap-2 text-[var(--accent-primary)]">
+             <Compass size={14} />
+             <h3 className="text-[10px] font-black uppercase tracking-widest">Agendamentos (Calendário)</h3>
+          </div>
+          <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">Tipos de Reunião Disponíveis</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+             {[
+               { id: 'sessao-boas-vindas', title: 'Sessão de Boas-vindas', icon: '🐣' },
+               { id: 'sessao-devolutiva', title: 'Sessão Devolutiva', icon: '🎯' },
+               { id: 'mentoria-individual', title: 'Mentoria Individual', icon: '🤝' },
+               { id: 'reuniao-estrategica', title: 'Reunião Estratégica', icon: '🧠' }
+             ].map((event) => {
+               const isSelected = product.capabilities.allowedEventTypes.includes(event.id);
+               return (
+                 <button 
+                   key={event.id}
+                   type="button"
+                   onClick={() => {
+                     const current = product.capabilities.allowedEventTypes || [];
+                     const next = isSelected 
+                       ? current.filter((id: string) => id !== event.id)
+                       : [...current, event.id];
+                     setProduct({ ...product, capabilities: { ...product.capabilities, allowedEventTypes: next } });
+                   }}
+                   className={`p-4 rounded-2xl border text-left transition-all ${isSelected ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10' : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]/20 opacity-60'}`}
+                 >
+                    <div className="flex items-center justify-between">
+                       <p className="text-[9px] font-black uppercase tracking-widest">{event.id}</p>
+                       <span className="text-xs">{event.icon}</span>
+                    </div>
+                    <p className="text-[8px] opacity-60 mt-1 line-clamp-1">{event.title}</p>
                  </button>
                )
              })}

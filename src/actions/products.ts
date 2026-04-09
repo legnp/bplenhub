@@ -12,19 +12,17 @@ const PRODUCTS_COLLECTION = "products";
  */
 
 /**
- * Busca todos os produtos ativos
+ * Busca todos os produtos para a administração
  */
-export async function getActiveProducts(): Promise<Product[]> {
+export async function getAdminProducts(): Promise<Product[]> {
   try {
     const db = getAdminDb();
     const snapshot = await db.collection(PRODUCTS_COLLECTION)
-      .where("status", "==", "active")
-      .orderBy("createdAt", "desc")
       .get();
 
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
   } catch (error) {
-    console.error("Erro ao buscar produtos ativos:", error);
+    console.error("Erro ao buscar produtos para o admin:", error);
     return [];
   }
 }
