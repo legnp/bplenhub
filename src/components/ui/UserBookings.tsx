@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   Clock, 
   Loader2,
-  Send
+  Send,
+  MessageCircle
 } from "lucide-react";
 import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } from "@/actions/calendar";
 import { useAuthContext } from "@/context/AuthContext";
@@ -127,9 +128,18 @@ function BookingCard({
   const eventDate = parseISO(event.start);
   const isPast = isBefore(eventDate, new Date());
   
-  // Lógica temporária de status
-  const statusLabel = isPast ? "Realizada" : "Agendada";
-  const statusColor = isPast ? "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-60" : "bg-green-500/10 text-green-600";
+  // Lógica de Pós-Evento (Novos Campos 🧬)
+  const isConcluido = booking.eventLifecycleStatus === "completed";
+  const isPresente = booking.attendanceStatus === "present";
+  const isAusente = booking.attendanceStatus === "absent";
+
+  const statusLabel = booking.eventLifecycleStatus 
+    ? (booking.eventLifecycleStatus === 'completed' ? 'Concluída' : booking.eventLifecycleStatus === 'cancelled' ? 'Cancelada' : booking.eventLifecycleStatus === 'postponed' ? 'Adiada' : 'Agendada')
+    : (isPast ? "Realizada" : "Agendada");
+
+  const statusColor = isPast 
+    ? "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-80" 
+    : "bg-green-500/10 text-green-600";
 
   return (
     <div className="bg-[var(--glass-bg)] backdrop-blur-lg border border-[var(--border-primary)] rounded-[32px] p-6 shadow-[0_8px_32px_0_rgba(31,38,135,0.02)] hover:shadow-xl transition-all duration-500 overflow-hidden group">
@@ -150,8 +160,15 @@ function BookingCard({
                 </div>
              </div>
           </div>
-          <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColor}`}>
-             {statusLabel}
+          <div className="flex flex-col items-end gap-1">
+            <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColor}`}>
+               {statusLabel}
+            </div>
+            {isPast && (
+              <span className={`text-[8px] font-black uppercase tracking-widest ${isPresente ? "text-green-500" : isAusente ? "text-red-500" : "text-amber-500"}`}>
+                {isPresente ? "✓ Presente" : isAusente ? "✕ Ausente" : "• Presença Pendente"}
+              </span>
+            )}
           </div>
         </div>
 
@@ -164,12 +181,86 @@ function BookingCard({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 border-y border-[var(--input-border)] py-4">
+        {/* POST-EVENT DELIVERABLES (ATA, COMENTÁRIOS, FEEDBACK) */}
+        {isPast && isPresente && (
+           <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+              <hr className="border-[var(--border-primary)]" />
+              
+              {/* Public Comment */}
+              {booking.publicGeneralComment && (
+                 <div className="p-4 bg-[var(--accent-soft)] rounded-2xl border border-[var(--accent-start)]/10">
+                    <p className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <MessageCircle size={10} /> Notas da Mentoria
+                    </p>
+                    <p className="text-[10px] text-[var(--text-primary)] font-medium leading-relaxed italic">
+                      &quot;{booking.publicGeneralComment}&quot;
+                    </p>
+                 </div>
+              )}
+
+              {/* Individual Feedback & Tasks */}
+              {(booking.participantFeedback || booking.participantTasks) && (
+                 <div className="grid grid-cols-1 gap-3">
+                    {booking.participantFeedback && (
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Feedback de Performance</p>
+                          <div className="p-4 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] text-[10px] text-[var(--text-primary)] font-bold">
+                             {booking.participantFeedback}
+                          </div>
+                       </div>
+                    )}
+                    {booking.participantTasks && (
+                       <div className="space-y-1">
+                          <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Próximos Passos / Tarefas</p>
+                          <div className="p-4 bg-[var(--accent-start)]/5 rounded-2xl border border-[var(--accent-start)]/10 text-[10px] text-[var(--accent-start)] font-bold whitespace-pre-line">
+                             {booking.participantTasks}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+              )}
+
+              {/* Documents Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                 {booking.meetingMinutesFile && (
+                    <a 
+                      href={booking.meetingMinutesFile.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-[var(--bg-primary)] rounded-2xl border border-[var(--accent-start)]/20 hover:border-[var(--accent-start)] transition-all group/doc"
+                    >
+                       <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)] group-hover/doc:bg-[var(--accent-start)] group-hover/doc:text-white transition-all">
+                          <FileText size={14} />
+                       </div>
+                       <span className="text-[9px] font-black uppercase tracking-widest truncate">Ata da Reunião</span>
+                    </a>
+                 )}
+                 {booking.participantDocs && booking.participantDocs.length > 0 && booking.participantDocs.map((doc, idx) => (
+                    <a 
+                      key={idx}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-[var(--input-bg)] rounded-2xl border border-[var(--border-primary)] hover:border-[var(--accent-start)] transition-all group/doc"
+                    >
+                       <div className="p-2 bg-[var(--bg-primary)] rounded-xl text-[var(--text-muted)] group-hover/doc:bg-[var(--accent-start)] group-hover/doc:text-white transition-all">
+                          <FileText size={14} />
+                       </div>
+                       <span className="text-[9px] font-black uppercase tracking-widest truncate">{doc.fileName}</span>
+                    </a>
+                 ))}
+              </div>
+           </div>
+        )}
+
+        {/* Action Buttons (Refatorado) */}
+        <div className="flex gap-2 border-t border-[var(--input-border)] pt-4">
            {isPast ? (
               <div className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-500/5 rounded-xl border border-green-500/10">
-                 <CheckCircle2 className="w-3 h-3 text-green-600" />
-                 <span className="text-[9px] font-black text-green-700 uppercase tracking-widest">Concluída</span>
+                 <CheckCircle2 className={`w-3 h-3 ${isPresente ? "text-green-600" : "text-[var(--text-muted)] opacity-20"}`} />
+                 <span className={`text-[9px] font-black uppercase tracking-widest ${isPresente ? "text-green-700" : "text-[var(--text-muted)] opacity-40"}`}>
+                    {isPresente ? "Concluída" : isAusente ? "Ausência Registrada" : "Pós-Evento Pendente"}
+                 </span>
               </div>
            ) : (
               <button 
@@ -212,69 +303,73 @@ function BookingCard({
               </button>
            )}
            
-           <button 
-             onClick={() => alert("Acesso aos materiais em Desenvolvimento")}
-             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[var(--accent-soft)] hover:opacity-80 rounded-xl transition-all"
-           >
-              <FileText className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
-              <span className="text-[9px] font-black text-[var(--text-muted)] opacity-60 uppercase tracking-widest">Documentos</span>
-           </button>
+           {!isPast && (
+              <button 
+                onClick={() => alert("Materiais liberados após a conclusão do evento.")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[var(--accent-soft)] hover:opacity-80 rounded-xl transition-all"
+              >
+                 <FileText className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
+                 <span className="text-[9px] font-black text-[var(--text-muted)] opacity-60 uppercase tracking-widest">Documentos</span>
+              </button>
+           )}
         </div>
 
         {/* Evaluation Section (Stars & Text) */}
-        <div className="flex flex-col gap-3">
-           <div className="flex items-center justify-between">
-              <p className="text-[9px] font-black text-[var(--text-muted)] opacity-30 uppercase tracking-widest">Avaliação da Reunião</p>
-              <div className="flex gap-1">
-                {[1,2,3,4,5].map(star => (
-                   <button 
-                     key={star} 
-                     onMouseEnter={() => setIsHovering(star)}
-                     onMouseLeave={() => setIsHovering(0)}
-                     onClick={() => setRating(star)}
-                     className="transition-transform active:scale-90"
-                   >
-                     <Star 
-                        className={`w-3.5 h-3.5 transition-all duration-300 ${
-                          star <= (isHovering || rating) 
-                            ? "fill-[#FFB800] text-[#FFB800] drop-shadow-[0_0_8px_rgba(255,184,0,0.4)] scale-110" 
-                            : "text-black/[0.08]"
-                        }`} 
-                     />
-                   </button>
-                ))}
-              </div>
-           </div>
-           
-           <div className="relative">
-              <textarea 
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Como foi sua experiência? (Opcional)"
-                className="w-full p-4 bg-[var(--input-bg)]/20 border border-[var(--input-border)] rounded-2xl text-[10px] text-[var(--text-primary)] placeholder:opacity-20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/10 transition-all resize-none h-20 font-bold"
-              />
-              <button 
-                onClick={() => onEvaluate(booking.id, rating, feedback)}
-                disabled={isSubmitting || (rating === booking.rating && feedback === booking.feedback)}
-                className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all ${
-                  isSubmitting 
-                    ? "bg-[var(--accent-soft)] opacity-50" 
-                    : (rating !== booking.rating || feedback !== booking.feedback)
-                      ? "bg-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 hover:scale-105"
-                      : "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-20 cursor-not-allowed"
-                }`}
-              >
-                {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-              </button>
-           </div>
+        {isPast && isPresente && (
+          <div className="flex flex-col gap-3 pt-2">
+             <div className="flex items-center justify-between">
+                <p className="text-[9px] font-black text-[var(--text-muted)] opacity-30 uppercase tracking-widest">Avaliação da Reunião</p>
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(star => (
+                     <button 
+                       key={star} 
+                       onMouseEnter={() => setIsHovering(star)}
+                       onMouseLeave={() => setIsHovering(0)}
+                       onClick={() => setRating(star)}
+                       className="transition-transform active:scale-90"
+                     >
+                       <Star 
+                          className={`w-3.5 h-3.5 transition-all duration-300 ${
+                            star <= (isHovering || rating) 
+                              ? "fill-[#FFB800] text-[#FFB800] drop-shadow-[0_0_8px_rgba(255,184,0,0.4)] scale-110" 
+                              : "text-black/[0.08]"
+                          }`} 
+                       />
+                     </button>
+                  ))}
+                </div>
+             </div>
+             
+             <div className="relative">
+                <textarea 
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Como foi sua experiência? (Opcional)"
+                  className="w-full p-4 bg-[var(--input-bg)]/20 border border-[var(--input-border)] rounded-2xl text-[10px] text-[var(--text-primary)] placeholder:opacity-20 focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/10 transition-all resize-none h-20 font-bold"
+                />
+                <button 
+                  onClick={() => onEvaluate(booking.id, rating, feedback)}
+                  disabled={isSubmitting || (rating === booking.rating && feedback === booking.feedback)}
+                  className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all ${
+                    isSubmitting 
+                      ? "bg-[var(--accent-soft)] opacity-50" 
+                      : (rating !== booking.rating || feedback !== booking.feedback)
+                        ? "bg-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 hover:scale-105"
+                        : "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-20 cursor-not-allowed"
+                  }`}
+                >
+                  {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                </button>
+             </div>
 
-           {booking.evaluatedAt && (
-              <div className="flex items-center gap-1.5 opacity-30 mt-1">
-                 <CheckCircle2 className="w-2.5 h-2.5 text-green-600" />
-                 <p className="text-[8px] font-black uppercase tracking-tight italic">Avaliação enviada</p>
-              </div>
-           )}
-        </div>
+             {booking.evaluatedAt && (
+                <div className="flex items-center gap-1.5 opacity-30 mt-1">
+                   <CheckCircle2 className="w-2.5 h-2.5 text-green-600" />
+                   <p className="text-[8px] font-black uppercase tracking-tight italic">Avaliação enviada</p>
+                </div>
+             )}
+          </div>
+        )}
 
       </div>
     </div>

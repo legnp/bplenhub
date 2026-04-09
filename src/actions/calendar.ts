@@ -18,6 +18,9 @@ const resend = new Resend(serverEnv.RESEND_API_KEY);
  * Busca, Sincronização e Leitura de Eventos do Workspace BPlen.
  */
 
+export type EventLifecycleStatus = "scheduled" | "completed" | "cancelled" | "postponed";
+export type AttendanceStatus = "pending" | "present" | "absent";
+
 export interface GoogleCalendarEvent {
   id: string;
   summary: string;
@@ -31,6 +34,16 @@ export interface GoogleCalendarEvent {
   mentor?: string;
   theme?: string;
   status?: string;
+
+  // Post-event Fields
+  lifecycleStatus?: EventLifecycleStatus;
+  postEventCompleted?: boolean;
+  internalGeneralComment?: string;
+  publicGeneralComment?: string;
+  meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
+  postponedFromEventId?: string | null;
+  postEventUpdatedAt?: any;
+  postEventUpdatedBy?: string;
 }
 
 export interface UserBooking {
@@ -45,7 +58,35 @@ export interface UserBooking {
   feedback: string;
   evaluatedAt?: string | null;
   eventDetail: GoogleCalendarEvent | null;
+
+  // Mirrored Post-event Fields
+  eventLifecycleStatus?: EventLifecycleStatus;
+  attendanceStatus?: AttendanceStatus;
+  publicGeneralComment?: string;
+  meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
+  participantFeedback?: string;
+  participantTasks?: string;
+  participantDocs?: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
 }
+
+export interface AttendeeData {
+  userId: string;
+  matricula: string;
+  nickname: string;
+  email: string;
+  phone?: string | null;
+  isLead: boolean;
+  timestamp: any;
+  
+  // Post-event fields
+  attendanceStatus?: AttendanceStatus;
+  participantFeedback?: string;
+  participantTasks?: string;
+  participantDocs?: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
+  attendanceCheckedAt?: any;
+  attendanceCheckedBy?: string;
+}
+
 
 /**
  * Busca eventos do Google Calendar para visualização rápida no Front.
@@ -267,6 +308,7 @@ export async function bookEventAction(
         phone: leadInfo?.phone || null,
         isLead: !matricula,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        attendanceStatus: "pending",
         ...oneToOneData
       });
 
@@ -588,3 +630,124 @@ export async function cancelBookingAction(
     return { success: false, message: err.message };
   }
 }
+
+/**
+ * Busca os inscritos de um evento para o painel administrativo.
+ */
+export async function getEventAttendees(eventId: string): Promise<AttendeeData[]> {
+  try {
+    const db = getAdminDb();
+    const attendeesSnap = await db.collection("Calendar_Events").doc(eventId).collection("attendees").get();
+    
+    return attendeesSnap.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        userId: doc.id,
+        timestamp: data.timestamp?.toDate?.()?.toISOString() || null,
+        attendanceCheckedAt: data.attendanceCheckedAt?.toDate?.()?.toISOString() || null,
+      } as AttendeeData;
+    });
+  } catch (error) {
+    console.error("Erro ao buscar inscritos do evento:", error);
+    return [];
+  }
+}
+
+/**
+ * Parte 1: Fechamento Geral do Evento
+ */
+export async function closeEventAction(
+  eventId: string,
+  data: {
+    lifecycleStatus: EventLifecycleStatus;
+    internalGeneralComment: string;
+    publicGeneralComment: string;
+    meetingMinutesFile: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
+    updatedBy: string;
+  }
+) {
+  try {
+    const db = getAdminDb();
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
+
+    await eventRef.set({
+      lifecycleStatus: data.lifecycleStatus,
+      postEventCompleted: true,
+      internalGeneralComment: data.internalGeneralComment,
+      publicGeneralComment: data.publicGeneralComment,
+      meetingMinutesFile: data.meetingMinutesFile,
+      postEventUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      postEventUpdatedBy: data.updatedBy
+    }, { merge: true });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao fechar evento (Parte 1):", error);
+    return { success: false, message: (error as Error).message };
+  }
+}
+
+/**
+ * Parte 2: Fechamento Individual por Participante
+ * Salva no Evento e espelha em User_Bookings.
+ */
+export async function closeAttendeeAction(
+  eventId: string,
+  userId: string,
+  matricula: string,
+  data: {
+    attendanceStatus: AttendanceStatus;
+    participantFeedback: string;
+    participantTasks: string;
+    participantDocs: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
+    checkedBy: string;
+  }
+) {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Buscar dados gerais do evento para espelhamento
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
+    const eventSnap = await eventRef.get();
+    if (!eventSnap.exists) throw new Error("Evento não encontrado.");
+    const eventData = eventSnap.data() as GoogleCalendarEvent;
+
+    await db.runTransaction(async (transaction) => {
+      // 2. Atualizar subcoleção attendees do Evento
+      const attendeeRef = eventRef.collection("attendees").doc(userId);
+      transaction.set(attendeeRef, {
+        attendanceStatus: data.attendanceStatus,
+        participantFeedback: data.participantFeedback,
+        participantTasks: data.participantTasks,
+        participantDocs: data.participantDocs,
+        attendanceCheckedAt: admin.firestore.FieldValue.serverTimestamp(),
+        attendanceCheckedBy: data.checkedBy
+      }, { merge: true });
+
+      // 3. Atualizar User_Bookings (Camada de Leitura Rápida)
+      const userBookingsRef = db.collection("User").doc(matricula).collection("User_Bookings");
+      const bookingQuery = await transaction.get(userBookingsRef.where("eventId", "==", eventId));
+      
+      if (!bookingQuery.empty) {
+        const bookingDoc = bookingQuery.docs[0];
+        transaction.set(bookingDoc.ref, {
+          eventLifecycleStatus: eventData.lifecycleStatus || "completed",
+          attendanceStatus: data.attendanceStatus,
+          publicGeneralComment: eventData.publicGeneralComment || "",
+          meetingMinutesFile: eventData.meetingMinutesFile || null,
+          participantFeedback: data.participantFeedback,
+          participantTasks: data.participantTasks,
+          participantDocs: data.participantDocs,
+          postEventUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao fechar participante (Parte 2):", error);
+    return { success: false, message: (error as Error).message };
+  }
+}
+
