@@ -11,6 +11,7 @@ import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 import { requireAdmin } from "@/lib/auth-guards";
 
 import { calendar_v3 } from "googleapis";
+import { getEventStandardSlug } from "@/lib/utils";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 const OFFICIAL_SENDER = `BPlen HUB <hub@bplen.com>`;
@@ -52,6 +53,7 @@ export interface GoogleCalendarEvent {
   summarySheetUrl?: string;
   summarySheetId?: string;
   summarySheetUpdatedAt?: string | null;
+  slug?: string;
 }
 
 export interface UserBooking {
@@ -93,6 +95,10 @@ export interface AttendeeData {
   participantDocs?: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
   attendanceCheckedAt?: any;
   attendanceCheckedBy?: string;
+
+  // 1 to 1 data
+  type?: string; 
+  expectations?: string;
 }
 
 
@@ -207,10 +213,14 @@ export async function syncCalendarToFirestore() {
 
       const eventRef = db.collection("Calendar_Events").doc(item.id);
       
+      const eventStart = item.start?.dateTime || item.start?.date || "";
+      const eventSlug = getEventStandardSlug(item.summary || "Sem_Titulo", eventStart, item.id);
+
       // Upsert Soberano Admin
       await eventRef.set({
         id: item.id,
         summary: item.summary || "Sem Título",
+        slug: eventSlug,
         description: cleanDescription,
         start: item.start?.dateTime || item.start?.date || "",
         end: item.end?.dateTime || item.end?.date || "",
@@ -600,7 +610,7 @@ export async function adminAddAttendeeAction(
 }
 
 import { getSheetsClient, getDriveClient } from "@/lib/google-auth";
-import { ensureFolder, createSpreadsheet } from "@/lib/drive-utils";
+import { ensureFolder, createSpreadsheet, renameFile, getEventDriveFolder } from "@/lib/drive-utils";
 
 /**
  * Geração de Planilha de Resumo (Google Sheets) 📊
@@ -626,14 +636,17 @@ export async function generateEventSummarySheetAction(
     const drive = await getDriveClient();
     const sheets = await getSheetsClient();
 
-    // 3. Garantir Pasta do Evento (Usando a mesma lógica das Atas)
+    // 3. Garantir Identificador Padrão (Slug)
+    const standardSlug = eventData.slug || getEventStandardSlug(eventData.summary, eventData.start, eventId);
+    
+    // 4. Garantir Pasta do Evento (Com Governança Centralizada e Auto-Migração 🛰️)
     const baseAtasFolderId = serverEnv.GOOGLE_DRIVE_ATAS_ID;
-    const eventFolderId = await ensureFolder(drive, baseAtasFolderId, eventId);
+    const eventFolderId = await getEventDriveFolder(drive, baseAtasFolderId, eventId, standardSlug);
 
-    // 4. Verificar se a planilha já existe
-    const fileName = `Relatório_de_Consolidação_de_Eventos_${eventId}`;
+    // 5. Verificar se a planilha já existe (Padrão: {slug}_Consolidacao)
+    const reportFileName = `${standardSlug}_Consolidacao`;
     const searchRes = await drive.files.list({
-      q: `name = '${fileName}' and '${eventFolderId}' in parents and trashed = false`,
+      q: `name = '${reportFileName}' and '${eventFolderId}' in parents and trashed = false`,
       fields: "files(id, webViewLink)",
       spaces: "drive",
       supportsAllDrives: true,
@@ -650,19 +663,25 @@ export async function generateEventSummarySheetAction(
     } else {
       // Criar nova planilha usando o utilitário robusto
       console.log(`[Sheets] Criando nova planilha na pasta: ${eventFolderId}`);
-      const newSheet = await createSpreadsheet(drive, eventFolderId, fileName);
+      const newSheet = await createSpreadsheet(drive, eventFolderId, reportFileName);
       spreadsheetId = newSheet.id;
       spreadsheetUrl = newSheet.webViewLink;
       console.log(`[Sheets] Planilha criada com sucesso: ${spreadsheetId}`);
     }
 
     // 5. Estruturar Dados para o Sheets
-    const headerRow = ["Matrícula", "Nome", "E-mail", "Presença", "Feedback Aluno", "Mentor: Feedback", "Mentor: Tarefas", "Documentos Aluno", "Ata Geral"];
+    const headerRow = [
+      "Matrícula", "Nome", "E-mail", "Presença", 
+      "Demanda 1 to 1", "Expectativas 1 to 1", 
+      "Feedback Aluno", "Mentor: Feedback", "Mentor: Tarefas", "Documentos Aluno", "Ata Geral"
+    ];
     const rows = attendees.map(a => [
       a.matricula,
       a.nickname,
       a.email,
       a.attendanceStatus === "present" ? "PRESENTE" : a.attendanceStatus === "absent" ? "AUSENTE" : "PENDENTE",
+      a.type || "", // Demanda 1 to 1
+      a.expectations || "", // Expectativas 1 to 1
       "", // Feedback aluno
       a.participantFeedback || "",
       a.participantTasks || "",
@@ -684,12 +703,12 @@ export async function generateEventSummarySheetAction(
 
     // 6. Resolver Nome da Planilha (Localização: Sheet1 vs Página1)
     const ssMeta = await sheets.spreadsheets.get({ spreadsheetId });
-    const sheetName = ssMeta.data.sheets?.[0].properties?.title || "Sheet1";
+    const targetTabName = ssMeta.data.sheets?.[0].properties?.title || "Sheet1";
 
     // 7. Atualizar Valores
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${sheetName}!A1`,
+      range: `${targetTabName}!A1`,
       valueInputOption: "RAW",
       requestBody: {
         values: eventInfo,

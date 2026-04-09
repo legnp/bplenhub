@@ -1,10 +1,11 @@
 "use server";
 
-import { getAdminAuth } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import { getDriveClient } from "@/lib/google-auth";
-import { ensureFolder, uploadFileToDrive } from "@/lib/drive-utils";
+import { ensureFolder, uploadFileToDrive, getEventDriveFolder } from "@/lib/drive-utils";
 import { serverEnv } from "@/env";
 import { Readable } from "stream";
+import { getEventStandardSlug } from "@/lib/utils";
 
 /**
  * BPlen HUB — Server Action: Upload Direto ao Google Drive 📡
@@ -100,21 +101,29 @@ export async function uploadPostEventDocAction(formData: FormData) {
 
     // 2. Preparar estrutura de pastas no Drive 🗄️
     const drive = await getDriveClient();
+    const db = getAdminDb();
+    
+    // Buscar Dados do Evento para Nomenclatura Padrão
+    const eventSnap = await db.collection("Calendar_Events").doc(eventId).get();
+    if (!eventSnap.exists) throw new Error("Evento não encontrado para upload.");
+    const eventData = eventSnap.data() as any;
+    const standardSlug = eventData.slug || getEventStandardSlug(eventData.summary, eventData.start, eventId);
+
     let targetFolderId: string;
 
     if (isGeneral) {
-      // Governança de Ata Geral: Pasta Central de Atas -> {eventId}
+      // Governança de Ata Geral: Pasta Central de Atas -> {StandardSlug}
       const baseAtasFolderId = serverEnv.GOOGLE_DRIVE_ATAS_ID;
-      targetFolderId = await ensureFolder(drive, baseAtasFolderId, eventId);
+      targetFolderId = await getEventDriveFolder(drive, baseAtasFolderId, eventId, standardSlug);
     } else {
-      // Governança Individual: Categoria -> Matrícula -> 2.Documentos -> Eventos -> {eventId}
+      // Governança Individual: Categoria -> Matrícula -> 2.Documentos -> Eventos -> {StandardSlug}
       const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
       const isPJ = matricula.includes("-PJ-");
       const categoryFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
       const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
       const docsFolderId = await ensureFolder(drive, userFolderId, "2.Documentos");
       const eventsBaseFolderId = await ensureFolder(drive, docsFolderId, "Eventos");
-      targetFolderId = await ensureFolder(drive, eventsBaseFolderId, eventId);
+      targetFolderId = await getEventDriveFolder(drive, eventsBaseFolderId, eventId, standardSlug);
     }
 
     // 3. Conversão para Stream 🔄
@@ -122,10 +131,9 @@ export async function uploadPostEventDocAction(formData: FormData) {
     const buffer = Buffer.from(arrayBuffer);
     const stream = Readable.from(buffer);
 
-    // 4. Executar o Upload
-    const dateStr = new Date().toISOString().split('T')[0];
+    // 4. Executar o Upload (Nomenclatura BPlen Standard)
     const cleanFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const fileName = `POST_EVENT_${dateStr}_${cleanFileName}`;
+    const fileName = `${standardSlug}_${cleanFileName}`;
 
     const result = await uploadFileToDrive(
       drive,

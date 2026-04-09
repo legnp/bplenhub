@@ -82,6 +82,52 @@ export async function createSpreadsheet(
 }
 
 /**
+ * Governança Centralizada de Pastas de Evento BPlen.
+ * Implementa o padrão {Slug} com suporte a auto-migração de pastas antigas (ID).
+ */
+export async function getEventDriveFolder(
+  drive: drive_v3.Drive,
+  parentFolderId: string,
+  eventId: string,
+  eventSlug: string
+): Promise<string> {
+  // 1. Tentar encontrar a pasta pelo NOVO padrão (Slug)
+  const searchNew = await drive.files.list({
+    q: `'${parentFolderId}' in parents and name = '${eventSlug}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: "files(id)",
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+  });
+
+  if (searchNew.data.files && searchNew.data.files.length > 0) {
+    return searchNew.data.files[0].id!;
+  }
+
+  // 2. Fallback: Buscar pela nomenclatura ANTIGA (Apenas ID) para migrar
+  const searchOld = await drive.files.list({
+    q: `'${parentFolderId}' in parents and name = '${eventId}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: "files(id)",
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+  });
+
+  if (searchOld.data.files && searchOld.data.files.length > 0) {
+    const folderId = searchOld.data.files[0].id!;
+    console.log(`[Drive:Governance] Migrando pasta ${eventId} -> ${eventSlug}`);
+    await drive.files.update({
+      fileId: folderId,
+      supportsAllDrives: true,
+      requestBody: { name: eventSlug }
+    });
+    return folderId;
+  }
+
+  // 3. Criar nova pasta no padrão BPlen
+  console.log(`[Drive:Governance] Criando nova pasta padrão: ${eventSlug}`);
+  return await ensureFolder(drive, parentFolderId, eventSlug);
+}
+
+/**
  * Grava ou Atualiza dados na planilha.
  */
 export async function syncDataToSheet(
@@ -135,4 +181,21 @@ export async function uploadFileToDrive(
     id: file.data.id,
     webViewLink: file.data.webViewLink || ""
   };
+}
+
+/**
+ * Renomeia um arquivo ou pasta no Google Drive.
+ */
+export async function renameFile(
+  drive: drive_v3.Drive,
+  fileId: string,
+  newName: string
+) {
+  await drive.files.update({
+    fileId,
+    supportsAllDrives: true,
+    requestBody: {
+      name: newName,
+    },
+  });
 }
