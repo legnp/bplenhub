@@ -42,8 +42,9 @@ export interface GoogleCalendarEvent {
   publicGeneralComment?: string;
   meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
   postponedFromEventId?: string | null;
-  postEventUpdatedAt?: any;
+  postEventUpdatedAt?: string | null;
   postEventUpdatedBy?: string;
+  lastSync?: string | null;
 }
 
 export interface UserBooking {
@@ -448,11 +449,19 @@ export async function bookEventAction(
 /**
  * Busca eventos sincronizados diretamente do Firestore.
  */
-export async function getSyncedEvents() {
+export async function getSyncedEvents(): Promise<GoogleCalendarEvent[]> {
     try {
       const db = getAdminDb();
       const snap = await db.collection("Calendar_Events").get();
-      return snap.docs.map(doc => doc.data() as GoogleCalendarEvent);
+      
+      return snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          lastSync: data.lastSync?.toDate?.()?.toISOString() || null,
+          postEventUpdatedAt: data.postEventUpdatedAt?.toDate?.()?.toISOString() || null
+        } as GoogleCalendarEvent;
+      });
     } catch (error) {
       console.error("Erro ao buscar eventos do Firestore:", error);
       return [];
