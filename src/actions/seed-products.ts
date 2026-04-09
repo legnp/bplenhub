@@ -14,7 +14,7 @@ export async function seedInitialProductsAction() {
     {
       title: "Onboarding Estratégico",
       slug: "onboarding",
-      category: "people",
+      targetAudiences: ["people"],
       price: 0,
       isStepJourney: true,
       order: 1,
@@ -48,7 +48,7 @@ export async function seedInitialProductsAction() {
     {
       title: "Análise Comportamental (DISC)",
       slug: "analise-comportamental",
-      category: "people",
+      targetAudiences: ["people", "companies"],
       price: 497,
       isStepJourney: true,
       order: 2,

@@ -34,7 +34,7 @@ export interface Product {
   id: string;
   slug: string; // URL amigável
   title: string;
-  category: 'people' | 'companies' | 'partners';
+  targetAudiences: ('people' | 'companies' | 'partners')[];
   price: number;
   
   // Flag para Jornada do Membro

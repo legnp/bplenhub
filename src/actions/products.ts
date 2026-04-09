@@ -83,6 +83,24 @@ export async function saveProductAction(product: Partial<Product>) {
 }
 
 /**
+ * Busca produtos filtrados por público-alvo
+ */
+export async function getProductsByAudience(audience: 'people' | 'companies' | 'partners'): Promise<Product[]> {
+  try {
+    const db = getAdminDb();
+    const snapshot = await db.collection(PRODUCTS_COLLECTION)
+      .where("status", "==", "active")
+      .where("targetAudiences", "array-contains", audience)
+      .get();
+
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  } catch (error) {
+    console.error(`Erro ao buscar produtos para o público ${audience}:`, error);
+    return [];
+  }
+}
+
+/**
  * Busca produtos da Jornada (Step Journey)
  */
 export async function getJourneyProducts(): Promise<Product[]> {

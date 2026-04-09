@@ -15,7 +15,9 @@ import {
   HelpCircle, 
   Search,
   CheckCircle2,
-  FileText
+  FileText,
+  Users,
+  Handshake
 } from "lucide-react";
 import { SURVEY_REGISTRY } from "@/config/surveys";
 import { saveProductAction } from "@/actions/products";
@@ -40,7 +42,7 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
     title: "",
     slug: "",
     price: 0,
-    category: 'people',
+    targetAudiences: [],
     status: 'draft',
     isStepJourney: false,
     order: 1,
@@ -75,7 +77,7 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
   };
 
   return (
-    <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] overflow-hidden flex flex-col min-h-[700px] shadow-2xl relative">
+    <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] overflow-hidden flex flex-col min-h-[700px] shadow-2xl relative text-[var(--text-primary)]">
       
       {/* Builder Header */}
       <div className="p-8 border-b border-[var(--border-primary)] flex items-center justify-between bg-[var(--bg-secondary)]/30">
@@ -84,7 +86,7 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
               <Zap size={20} />
            </div>
            <div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">
+              <h2 className="text-sm font-black uppercase tracking-widest">
                 {product.id ? `Editando: ${product.title}` : "Novo Produto Estratégico"}
               </h2>
               <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1">Configuração de Ecossistema & Entrega</p>
@@ -127,22 +129,22 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
       <div className="flex-1 p-10 overflow-y-auto max-h-[600px] custom-scrollbar">
         <AnimatePresence mode="wait">
            {activeTab === 'identity' && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+              <motion.div key="identity" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                  <IdentityForm product={product} setProduct={setProduct} />
               </motion.div>
            )}
            {activeTab === 'sheet' && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+              <motion.div key="sheet" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                  <SheetForm product={product} setProduct={setProduct} />
               </motion.div>
            )}
            {activeTab === 'capabilities' && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+              <motion.div key="capabilities" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                  <CapabilitiesForm product={product} setProduct={setProduct} />
               </motion.div>
            )}
            {activeTab === 'workflow' && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+              <motion.div key="workflow" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
                  <WorkflowForm product={product} setProduct={setProduct} />
               </motion.div>
            )}
@@ -166,44 +168,88 @@ function TabButton({ active, onClick, label, icon }: any) {
   );
 }
 
-// Sub-forms (Simplicados para a primeira versão)
+// Sub-forms
 function IdentityForm({ product, setProduct }: any) {
   return (
-    <div className="space-y-8 max-w-2xl">
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-2">
-           <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Título do Produto</label>
-           <input 
-             type="text" 
-             className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs" 
-             value={product.title}
-             onChange={(e) => setProduct({...product, title: e.target.value})}
-           />
+    <div className="space-y-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
+           <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Título do Produto</label>
+              <input 
+                type="text" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs outline-none focus:border-[var(--accent-primary)] transition-all" 
+                value={product.title}
+                onChange={(e) => setProduct({...product, title: e.target.value})}
+              />
+           </div>
+           <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Slug (URL)</label>
+              <input 
+                type="text" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-mono outline-none focus:border-[var(--accent-primary)] transition-all" 
+                value={product.slug}
+                onChange={(e) => setProduct({...product, slug: e.target.value})}
+              />
+           </div>
         </div>
-        <div className="space-y-2">
-           <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Slug (URL)</label>
-           <input 
-             type="text" 
-             className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-mono" 
-             value={product.slug}
-             onChange={(e) => setProduct({...product, slug: e.target.value})}
-           />
+
+        <div className="space-y-6">
+           <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Público-Alvo (Segmentação)</label>
+           <div className="grid grid-cols-1 gap-3">
+              {[
+                { id: 'people', label: 'Pessoas (Individual)', icon: <Users size={14} /> },
+                { id: 'companies', label: 'Empresas (Corporativo)', icon: <Layout size={14} /> },
+                { id: 'partners', label: 'Parceiros (Agências/Mestres)', icon: <Handshake size={14} /> }
+              ].map((audience) => {
+                const isSelected = product.targetAudiences?.includes(audience.id as any);
+                return (
+                  <button 
+                    key={audience.id}
+                    type="button"
+                    onClick={() => {
+                      const current = product.targetAudiences || [];
+                      const next = isSelected 
+                        ? current.filter((a: string) => a !== audience.id)
+                        : [...current, audience.id];
+                      setProduct({ ...product, targetAudiences: next });
+                    }}
+                    className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${isSelected ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/5 text-[var(--text-primary)]' : 'border-[var(--border-primary)] opacity-40 hover:opacity-100 text-[var(--text-muted)]'}`}
+                  >
+                     {audience.icon}
+                     <span className="text-[10px] font-black uppercase tracking-widest">{audience.label}</span>
+                     {isSelected && <CheckCircle2 size={14} className="ml-auto text-[var(--accent-primary)]" />}
+                  </button>
+                )
+              })}
+           </div>
         </div>
       </div>
       
-      <div className="space-y-4 p-6 bg-[var(--accent-primary)]/5 border border-[var(--accent-primary)]/20 rounded-2xl">
-         <div className="flex items-center gap-3">
-            <input 
-              type="checkbox" 
-              checked={product.isStepJourney} 
-              onChange={(e) => setProduct({...product, isStepJourney: e.target.checked})}
-              className="w-5 h-5 rounded-lg accent-[var(--accent-primary)]"
-            />
+      <div className="space-y-4 p-6 bg-[var(--accent-primary)]/5 border border-[var(--accent-primary)]/20 rounded-2xl max-w-xl">
+         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setProduct({...product, isStepJourney: !product.isStepJourney})}>
+            <div className={`w-10 h-6 rounded-full transition-all relative ${product.isStepJourney ? 'bg-[var(--accent-primary)]' : 'bg-gray-700'}`}>
+               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${product.isStepJourney ? 'left-5' : 'left-1'}`} />
+            </div>
             <div>
                <p className="text-[10px] font-black uppercase tracking-widest">Produto da Jornada (Step Journey)</p>
-               <p className="text-[8px] text-[var(--text-muted)] italic">Marcar se este produto compõe a trilha principal do membro.</p>
+               <p className="text-[8px] text-[var(--text-muted)] italic">Marque se este produto compõe a trilha estratégica no Dashboard.</p>
             </div>
          </div>
+         
+         {product.isStepJourney && (
+            <div className="pt-4 border-t border-[var(--accent-primary)]/10 space-y-2">
+               <label className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ordem na Jornada (1 a 6)</label>
+               <input 
+                 type="number" 
+                 min="1" 
+                 max="6"
+                 className="w-20 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg p-2 text-xs"
+                 value={product.order}
+                 onChange={(e) => setProduct({...product, order: parseInt(e.target.value)})}
+               />
+            </div>
+         )}
       </div>
     </div>
   );
@@ -216,12 +262,34 @@ function SheetForm({ product, setProduct }: any) {
           <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Descrição de Serviço</label>
           <textarea 
             rows={5}
-            className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-6 text-xs leading-relaxed" 
+            placeholder="Descreva o serviço para o cliente..."
+            className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-6 text-xs leading-relaxed outline-none focus:border-[var(--accent-primary)] transition-all" 
             value={product.sheet.description}
             onChange={(e) => setProduct({...product, sheet: { ...product.sheet, description: e.target.value }})}
           />
        </div>
-       {/* Adicionar mais campos conforme necessário */}
+
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+             <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Preço de Venda (R$)</label>
+             <input 
+               type="number" 
+               className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs" 
+               value={product.price}
+               onChange={(e) => setProduct({...product, price: parseFloat(e.target.value)})}
+             />
+          </div>
+          <div className="space-y-2">
+             <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">URL da Capa (Serviço)</label>
+             <input 
+               type="text" 
+               placeholder="Link da imagem..."
+               className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-mono" 
+               value={product.sheet.coverImage}
+               onChange={(e) => setProduct({...product, sheet: { ...product.sheet, coverImage: e.target.value }})}
+             />
+          </div>
+       </div>
      </div>
    );
 }
@@ -230,13 +298,18 @@ function CapabilitiesForm({ product, setProduct }: any) {
   return (
     <div className="space-y-8 max-w-4xl">
        <div className="space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--accent-primary)]">Vincular Pesquisas (Surveys)</h3>
+          <div className="flex items-center gap-2 text-[var(--accent-primary)]">
+             <Zap size={14} />
+             <h3 className="text-[10px] font-black uppercase tracking-widest">Ativos do Sistema</h3>
+          </div>
+          <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">Vincular Pesquisas (Surveys)</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
              {SURVEY_REGISTRY.map((survey) => {
                const isSelected = product.capabilities.surveys.includes(survey.id);
                return (
                  <button 
                    key={survey.id}
+                   type="button"
                    onClick={() => {
                      const scouts = isSelected 
                        ? product.capabilities.surveys.filter((id: string) => id !== survey.id)
@@ -260,42 +333,58 @@ function WorkflowForm({ product, setProduct }: any) {
   return (
     <div className="space-y-6">
        <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--accent-primary)]">Etapas de Workflow</h3>
+          <div className="flex items-center gap-2 text-[var(--accent-primary)]">
+             <Compass size={14} />
+             <h3 className="text-[10px] font-black uppercase tracking-widest">Workflow de Entrega</h3>
+          </div>
           <button 
+            type="button"
             onClick={() => {
                const newStep: WorkflowStep = { id: `step-${Date.now()}`, title: "Nova Etapa", type: 'task', description: "" };
                setProduct({ ...product, workflow: [...product.workflow, newStep] });
             }}
-            className="px-4 py-2 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[var(--accent-primary)] transition-all"
+            className="px-4 py-2 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[var(--accent-primary)] transition-all flex items-center gap-2"
           >
-             Adicionar Etapa
+             <Plus size={12} />
+             Nova Etapa
           </button>
        </div>
 
        <div className="space-y-4">
           {product.workflow.map((step: WorkflowStep, idx: number) => (
-             <div key={step.id} className="p-6 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl flex items-center gap-6">
-                <div className="w-8 h-8 rounded-full bg-[var(--bg-primary)] flex items-center justify-center text-[9px] font-black">{idx + 1}</div>
-                <input 
-                  type="text" 
-                  value={step.title}
-                  onChange={(e) => {
-                     const newWorkflow = [...product.workflow];
-                     newWorkflow[idx].title = e.target.value;
-                     setProduct({ ...product, workflow: newWorkflow });
-                  }}
-                  className="bg-transparent border-b border-[var(--border-primary)] text-xs font-bold focus:border-[var(--accent-primary)] outline-none flex-1"
-                />
+             <div key={step.id} className="p-6 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl flex items-center gap-6 group hover:border-[var(--accent-primary)]/50 transition-all">
+                <div className="w-8 h-8 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center text-[9px] font-black">{idx + 1}</div>
+                <div className="flex-1 space-y-3">
+                   <input 
+                     type="text" 
+                     value={step.title}
+                     placeholder="Título da etapa..."
+                     onChange={(e) => {
+                        const newWorkflow = [...product.workflow];
+                        newWorkflow[idx].title = e.target.value;
+                        setProduct({ ...product, workflow: newWorkflow });
+                     }}
+                     className="bg-transparent border-b border-[var(--border-primary)] text-xs font-bold focus:border-[var(--accent-primary)] outline-none w-full pb-1"
+                   />
+                </div>
                 <button 
+                  type="button"
                   onClick={() => {
-                     setProduct({ ...product, workflow: product.workflow.filter((sRef: any) => sRef.id !== step.id) });
+                     setProduct({ ...product, workflow: product.workflow.filter((sRef: WorkflowStep) => sRef.id !== step.id) });
                   }}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                 >
                    <Trash2 size={16} />
                 </button>
              </div>
           ))}
+
+          {product.workflow.length === 0 && (
+             <div className="p-12 border-2 border-dashed border-[var(--border-primary)] rounded-[2rem] flex flex-col items-center justify-center opacity-30 text-center">
+                <Compass size={32} className="mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-widest">Sem etapas definidas</p>
+             </div>
+          )}
        </div>
     </div>
   )
