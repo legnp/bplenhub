@@ -55,7 +55,8 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
       seo: { title: "", description: "", keywords: [] }
     },
     capabilities: { surveys: [], forms: [], allowedEventTypes: [] },
-    workflow: []
+    workflow: [],
+    grantedQuotas: {}
   });
 
   const [isSaved, setIsSaved] = useState(false);
@@ -348,10 +349,14 @@ function CapabilitiesForm({ product, setProduct }: any) {
           <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest">Tipos de Reunião Disponíveis</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
              {[
-               { id: 'sessao-boas-vindas', title: 'Sessão de Boas-vindas', icon: '🐣' },
-               { id: 'sessao-devolutiva', title: 'Sessão Devolutiva', icon: '🎯' },
-               { id: 'mentoria-individual', title: 'Mentoria Individual', icon: '🤝' },
-               { id: 'reuniao-estrategica', title: 'Reunião Estratégica', icon: '🧠' }
+               { id: 'onboarding', title: 'Reunião de Onboarding', icon: '🐣' },
+               { id: 'devolutiva-analise-comportamental', title: 'Devolutiva de Análise Comportamental', icon: '🎯' },
+               { id: 'consultoria-plano-carreira', title: 'Consultoria de Plano de Carreira', icon: '🛣️' },
+               { id: 'orientacao-em-grupo', title: 'Orientação em Grupo', icon: '👥' },
+               { id: 'orientacao-individual', title: 'Orientação Individual', icon: '👤' },
+               { id: 'sessao-coaching', title: 'Sessão de Coaching', icon: '📈' },
+               { id: 'sessao-mentoria', title: 'Sessão de Mentoria', icon: '🤝' },
+               { id: '1-to-1', title: '1 to 1', icon: '🧠' }
              ].map((event) => {
                const isSelected = product.capabilities.allowedEventTypes.includes(event.id);
                return (
@@ -365,13 +370,30 @@ function CapabilitiesForm({ product, setProduct }: any) {
                        : [...current, event.id];
                      setProduct({ ...product, capabilities: { ...product.capabilities, allowedEventTypes: next } });
                    }}
-                   className={`p-4 rounded-2xl border text-left transition-all ${isSelected ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10' : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]/20 opacity-60'}`}
+                   className={`p-4 rounded-2xl border text-left transition-all relative ${isSelected ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10' : 'border-[var(--border-primary)] bg-[var(--bg-secondary)]/20 opacity-60'}`}
                  >
                     <div className="flex items-center justify-between">
                        <p className="text-[9px] font-black uppercase tracking-widest">{event.id}</p>
                        <span className="text-xs">{event.icon}</span>
                     </div>
                     <p className="text-[8px] opacity-60 mt-1 line-clamp-1">{event.title}</p>
+                    
+                    {isSelected && (
+                      <div className="mt-4 pt-3 border-t border-[var(--accent-primary)]/10 flex items-center justify-between gap-4">
+                         <span className="text-[7px] font-black uppercase tracking-widest text-[var(--accent-primary)]">Sessões Inclusas</span>
+                         <input 
+                           type="number" 
+                           min="0"
+                           className="w-12 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg p-1.5 text-[10px] text-center font-black"
+                           value={product.grantedQuotas?.[event.id] || 0}
+                           onClick={(e) => e.stopPropagation()}
+                           onChange={(e) => {
+                             const val = parseInt(e.target.value) || 0;
+                             setProduct({ ...product, grantedQuotas: { ...product.grantedQuotas, [event.id]: val } });
+                           }}
+                         />
+                      </div>
+                    )}
                  </button>
                )
              })}

@@ -45,6 +45,9 @@ export interface Product {
   capabilities: CapabilityConfig;
   workflow: WorkflowStep[];
 
+  // Cotas de Serviço (Destaque para Agendamentos)
+  grantedQuotas: Record<string, number>; // Tipo de Evento -> Quantidade Inclusa
+
   status: 'draft' | 'active' | 'archived';
   createdAt: string;
   updatedAt: string;

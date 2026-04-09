@@ -26,3 +26,18 @@ export interface UserEntitlement {
   // Histórico de transação (Opcional, link para faturamento)
   transactionId?: string;
 }
+
+/**
+ * Carteira de Cotas do Membro
+ * Rastreia o saldo de créditos para agendamentos e serviços.
+ */
+export interface MemberQuota {
+  total: number;
+  used: number;
+  lastUpdated: string;
+}
+
+export interface MemberQuotaWallet {
+  uid: string;
+  quotas: Record<string, MemberQuota>; // Tipo de Evento -> Dados de Cota
+}
