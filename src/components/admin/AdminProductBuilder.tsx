@@ -56,11 +56,17 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
     workflow: []
   });
 
+  const [isSaved, setIsSaved] = useState(false);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await saveProductAction(product);
-      router.push("/admin/products");
+      setIsSaved(true);
+      // Pequeno delay para o usuário ver o feedback de sucesso
+      setTimeout(() => {
+        router.push("/admin/products");
+      }, 1500);
     } catch (error) {
       alert("Erro ao salvar produto");
     } finally {
@@ -94,11 +100,17 @@ export function AdminProductBuilder({ initialProduct }: AdminProductBuilderProps
            </button>
            <button 
              onClick={handleSave}
-             disabled={isSaving}
-             className="px-8 py-2.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] shadow-lg flex items-center gap-2 disabled:opacity-50"
+             disabled={isSaving || isSaved}
+             className={`px-8 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-[1.02] shadow-lg flex items-center gap-2 disabled:opacity-50 transition-all ${isSaved ? 'bg-green-500 text-white' : 'bg-[var(--text-primary)] text-[var(--bg-primary)]'}`}
            >
-             {isSaving ? <Plus className="animate-spin w-3 h-3" /> : <Save size={14} />}
-             Salvar Alterações
+             {isSaving ? (
+               <Plus className="animate-spin w-3 h-3" />
+             ) : isSaved ? (
+               <CheckCircle2 size={14} />
+             ) : (
+               <Save size={14} />
+             )}
+             {isSaved ? "Sucesso!" : "Salvar Alterações"}
            </button>
         </div>
       </div>

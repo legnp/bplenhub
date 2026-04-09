@@ -70,7 +70,7 @@ export async function saveProductAction(product: Partial<Product>) {
         createdAt: new Date().toISOString(),
         status: 'draft'
       });
-      return { success: true, id: newDoc.id };
+      // Importante: Não retornar aqui para permitir o revalidatePath abaixo
     }
 
     revalidatePath("/admin/products");
