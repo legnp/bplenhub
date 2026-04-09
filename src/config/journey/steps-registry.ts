@@ -1,74 +1,81 @@
+import { JourneyStep, SubStepConfig } from "@/types/journey";
+
 /**
  * BPlen HUB — Step Journey Registry 🧬
  * Configuração centralizada das 6 etapas da jornada do membro.
+ * Segue rigorosamente os tipos definidos em src/types/journey.ts
  */
 
-export type StepStatus = "locked" | "current" | "completed";
-
-export interface JourneyStep {
-  id: string;
-  order: number;
-  title: string;
-  subtitle: string;
-  description: string;
-  slug: string;
-  icon: string;
-  isLocked?: boolean;
-}
-
-export const JOURNEY_STEPS: JourneyStep[] = [
+export const JOURNEY_STAGES: JourneyStep[] = [
   {
-    id: "step_1",
+    id: "onboarding",
     order: 1,
     title: "Onboarding",
-    subtitle: "Boas-vindas e Nivelamento",
-    description: "Inicie sua jornada conhecendo o ecossistema BPlen e configurando seu perfil.",
-    slug: "onboarding",
+    description: "Inicie sua jornada conhecendo o ecossistema BPlen.",
     icon: "Rocket",
+    substeps: [
+      { 
+        id: "intro_video", 
+        title: "Boas-vindas", 
+        type: "content", 
+        referenceId: "welcome_video_01",
+        description: "Conheça a visão da BPlen" 
+      },
+      { 
+        id: "profile_setup", 
+        title: "Perfil", 
+        type: "form", 
+        referenceId: "user_onboarding_form",
+        description: "Complete seus dados" 
+      }
+    ],
   },
   {
-    id: "step_2",
+    id: "analise-comportamental",
     order: 2,
     title: "Análise Comportamental",
-    subtitle: "Mapeamento DISC & Perfil",
-    description: "Desenvolva autoconhecimento profundo através de nossas ferramentas de análise.",
-    slug: "analise-comportamental",
+    description: "Desenvolva autoconhecimento profundo.",
     icon: "UserCheck",
+    substeps: [
+      { 
+        id: "disc_survey", 
+        title: "DISC", 
+        type: "survey", 
+        referenceId: "disc_assessment_v1",
+        description: "Mapeamento comportamental" 
+      }
+    ],
   },
   {
-    id: "step_3",
+    id: "planejamento-carreira",
     order: 3,
     title: "Planejamento de Carreira",
-    subtitle: "Metas e Estratégia",
-    description: "Defina seu norte estratégico e os marcos de crescimento para os próximos ciclos.",
-    slug: "planejamento-carreira",
+    description: "Defina seu norte estratégico.",
     icon: "Map",
+    substeps: [],
   },
   {
-    id: "step_4",
+    id: "lideranca-gestao",
     order: 4,
     title: "Liderança & Gestão",
-    subtitle: "Soft Skills & Hard Skills",
-    description: "Domine as competências essenciais para liderar times e projetos de alto impacto.",
-    slug: "lideranca-gestao",
+    description: "Domine competências essenciais.",
     icon: "Shield",
+    substeps: [],
   },
   {
-    id: "step_5",
+    id: "performance",
     order: 5,
     title: "Performance",
-    subtitle: "Aceleração e Resultados",
-    description: "Otimize sua rotina e potencialize sua entrega com técnicas avançadas.",
-    slug: "performance",
+    description: "Otimize sua rotina.",
     icon: "TrendingUp",
+    substeps: [],
   },
   {
-    id: "step_6",
+    id: "mentoria-final",
     order: 6,
     title: "Mentoria Final",
-    subtitle: "Consolidação e Próximos Passos",
-    description: "Sessão de encerramento do ciclo com feedback 360 e plano de continuidade.",
-    slug: "mentoria-final",
+    description: "Consolidação e Próximos Passos.",
     icon: "Award",
+    substeps: [],
   },
 ];

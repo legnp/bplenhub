@@ -26,6 +26,7 @@ export interface JourneyStep {
   id: string;
   order: number;
   title: string;
+  subtitle?: string;
   icon: string; // Lucide icon name
   description: string;
   substeps: SubStepConfig[];
@@ -33,6 +34,7 @@ export interface JourneyStep {
   // Rules
   isOptional?: boolean;
   unlockRequirement?: string; // ID of the previous step that must be completed
+  isLocked?: boolean;
 }
 
 export interface UserStepProgress {

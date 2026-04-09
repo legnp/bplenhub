@@ -1,18 +1,21 @@
 "use client";
 
 import React from "react";
-import { JOURNEY_STEPS, JourneyStep } from "@/config/journey/steps-registry";
+import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
+import { StepStatus } from "@/types/journey";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface JourneyNavProps {
-  currentStepIndex: number;
-  onStepClick: (index: number) => void;
-  completedSteps: number[]; // Array de ordens ou IDs completados
+  currentStepId: string;
+  stepStatusMap: Record<string, StepStatus>;
 }
 
-export function JourneyNav({ currentStepIndex, onStepClick, completedSteps }: JourneyNavProps) {
+export function JourneyNav({ currentStepId, stepStatusMap }: JourneyNavProps) {
+  const currentStepIndex = JOURNEY_STAGES.findIndex(s => s.id === currentStepId);
+
   return (
     <div className="w-full overflow-hidden py-8 px-4">
       <div className="max-w-6xl mx-auto relative">
@@ -23,24 +26,25 @@ export function JourneyNav({ currentStepIndex, onStepClick, completedSteps }: Jo
         <motion.div 
           className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] -translate-y-1/2"
           initial={{ width: 0 }}
-          animate={{ width: `${(currentStepIndex / (JOURNEY_STEPS.length - 1)) * 100}%` }}
+          animate={{ width: `${(Math.max(0, currentStepIndex) / (JOURNEY_STAGES.length - 1)) * 100}%` }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
         />
 
         <div className="flex justify-between items-center relative z-10">
-          {JOURNEY_STEPS.map((step, index) => {
-            const isCompleted = completedSteps.includes(step.order);
-            const isCurrent = index === currentStepIndex;
-            const isLocked = !isCompleted && !isCurrent && index > currentStepIndex;
+          {JOURNEY_STAGES.map((stage, index) => {
+            const status = stepStatusMap[stage.id] || "locked";
+            const isCompleted = status === "completed";
+            const isCurrent = stage.id === currentStepId;
             
-            // @ts-ignore
-            const IconComponent = LucideIcons[step.icon as keyof typeof LucideIcons] || LucideIcons.Circle;
+            // Renderização segura do ícone Lucide
+            const IconName = stage.icon as keyof typeof LucideIcons;
+            const IconComponent = (LucideIcons[IconName] as any) || LucideIcons.Circle;
 
             return (
-              <div key={step.id} className="flex flex-col items-center group">
-                {/* Botão do Step */}
-                <button
-                  onClick={() => onStepClick(index)}
+              <div key={stage.id} className="flex flex-col items-center group">
+                {/* Botão do Step (Link se não estiver bloqueado) */}
+                <Link
+                  href={`/hub/membro/journey/${stage.id}`}
                   className={cn(
                     "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
                     "glass-morphism border overflow-visible",
@@ -48,7 +52,8 @@ export function JourneyNav({ currentStepIndex, onStepClick, completedSteps }: Jo
                       ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110" 
                       : isCompleted
                       ? "border-[var(--success-primary)]/50 bg-[var(--success-primary)]/5 text-[var(--success-primary)]"
-                      : "border-[var(--border-primary)] text-[var(--text-secondary)] opacity-60 hover:opacity-100 hover:border-[var(--accent-primary)]/40"
+                      : "border-[var(--border-primary)] text-[var(--text-secondary)] opacity-60 hover:opacity-100 hover:border-[var(--accent-primary)]/40",
+                    status === "locked" && "pointer-events-none opacity-30 grayscale"
                   )}
                 >
                   {isCompleted ? (
@@ -60,26 +65,23 @@ export function JourneyNav({ currentStepIndex, onStepClick, completedSteps }: Jo
                     )} />
                   )}
 
-                  {/* Tooltip/Label Superior (Flutuante) */}
+                  {/* Tooltip Lateral/Superior */}
                   <div className={cn(
-                    "absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-300 pointer-events-none text-xs font-semibold",
-                    "bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-xl",
+                    "absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-300 pointer-events-none text-[9px] font-black uppercase tracking-widest",
+                    "bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-xl z-50",
                     isCurrent ? "opacity-100 -translate-y-2 scale-100" : "opacity-0 translate-y-2 scale-90"
                   )}>
-                    Etapa {index + 1}
+                    {stage.title}
                   </div>
-                </button>
+                </Link>
 
-                {/* Info Text Inferior */}
-                <div className="mt-4 text-center max-w-[120px] hidden md:block">
+                {/* Info Text Inferior (Opcional - Escondido Mobile) */}
+                <div className="mt-4 text-center max-w-[120px] hidden lg:block">
                   <p className={cn(
-                    "text-[10px] uppercase tracking-widest font-bold mb-1 transition-colors",
+                    "text-[8px] uppercase tracking-[0.2em] font-black transition-colors",
                     isCurrent ? "text-[var(--accent-primary)]" : "text-[var(--text-tertiary)]"
                   )}>
-                    {step.title}
-                  </p>
-                  <p className="text-[9px] text-[var(--text-secondary)] leading-tight line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {step.subtitle}
+                    Etapa {index + 1}
                   </p>
                 </div>
               </div>

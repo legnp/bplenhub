@@ -18,10 +18,10 @@ export function useJourney(matricula: string) {
       setLoading(true);
       // Mock progress data
       const initialSteps: Record<string, UserStepProgress> = {};
-      JOURNEY_STAGES.forEach((stage, idx) => {
+      JOURNEY_STAGES.forEach((stage: any, idx: number) => {
         initialSteps[stage.id] = {
           stepId: stage.id,
-          status: idx === 0 ? "current" : "locked",
+          status: idx === 0 ? "current" as any : "locked" as any,
           completedSubSteps: [],
           currentSubStepId: stage.substeps[0]?.id
         };
