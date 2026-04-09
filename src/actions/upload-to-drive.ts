@@ -88,8 +88,10 @@ export async function uploadPostEventDocAction(formData: FormData) {
     const eventId = formData.get("eventId") as string;
     const idToken = formData.get("idToken") as string;
 
-    if (!file || !matricula || !eventId || !idToken) {
-      throw new Error("Dados incompletos para upload (File, Matricula, EventId ou Token ausentes).");
+    const isGeneral = formData.get("isGeneral") === "true";
+
+    if (!file || (!isGeneral && !matricula) || !eventId || !idToken) {
+      throw new Error(`Dados incompletos para upload (File: ${!!file}, Matricula: ${!!matricula}, EventId: ${!!eventId}, Token: ${!!idToken}).`);
     }
 
     // 1. Validar Sessão 🛡️
@@ -98,7 +100,6 @@ export async function uploadPostEventDocAction(formData: FormData) {
 
     // 2. Preparar estrutura de pastas no Drive 🗄️
     const drive = await getDriveClient();
-    const isGeneral = formData.get("isGeneral") === "true";
     let targetFolderId: string;
 
     if (isGeneral) {

@@ -202,7 +202,7 @@ export async function submitBookingProposalAction(formData: {
       }).join('');
 
       await resend.emails.send({
-        from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+        from: `BPlen HUB <hub@bplen.com>`,
         to: formData.email,
         subject: `Recebemos sua proposta de agenda na BPlen HUB!`,
         html: `

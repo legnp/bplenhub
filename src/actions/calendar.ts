@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/auth-guards";
 import { calendar_v3 } from "googleapis";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
+const OFFICIAL_SENDER = `BPlen HUB <hub@bplen.com>`;
 
 /**
  * BPlen HUB — Google Calendar Actions
@@ -390,7 +391,7 @@ export async function bookEventAction(
         console.log(`[EMAIL] Enviando confirmação assíncrona para: ${userEmail}`);
 
         await resend.emails.send({
-          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+          from: OFFICIAL_SENDER,
           to: userEmail,
           subject: `${displayName}, seu 1 to 1 foi confirmado na BPlen HUB!`,
           attachments: icsFile ? [
@@ -562,7 +563,7 @@ export async function adminAddAttendeeAction(
         const timeStr = format(startTime, "HH:mm");
         
         await resend.emails.send({
-          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+          from: OFFICIAL_SENDER,
           to: userEmail,
           subject: `ADMIN: Você foi incluído no evento ${summary}!`,
           html: `
@@ -643,8 +644,10 @@ export async function generateEventSummarySheetAction(
     if (searchRes.data.files && searchRes.data.files.length > 0) {
       spreadsheetId = searchRes.data.files[0].id!;
       spreadsheetUrl = searchRes.data.files[0].webViewLink!;
+      console.log(`[Sheets] Planilha existente encontrada: ${spreadsheetId}`);
     } else {
       // Criar nova planilha diretamente na pasta
+      console.log(`[Sheets] Criando nova planilha na pasta: ${eventFolderId}`);
       const createRes = await drive.files.create({
         requestBody: {
           name: fileName,
@@ -655,6 +658,7 @@ export async function generateEventSummarySheetAction(
       });
       spreadsheetId = createRes.data.id!;
       spreadsheetUrl = createRes.data.webViewLink!;
+      console.log(`[Sheets] Planilha criada com sucesso: ${spreadsheetId}`);
     }
 
     // 5. Estruturar Dados para o Sheets
@@ -664,7 +668,7 @@ export async function generateEventSummarySheetAction(
       a.nickname,
       a.email,
       a.attendanceStatus === "present" ? "PRESENTE" : a.attendanceStatus === "absent" ? "AUSENTE" : "PENDENTE",
-      "", // Feedback aluno (Placeholder se não tiver no doc do attendee)
+      "", // Feedback aluno
       a.participantFeedback || "",
       a.participantTasks || "",
       a.participantDocs?.map(d => d.url).join("\n") || "",
@@ -683,17 +687,21 @@ export async function generateEventSummarySheetAction(
       ...rows
     ];
 
-    // 6. Atualizar Valores
+    // 6. Resolver Nome da Planilha (Localização: Sheet1 vs Página1)
+    const ssMeta = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheetName = ssMeta.data.sheets?.[0].properties?.title || "Sheet1";
+
+    // 7. Atualizar Valores
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: "Sheet1!A1",
+      range: `${sheetName}!A1`,
       valueInputOption: "RAW",
       requestBody: {
         values: eventInfo,
       },
     });
 
-    // 7. Salvar link no Firestore para o Admin encontrar fácil
+    // 8. Salvar link no Firestore para o Admin encontrar fácil
     await eventRef.update({
       summarySheetUrl: spreadsheetUrl,
       summarySheetId: spreadsheetId,
@@ -859,7 +867,7 @@ export async function cancelBookingAction(
       try {
         const platformLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hub.bplen.com'}/admin/gestao-agenda`;
         await resend.emails.send({
-          from: `BPlen HUB <${CALENDAR_CONFIG.OFFICIAL_EMAIL}>`,
+          from: OFFICIAL_SENDER,
           to: trxResult.email,
           subject: `${trxResult.nickname}, seu ${trxResult.eventSummary} foi cancelado!`,
           html: `
@@ -977,20 +985,21 @@ export async function closeAttendeeAction(
   try {
     const db = getAdminDb();
     
-    // 1. Buscar dados gerais do evento para espelhamento
+    // 1. BUSCA PRÉVIA (OUTSIDE TRANSACTION 🛡️)
+    // O Node.js Admin SDK não permite queries (where) dentro de transaction.get()
+    const userBookingsRef = db.collection("User").doc(matricula).collection("User_Bookings");
+    const bookingQuery = await userBookingsRef.where("eventId", "==", eventId).limit(1).get();
+    const bookingDoc = bookingQuery.empty ? null : bookingQuery.docs[0];
+
+    // 2. BUSCAR DADOS DO EVENTO (READ ONLY)
     const eventRef = db.collection("Calendar_Events").doc(eventId);
     const eventSnap = await eventRef.get();
     if (!eventSnap.exists) throw new Error("Evento não encontrado.");
     const eventData = eventSnap.data() as GoogleCalendarEvent;
 
+    // 3. EXECUÇÃO TRANSACIONAL
     await db.runTransaction(async (transaction) => {
-      // 2. BUSCAS (READS FIRST 🛡️)
-      // Buscar agendamento na subcoleção do usuário para espelhamento
-      const userBookingsRef = db.collection("User").doc(matricula).collection("User_Bookings");
-      const bookingQuery = await transaction.get(userBookingsRef.where("eventId", "==", eventId));
-
-      // 3. EXECUÇÃO (WRITES SECOND ✍️)
-      // Atualizar subcoleção attendees do Evento
+      // Registrar no Evento
       const attendeeRef = eventRef.collection("attendees").doc(userId);
       transaction.set(attendeeRef, {
         attendanceStatus: data.attendanceStatus,
@@ -1001,9 +1010,8 @@ export async function closeAttendeeAction(
         attendanceCheckedBy: data.checkedBy
       }, { merge: true });
 
-      // Atualizar User_Bookings (Camada de Leitura Rápida)
-      if (!bookingQuery.empty) {
-        const bookingDoc = bookingQuery.docs[0];
+      // Atualizar User_Bookings se existir (Camada de Leitura Rápida)
+      if (bookingDoc) {
         transaction.set(bookingDoc.ref, {
           eventLifecycleStatus: eventData.lifecycleStatus || "completed",
           attendanceStatus: data.attendanceStatus,

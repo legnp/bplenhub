@@ -1,99 +1,92 @@
 "use client";
 
 import React from "react";
+import { JOURNEY_STEPS, JourneyStep } from "@/config/journey/steps-registry";
 import { motion } from "framer-motion";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
-import { StepStatus } from "@/types/journey";
-import { Check, Lock, ChevronRight } from "lucide-react";
 import * as LucideIcons from "lucide-react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface JourneyNavProps {
-  currentStepId: string;
-  stepStatusMap: Record<string, StepStatus>;
+  currentStepIndex: number;
+  onStepClick: (index: number) => void;
+  completedSteps: number[]; // Array de ordens ou IDs completados
 }
 
-/**
- * BPlen HUB — Minimalist Horizontal Stepper 🧬🛡️
- * Visualizer for the 6-stage member journey.
- */
-export function JourneyNav({ currentStepId, stepStatusMap }: JourneyNavProps) {
+export function JourneyNav({ currentStepIndex, onStepClick, completedSteps }: JourneyNavProps) {
   return (
-    <nav className="w-full max-w-5xl mx-auto mb-12 px-6">
-      <div className="flex items-center justify-between relative">
-        {/* Connection Line (Background) */}
-        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[var(--border-primary)] -translate-y-1/2 -z-10" />
+    <div className="w-full overflow-hidden py-8 px-4">
+      <div className="max-w-6xl mx-auto relative">
+        {/* Linha de Conexão de Fundo */}
+        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-[var(--border-primary)] -translate-y-1/2 opacity-20" />
         
-        {JOURNEY_STAGES.map((stage, idx) => {
-          const status = stepStatusMap[stage.id] || (idx === 0 ? "current" : "locked");
-          const isCurrent = currentStepId === stage.id;
-          const isCompleted = status === "completed";
-          const isLocked = status === "locked";
-          
-          // Dynamic Icon Resolution
-          const Icon = (LucideIcons as any)[stage.icon] || LucideIcons.Circle;
+        {/* Linha de Progresso Ativo */}
+        <motion.div 
+          className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] -translate-y-1/2"
+          initial={{ width: 0 }}
+          animate={{ width: `${(currentStepIndex / (JOURNEY_STEPS.length - 1)) * 100}%` }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+        />
 
-          return (
-            <div key={stage.id} className="flex items-center group">
-              <Link 
-                href={isLocked ? "#" : `/hub/membro/journey/${stage.id}`}
-                className={cn(
-                  "relative flex flex-col items-center gap-3 transition-all duration-500",
-                  isLocked ? "cursor-not-allowed" : "cursor-pointer hover:scale-105"
-                )}
-              >
-                {/* Visual Indicator */}
-                <div className={cn(
-                  "w-10 h-10 rounded-2xl flex items-center justify-center border transition-all duration-500 relative z-10 shadow-sm",
-                  isCurrent 
-                    ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 scale-110" 
-                    : isCompleted
-                      ? "bg-green-500/10 border-green-500/20 text-green-600"
-                      : isLocked
-                        ? "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] opacity-50"
-                        : "bg-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-primary)] hover:border-[var(--accent-start)]"
-                )}>
-                  {isCompleted ? <Check size={16} strokeWidth={3} /> : 
-                   isLocked ? <Lock size={14} /> : 
-                   <Icon size={16} strokeWidth={isCurrent ? 3 : 2} />}
+        <div className="flex justify-between items-center relative z-10">
+          {JOURNEY_STEPS.map((step, index) => {
+            const isCompleted = completedSteps.includes(step.order);
+            const isCurrent = index === currentStepIndex;
+            const isLocked = !isCompleted && !isCurrent && index > currentStepIndex;
+            
+            // @ts-ignore
+            const IconComponent = LucideIcons[step.icon as keyof typeof LucideIcons] || LucideIcons.Circle;
 
-                  {/* Glass Glow for Current */}
-                  {isCurrent && (
-                    <motion.div 
-                      layoutId="nav-glow"
-                      className="absolute inset-0 rounded-2xl bg-white/20 blur-sm -z-10"
-                    />
+            return (
+              <div key={step.id} className="flex flex-col items-center group">
+                {/* Botão do Step */}
+                <button
+                  onClick={() => onStepClick(index)}
+                  className={cn(
+                    "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                    "glass-morphism border overflow-visible",
+                    isCurrent 
+                      ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110" 
+                      : isCompleted
+                      ? "border-[var(--success-primary)]/50 bg-[var(--success-primary)]/5 text-[var(--success-primary)]"
+                      : "border-[var(--border-primary)] text-[var(--text-secondary)] opacity-60 hover:opacity-100 hover:border-[var(--accent-primary)]/40"
                   )}
-                </div>
+                >
+                  {isCompleted ? (
+                    <LucideIcons.Check className="w-5 h-5 animate-in zoom-in duration-300" />
+                  ) : (
+                    <IconComponent className={cn(
+                      "w-5 h-5",
+                      isCurrent && "animate-pulse"
+                    )} />
+                  )}
 
-                {/* Subtitle / Order */}
-                <div className="flex flex-col items-center">
-                   <span className={cn(
-                     "text-[8px] font-black uppercase tracking-[0.2em] transition-colors duration-300",
-                     isCurrent ? "text-[var(--accent-start)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
-                   )}>
-                     Etapa 0{stage.order}
-                   </span>
-                   <span className={cn(
-                     "text-[9px] font-bold whitespace-nowrap hidden md:block transition-all duration-300 transform",
-                     isCurrent ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-                   )}>
-                     {stage.title.split('. ')[1]}
-                   </span>
-                </div>
-              </Link>
+                  {/* Tooltip/Label Superior (Flutuante) */}
+                  <div className={cn(
+                    "absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-300 pointer-events-none text-xs font-semibold",
+                    "bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-xl",
+                    isCurrent ? "opacity-100 -translate-y-2 scale-100" : "opacity-0 translate-y-2 scale-90"
+                  )}>
+                    Etapa {index + 1}
+                  </div>
+                </button>
 
-              {/* Arrow Connector (except last) */}
-              {idx < JOURNEY_STAGES.length - 1 && (
-                <div className="mx-2 md:mx-6 opacity-20 hidden sm:block">
-                  <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                {/* Info Text Inferior */}
+                <div className="mt-4 text-center max-w-[120px] hidden md:block">
+                  <p className={cn(
+                    "text-[10px] uppercase tracking-widest font-bold mb-1 transition-colors",
+                    isCurrent ? "text-[var(--accent-primary)]" : "text-[var(--text-tertiary)]"
+                  )}>
+                    {step.title}
+                  </p>
+                  <p className="text-[9px] text-[var(--text-secondary)] leading-tight line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {step.subtitle}
+                  </p>
                 </div>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </nav>
+    </div>
   );
 }
