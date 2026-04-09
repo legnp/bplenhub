@@ -8,7 +8,8 @@ import { SubStepRail } from "@/components/journey/SubStepRail";
 import { StepRenderer } from "@/components/journey/StepRenderer";
 import { useAuthContext } from "@/context/AuthContext";
 import { useJourney } from "@/hooks/useJourney";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 /**
  * BPlen HUB — Step Journey Engine 🧬🛡️
@@ -49,8 +50,17 @@ export default function StepJourneyPage() {
   const stepStatus = getStepStatus(stepId);
 
   return (
-    <StepContainer 
-      title={stepConfig.title} 
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto py-8 px-4">
+      <Link 
+         href="/hub/membro/dashboard"
+         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-2"
+      >
+         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+         Voltar ao Dashboard
+      </Link>
+
+      <StepContainer 
+        title={stepConfig.title} 
       description={stepConfig.description}
       badge={stepStatus === "completed" ? "Finalizado" : "Em Progresso"}
     >
@@ -87,5 +97,6 @@ export default function StepJourneyPage() {
         />
       </div>
     </StepContainer>
+    </div>
   );
 }

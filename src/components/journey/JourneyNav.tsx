@@ -11,9 +11,10 @@ import Link from "next/link";
 interface JourneyNavProps {
   currentStepId: string;
   stepStatusMap: Record<string, StepStatus>;
+  onSelectStep?: (stepId: string) => void;
 }
 
-export function JourneyNav({ currentStepId, stepStatusMap }: JourneyNavProps) {
+export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: JourneyNavProps) {
   const currentStepIndex = JOURNEY_STAGES.findIndex(s => s.id === currentStepId);
 
   return (
@@ -40,14 +41,19 @@ export function JourneyNav({ currentStepId, stepStatusMap }: JourneyNavProps) {
             const IconName = stage.icon as keyof typeof LucideIcons;
             const IconComponent = (LucideIcons[IconName] as any) || LucideIcons.Circle;
 
+            const Wrapper = onSelectStep ? "div" : Link;
+            const wrapperProps = onSelectStep 
+              ? { onClick: () => onSelectStep(stage.id), role: "button" } 
+              : { href: `/hub/membro/journey/${stage.id}` };
+
             return (
               <div key={stage.id} className="flex flex-col items-center group">
-                {/* Botão do Step (Link se não estiver bloqueado) */}
-                <Link
-                  href={`/hub/membro/journey/${stage.id}`}
+                {/* Botão do Step (Interativo ou Link) */}
+                <Wrapper
+                  {...(wrapperProps as any)}
                   className={cn(
                     "relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
-                    "glass-morphism border overflow-visible",
+                    "glass-morphism border overflow-visible cursor-pointer",
                     isCurrent 
                       ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110" 
                       : isCompleted
@@ -73,7 +79,7 @@ export function JourneyNav({ currentStepId, stepStatusMap }: JourneyNavProps) {
                   )}>
                     {stage.title}
                   </div>
-                </Link>
+                </Wrapper>
 
                 {/* Info Text Inferior (Opcional - Escondido Mobile) */}
                 <div className="mt-4 text-center max-w-[120px] hidden lg:block">

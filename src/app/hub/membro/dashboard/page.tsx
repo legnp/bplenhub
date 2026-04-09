@@ -33,8 +33,13 @@ import {
 } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
-import { format, parseISO, isBefore } from "date-fns";
+import { format, parseISO, isBefore, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useJourney } from "@/hooks/useJourney";
+import { JourneyNav } from "@/components/journey/JourneyNav";
+import { StageOverviewCard } from "@/components/journey/StageOverviewCard";
+import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
+import Link from "next/link";
 
 /**
  * Member Dashboard — BPlen HUB 🧬
@@ -51,6 +56,16 @@ export default function MemberDashboardPage() {
   // Histórico de Mentorias
   const [historyBookings, setHistoryBookings] = useState<UserBooking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+
+  // Journey Integration
+  const { progress, loading: loadingJourney, getStepStatus } = useJourney(user?.uid || "guest");
+  const [activeStageId, setActiveStageId] = useState<string>("onboarding");
+
+  useEffect(() => {
+    if (progress?.lastActiveStepId) {
+       setActiveStageId(progress.lastActiveStepId);
+    }
+  }, [progress]);
 
   useEffect(() => {
     if (!user) return;
@@ -161,12 +176,12 @@ export default function MemberDashboardPage() {
               className="space-y-12"
             >
               {/* Journey Header (100% width) */}
-              <section className="bg-[var(--bg-primary)] border border-dashed border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group">
+              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group shadow-sm transition-all hover:shadow-xl hover:shadow-[var(--accent-primary)]/5">
                   <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
                      <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
                   </div>
 
-                  <div className="relative z-10 max-w-2xl space-y-8">
+                  <div className="relative z-10 space-y-8">
                      <div className="space-y-4">
                         <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
                            <Target size={18} className="animate-pulse" />
@@ -174,10 +189,16 @@ export default function MemberDashboardPage() {
                         </div>
                         <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard de Evolução</h2>
                      </div>
-                     <div className="h-24 flex items-center border border-dashed border-[var(--border-primary)] rounded-2xl px-6 bg-[var(--bg-primary)]/50">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40 italic">
-                           Evolução estratégica em processamento...
-                        </p>
+
+                     {/* Journey Navigation (Horizontal Stepper) */}
+                     <div className="pt-4">
+                        <JourneyNav 
+                           currentStepId={activeStageId} 
+                           stepStatusMap={progress?.steps ? Object.fromEntries(
+                              Object.entries(progress.steps).map(([k, v]) => [k, v.status])
+                           ) : {}}
+                           onSelectStep={setActiveStageId}
+                        />
                      </div>
                   </div>
               </section>
@@ -281,36 +302,64 @@ export default function MemberDashboardPage() {
                   )}
                 </aside>
 
-                {/* Main: Journey Outcomes (2/3) — Histórico de Mentorias e Entregas 🧬 */}
+                {/* Main: Journey Outcomes Card & Minimized History */}
                 <div className="space-y-8 flex flex-col">
-                   <div className="flex items-center justify-between px-6">
-                      <div className="flex flex-col">
-                         <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Histórico de Mentorias</h3>
-                         <p className="text-[10px] font-bold text-[var(--accent-start)] uppercase tracking-widest mt-1">Sessões & Entregas Estratégicas</p>
+                   
+                   {/* Current Active Stage Card */}
+                   {activeStageId && (
+                      <StageOverviewCard 
+                        stage={JOURNEY_STAGES.find(s => s.id === activeStageId) || JOURNEY_STAGES[0]} 
+                      />
+                   )}
+
+                   {/* Informative Minimized History */}
+                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
+                      <div className="flex items-center justify-between">
+                         <div className="flex flex-col">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Atividade Recente</h3>
+                            <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Mentorias & Sessões</p>
+                         </div>
+                         <div className="p-2 bg-[var(--accent-primary)]/5 rounded-xl border border-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
+                            <Clock size={16} />
+                         </div>
                       </div>
-                      <Layout size={18} className="text-[var(--text-muted)] opacity-20" />
+
+                      <div className="space-y-4">
+                        {loadingBookings ? (
+                           <div className="py-8 flex items-center gap-4 opacity-30">
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              <p className="text-[9px] font-black uppercase tracking-widest">Sincronizando...</p>
+                           </div>
+                        ) : historyBookings.length === 0 ? (
+                           <div className="py-10 bg-[var(--input-bg)]/30 border border-dashed border-[var(--border-primary)] rounded-2xl text-center px-6">
+                              <p className="text-[9px] font-medium text-[var(--text-muted)] italic leading-relaxed">
+                                Suas atividades de mentoria aparecerão aqui.
+                              </p>
+                           </div>
+                        ) : (
+                           // Mostra apenas o evento mais significativo (Ex: Próximo ou Último)
+                           <div className="space-y-4">
+                              <OutcomeCard 
+                                 booking={
+                                    historyBookings.find(b => isAfter(parseISO(b.eventDetail?.start || ""), new Date())) 
+                                    || historyBookings[0]
+                                 } 
+                                 onDownload={handleDownload} 
+                                 compact
+                              />
+                              
+                              <Link 
+                                 href="/hub/membro/gestao_agenda"
+                                 className="w-full py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:scale-[1.01] transition-all shadow-lg"
+                              >
+                                 Gestão de Agenda completa
+                                 <ExternalLink size={12} />
+                              </Link>
+                           </div>
+                        )}
+                      </div>
                    </div>
 
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {loadingBookings ? (
-                         <div className="col-span-full py-20 flex flex-col items-center justify-center gap-4 opacity-20">
-                            <Loader2 className="w-8 h-8 animate-spin" />
-                            <p className="text-[10px] font-black uppercase tracking-widest">Sincronizando Entregas...</p>
-                         </div>
-                      ) : historyBookings.length === 0 ? (
-                         <div className="col-span-full py-24 bg-[var(--input-bg)] border border-dashed border-[var(--border-primary)] rounded-[3.5rem] flex flex-col items-center justify-center text-center px-10">
-                            <Target size={40} className="text-[var(--text-muted)] opacity-20 mb-4" />
-                            <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Sua jornada de mentoria está começando</h4>
-                            <p className="text-[10px] font-medium text-[var(--text-muted)] mt-2 italic max-w-sm leading-relaxed">
-                               As notas, documentos e feedbacks de suas sessões aparecerão aqui assim que as mentorias forem concluídas.
-                            </p>
-                         </div>
-                      ) : (
-                         historyBookings.map((booking) => (
-                            <OutcomeCard key={booking.id} booking={booking} onDownload={handleDownload} />
-                         ))
-                      )}
-                   </div>
                 </div>
 
               </div>
@@ -418,7 +467,7 @@ function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart 
 /**
  * OutcomeCard: Compact view of mentorship results
  */
-function OutcomeCard({ booking, onDownload }: { booking: UserBooking, onDownload: (fileId: string) => void }) {
+function OutcomeCard({ booking, onDownload, compact }: { booking: UserBooking, onDownload: (fileId: string) => void, compact?: boolean }) {
   const event = booking.eventDetail;
   if (!event) return null;
 
@@ -429,7 +478,7 @@ function OutcomeCard({ booking, onDownload }: { booking: UserBooking, onDownload
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-[var(--input-bg)]/40 border border-[var(--border-primary)] rounded-[2.5rem] p-6 space-y-4 hover:border-[var(--accent-start)]/30 transition-all group shadow-sm"
+      className={`bg-[var(--input-bg)]/40 border border-[var(--border-primary)] rounded-[2.5rem] ${compact ? 'p-5' : 'p-6'} space-y-4 hover:border-[var(--accent-start)]/30 transition-all group shadow-sm`}
     >
        <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
