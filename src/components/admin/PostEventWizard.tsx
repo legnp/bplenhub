@@ -169,8 +169,9 @@ export default function PostEventWizard({ isOpen, onClose, event, onSuccess }: P
       
       onSuccess?.();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao gerar resumo final:", error);
+      alert("ATENÇÃO: A planilha de consolidação não pôde ser gerada na pasta do Google Drive. Verifique as permissões de acesso da conta hub@bplen.com ou as variáveis do sistema.\n\n" + (error.message || "Erro desconhecido"));
       // Mesmo com erro na planilha, permitimos fechar pois o grosso (atas/presença) já foi salvo.
       onSuccess?.();
       onClose();

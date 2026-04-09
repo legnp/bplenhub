@@ -600,7 +600,7 @@ export async function adminAddAttendeeAction(
 }
 
 import { getSheetsClient, getDriveClient } from "@/lib/google-auth";
-import { ensureFolder } from "@/lib/drive-utils";
+import { ensureFolder, createSpreadsheet } from "@/lib/drive-utils";
 
 /**
  * Geração de Planilha de Resumo (Google Sheets) 📊
@@ -636,6 +636,8 @@ export async function generateEventSummarySheetAction(
       q: `name = '${fileName}' and '${eventFolderId}' in parents and trashed = false`,
       fields: "files(id, webViewLink)",
       spaces: "drive",
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     });
 
     let spreadsheetId: string;
@@ -646,18 +648,11 @@ export async function generateEventSummarySheetAction(
       spreadsheetUrl = searchRes.data.files[0].webViewLink!;
       console.log(`[Sheets] Planilha existente encontrada: ${spreadsheetId}`);
     } else {
-      // Criar nova planilha diretamente na pasta
+      // Criar nova planilha usando o utilitário robusto
       console.log(`[Sheets] Criando nova planilha na pasta: ${eventFolderId}`);
-      const createRes = await drive.files.create({
-        requestBody: {
-          name: fileName,
-          mimeType: "application/vnd.google-apps.spreadsheet",
-          parents: [eventFolderId],
-        },
-        fields: "id, webViewLink",
-      });
-      spreadsheetId = createRes.data.id!;
-      spreadsheetUrl = createRes.data.webViewLink!;
+      const newSheet = await createSpreadsheet(drive, eventFolderId, fileName);
+      spreadsheetId = newSheet.id;
+      spreadsheetUrl = newSheet.webViewLink;
       console.log(`[Sheets] Planilha criada com sucesso: ${spreadsheetId}`);
     }
 

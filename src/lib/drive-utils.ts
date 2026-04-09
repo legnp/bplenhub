@@ -63,7 +63,7 @@ export async function createSpreadsheet(
   drive: drive_v3.Drive,
   parentFolderId: string,
   fileName: string
-): Promise<string> {
+): Promise<{ id: string; webViewLink: string }> {
   const sheetFile = await drive.files.create({
     supportsAllDrives: true,
     requestBody: {
@@ -71,11 +71,14 @@ export async function createSpreadsheet(
       mimeType: "application/vnd.google-apps.spreadsheet",
       parents: [parentFolderId],
     },
-    fields: "id",
+    fields: "id, webViewLink",
   });
 
   if (!sheetFile.data.id) throw new Error(`Falha ao criar planilha: ${fileName}`);
-  return sheetFile.data.id;
+  return {
+    id: sheetFile.data.id,
+    webViewLink: sheetFile.data.webViewLink || ""
+  };
 }
 
 /**
