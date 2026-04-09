@@ -723,7 +723,13 @@ export async function closeAttendeeAction(
     const eventData = eventSnap.data() as GoogleCalendarEvent;
 
     await db.runTransaction(async (transaction) => {
-      // 2. Atualizar subcoleção attendees do Evento
+      // 2. BUSCAS (READS FIRST 🛡️)
+      // Buscar agendamento na subcoleção do usuário para espelhamento
+      const userBookingsRef = db.collection("User").doc(matricula).collection("User_Bookings");
+      const bookingQuery = await transaction.get(userBookingsRef.where("eventId", "==", eventId));
+
+      // 3. EXECUÇÃO (WRITES SECOND ✍️)
+      // Atualizar subcoleção attendees do Evento
       const attendeeRef = eventRef.collection("attendees").doc(userId);
       transaction.set(attendeeRef, {
         attendanceStatus: data.attendanceStatus,
@@ -734,10 +740,7 @@ export async function closeAttendeeAction(
         attendanceCheckedBy: data.checkedBy
       }, { merge: true });
 
-      // 3. Atualizar User_Bookings (Camada de Leitura Rápida)
-      const userBookingsRef = db.collection("User").doc(matricula).collection("User_Bookings");
-      const bookingQuery = await transaction.get(userBookingsRef.where("eventId", "==", eventId));
-      
+      // Atualizar User_Bookings (Camada de Leitura Rápida)
       if (!bookingQuery.empty) {
         const bookingDoc = bookingQuery.docs[0];
         transaction.set(bookingDoc.ref, {
