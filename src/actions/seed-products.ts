@@ -38,7 +38,10 @@ export async function seedInitialProductsAction() {
       capabilities: {
         surveys: ["welcome_survey"],
         forms: ["user_onboarding_form"],
-        allowedEventTypes: ["sessao-boas-vindas"]
+        allowedEventTypes: ["onboarding"]
+      },
+      grantedQuotas: {
+        "onboarding": 1
       },
       workflow: [
         { id: "wf-1", title: "Boas-vindas", type: "milestone", description: "Conhecer a visão BPlen" },
@@ -72,7 +75,10 @@ export async function seedInitialProductsAction() {
       capabilities: {
         surveys: ["pre_analise_comportamental", "disc"],
         forms: ["devolutiva-disc"],
-        allowedEventTypes: ["sessao-devolutiva"]
+        allowedEventTypes: ["devolutiva-analise-comportamental"]
+      },
+      grantedQuotas: {
+        "devolutiva-analise-comportamental": 1
       },
       workflow: [
         { id: "wf-d1", title: "Pré-diagnóstico", type: "milestone", description: "Alinhamento de expectativas" },
