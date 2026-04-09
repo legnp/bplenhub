@@ -37,10 +37,10 @@ import { format, parseISO, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 /**
- * Hub - Área de Resultados do Membro 🧬
- * Versão Refinada (Corrigido Auth e com todos os Cards)
+ * Member Dashboard — BPlen HUB 🧬
+ * Estrutura central de resultados, assessments e evolução do membro.
  */
-export default function ResultadosPage() {
+export default function MemberDashboardPage() {
   const { user, matricula } = useAuthContext();
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);
@@ -57,7 +57,7 @@ export default function ResultadosPage() {
     
     async function load() {
       try {
-        console.log("🔍 [ResultadosPage] Iniciando carga resiliente para UID:", user!.uid);
+        console.log("🔍 [MemberDashboard] Iniciando carga resiliente para UID:", user!.uid);
         
         const results = await Promise.allSettled([
           getGestaoTempoResult(user!.uid, user!.email || ''),
@@ -172,7 +172,7 @@ export default function ResultadosPage() {
                            <Target size={18} className="animate-pulse" />
                            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Visão Estratégica</span>
                         </div>
-                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Visão da sua jornada</h2>
+                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard de Evolução</h2>
                      </div>
                      <div className="h-24 flex items-center border border-dashed border-[var(--border-primary)] rounded-2xl px-6 bg-[var(--bg-primary)]/50">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-40 italic">
