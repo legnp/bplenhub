@@ -26,7 +26,8 @@ import {
   deleteSocialPost, 
   togglePostStatus 
 } from "@/actions/social";
-import { deleteSocialThumbnailFromDrive } from "@/actions/social-drive";
+import { uploadSocialThumbnailToDrive, deleteSocialThumbnailFromDrive } from "@/actions/social-drive";
+import GlassModal from "@/components/ui/GlassModal";
 import { SocialPostForm } from "@/components/admin/SocialPostForm";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
@@ -68,7 +69,6 @@ export default function SocialManagementPage() {
   const handleDelete = async (post: SocialPost) => {
     if (confirm("Tem certeza que deseja excluir esta postagem permanentemente?")) {
       try {
-        // 🛡️ Segurança: Obter Token p/ Deleção
         const adminToken = await auth.currentUser?.getIdToken();
 
         // 1. Apagar imagem do Drive se for uma URL do Drive
@@ -85,7 +85,6 @@ export default function SocialManagementPage() {
 
   const handleToggle = async (id: string, field: 'isActive' | 'isFeatured', current: boolean) => {
     try {
-      // 🛡️ Segurança: Obter Token p/ Toggle
       const adminToken = await auth.currentUser?.getIdToken();
 
       await togglePostStatus(id, field, current, adminToken);
@@ -108,11 +107,11 @@ export default function SocialManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">
-            Gestão <span className="text-[var(--accent-start)] italic">Social</span>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            MEDIA E <span className="text-[var(--accent-start)] italic">EDITORIAL</span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm font-medium opacity-60">
-            Curadoria manual de postagens para a vitrine pública.
+          <p className="text-[var(--text-muted)] text-sm font-medium opacity-70">
+            Gestão e criação de conteúdos editoriais e de social media.
           </p>
         </div>
 
@@ -121,7 +120,7 @@ export default function SocialManagementPage() {
             setEditingPost(null);
             setIsFormOpen(true);
           }}
-          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-[var(--accent-start)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] shadow-xl shadow-[var(--accent-start)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
         >
           <Plus size={18} />
           Nova Postagem
@@ -135,27 +134,27 @@ export default function SocialManagementPage() {
             <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)]">
               <LayoutDashboard size={18} />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Total de Posts</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Total de Posts</span>
           </div>
-          <div className="text-4xl font-black text-[var(--text-primary)]">{posts.length}</div>
+          <div className="text-4xl font-bold text-[var(--text-primary)]">{posts.length}</div>
         </div>
         <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
               <Eye size={18} />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Ativos no Site</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Ativos no Site</span>
           </div>
-          <div className="text-4xl font-black text-[var(--text-primary)]">{posts.filter(p => p.isActive).length}</div>
+          <div className="text-4xl font-bold text-[var(--text-primary)]">{posts.filter(p => p.isActive).length}</div>
         </div>
         <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-yellow-500/10 rounded-xl text-yellow-500">
               <Star size={18} />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Em Destaque</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Em Destaque</span>
           </div>
-          <div className="text-4xl font-black text-[var(--text-primary)]">{posts.filter(p => p.isFeatured).length}</div>
+          <div className="text-4xl font-bold text-[var(--text-primary)]">{posts.filter(p => p.isFeatured).length}</div>
         </div>
       </div>
 
@@ -177,7 +176,7 @@ export default function SocialManagementPage() {
             <button
               key={plat}
               onClick={() => setPlatformFilter(plat as any)}
-              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest ${platformFilter === plat
+              className={`px-4 py-2 rounded-xl text-[9px] font-bold transition-all uppercase tracking-widest ${platformFilter === plat
                   ? "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
                   : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
@@ -197,7 +196,7 @@ export default function SocialManagementPage() {
         ) : filteredPosts.length === 0 ? (
           <div className="col-span-full py-24 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)]/50">
             <Globe className="w-16 h-16 text-[var(--text-muted)] opacity-10 mx-auto mb-6" />
-            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em]">Nenhuma postagem encontrada</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-[0.3em]">Nenhuma postagem encontrada</p>
             <p className="text-[11px] text-[var(--text-muted)] opacity-40 mt-3 max-w-xs mx-auto">Aumente sua presença digital cadastrando novos conteúdos.</p>
           </div>
         ) : (
@@ -251,12 +250,12 @@ export default function SocialManagementPage() {
               <div className="p-8 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarIcon size={12} className="text-[var(--accent-start)] opacity-60" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                     Publicado em {post.publishedAt}
                   </span>
                 </div>
                 
-                <h3 className="text-lg font-black text-[var(--text-primary)] tracking-tight line-clamp-1 mb-2 group-hover:text-[var(--accent-start)] transition-colors">
+                <h3 className="text-lg font-bold text-[var(--text-primary)] tracking-tight line-clamp-1 mb-2 group-hover:text-[var(--accent-start)] transition-colors">
                   {post.title}
                 </h3>
                 
@@ -286,7 +285,7 @@ export default function SocialManagementPage() {
                   <a 
                     href={post.url} 
                     target="_blank" 
-                    className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[var(--accent-start)] hover:gap-3 transition-all"
+                    className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-[var(--accent-start)] hover:gap-3 transition-all"
                   >
                     Ver original <ArrowRight size={14} />
                   </a>

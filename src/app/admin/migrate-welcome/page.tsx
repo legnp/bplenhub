@@ -24,10 +24,14 @@ export default function MigrateWelcomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-12 flex flex-col items-center justify-center space-y-12">
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-black tracking-tight">Migração: Welcome Survey 🧬</h1>
-        <p className="text-gray-500 text-sm">Atualização do formato legado para a Survey_Global institucional.</p>
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] p-12 flex flex-col items-center justify-center space-y-10">
+      <div className="text-center space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">
+          Migração: <span className="text-[var(--accent-start)] italic">Welcome Survey</span>
+        </h1>
+        <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-60">
+          Atualização do formato legado para a Survey_Global institucional.
+        </p>
       </div>
 
       <div className="p-10 bg-white/5 border border-white/10 rounded-[2.5rem] max-w-xl w-full space-y-8">
@@ -42,7 +46,7 @@ export default function MigrateWelcomePage() {
             </div>
             <button
               onClick={handleStart}
-              className="px-12 py-5 bg-white text-black font-black text-xs tracking-widest uppercase hover:scale-105 transition-all flex items-center gap-4 mx-auto"
+              className="px-12 py-5 bg-[var(--text-primary)] text-[var(--bg-primary)] font-bold text-[10px] tracking-widest uppercase hover:translate-y-[-2px] transition-all flex items-center gap-4 mx-auto rounded-full shadow-xl"
             >
               Iniciar Migração <Play size={16} />
             </button>
@@ -52,7 +56,7 @@ export default function MigrateWelcomePage() {
         {status === "running" && (
           <div className="text-center space-y-8 py-12">
             <Loader2 size={48} className="animate-spin text-[var(--accent-start)] mx-auto" />
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Processando Usuários...</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)]">Processando Usuários...</p>
           </div>
         )}
 
@@ -71,8 +75,8 @@ export default function MigrateWelcomePage() {
                  { label: "Erros", val: results.errors },
                ].map(item => (
                  <div key={item.label} className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
-                    <div className="text-xs text-gray-500 mb-1 font-bold uppercase tracking-widest">{item.label}</div>
-                    <div className="text-2xl font-black">{item.val}</div>
+                    <div className="text-[9px] text-[var(--text-muted)] mb-1 font-bold uppercase tracking-widest">{item.label}</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">{item.val}</div>
                  </div>
                ))}
             </div>

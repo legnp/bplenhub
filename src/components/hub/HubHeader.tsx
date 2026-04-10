@@ -185,13 +185,13 @@ export function HubHeader() {
                  >
                     <div className="space-y-6">
                        
-                       {/* 🌐 Status de Conexão */}
+                       {/* Status de Conexão */}
                        <div className="flex items-center gap-2 py-1 px-2 bg-[var(--accent-start)]/5 rounded-lg border border-[var(--accent-start)]/5">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
                           <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">Sincronizado</span>
                        </div>
 
-                       {/* 👤 Identidade do Usuário */}
+                       {/* Identidade do Usuário */}
                        <div className="space-y-1.5 px-1">
                           <p className="text-[11px] font-black tracking-tight text-[var(--text-primary)] leading-tight uppercase truncate">
                              {user?.displayName || "Membro BPlen"}

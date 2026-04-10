@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
 
   const stats = [
     {
-      title: "Agendamentos 1:1",
+      title: "AGENDAMENTOS 1:1",
       value: loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (pendingCount ?? 0),
       label: "cliques diretos nesta semana",
       icon: Handshake,
@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
       highlight: (pendingCount ?? 0) > 0
     },
     {
-      title: "Agenda",
+      title: "AGENDA",
       value: "Ativa",
       label: "sincronização ok",
       icon: Calendar,
@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
       link: "/admin/gestao-agenda"
     },
     {
-      title: "Leads",
+      title: "LEADS",
       value: "Gestão",
       label: "base de contatos",
       icon: Users,
@@ -78,12 +78,12 @@ export default function AdminDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-2"
       >
-        <h1 className="text-4xl font-black bg-gradient-to-r from-[var(--accent-start)] via-[var(--accent-end)] to-[var(--accent-start)] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x tracking-tighter text-left">
-          Dashboard Administrativo
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] text-left transition-all">
+          DASHBOARD <span className="text-[var(--accent-start)] italic">Administrativo</span>
         </h1>
-        <p className="text-[var(--text-muted)] font-medium flex items-center gap-2 text-left">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-          BPlen HUB — Centro de Comando Operacional
+        <p className="text-[var(--text-muted)] text-sm font-medium opacity-70 flex items-center gap-2 text-left">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+          BPlen HUB | Visão Geral Administrativa
         </p>
       </motion.div>
 
@@ -108,10 +108,10 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="space-y-1 text-left">
-                <h3 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter flex items-baseline gap-2">
+                <h3 className="text-3xl font-bold text-[var(--text-primary)] tracking-tighter flex items-baseline gap-2">
                   {stat.value}
                 </h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">
                   {stat.title}
                 </p>
                 <p className="text-xs font-medium text-[var(--text-muted)]">
@@ -132,7 +132,7 @@ export default function AdminDashboardPage() {
       <div className="bg-[var(--input-bg)] backdrop-blur-xl border border-[var(--border-primary)] rounded-[32px] p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <Clock className="w-5 h-5 text-[var(--accent-start)]" />
-          <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Atalhos de Gestão</h2>
+          <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Atalhos de Gestão</h2>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

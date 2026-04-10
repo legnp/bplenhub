@@ -182,11 +182,11 @@ export default function AgendaManagementPage() {
       {/* Header & Main Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-             Sincronizar <span className="text-accent-start italic">Agenda</span>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] text-left">
+             SINCRONIZAR <span className="text-[var(--accent-start)] italic">AGENDA</span>
           </h1>
-          <p className="text-secondary text-sm font-medium opacity-70">
-            Interface de controle operacional e auditoria de serviços.
+          <p className="text-[var(--text-muted)] text-sm font-medium opacity-70">
+            Sincronização com o Google Agenda BPlen HUB
           </p>
         </div>
 
@@ -214,48 +214,48 @@ export default function AgendaManagementPage() {
       </div>
 
       {/* Stats Cards Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl transition-all hover:bg-[var(--accent-soft)]">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)]">
-              <LayoutDashboard className="w-4 h-4" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 bg-[var(--input-bg)] rounded-[2rem] border border-[var(--border-primary)] shadow-sm transition-all hover:bg-[var(--accent-soft)]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-1.5 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)]">
+              <LayoutDashboard className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Total na Base</span>
+            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Total na Base</span>
           </div>
-          <div className="text-4xl font-black text-[var(--text-primary)]">{stats.total}</div>
-          <p className="text-[10px] text-[var(--text-muted)] mt-2 font-bold uppercase tracking-widest opacity-40">Eventos mapeados</p>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">{stats.total}</div>
+          <p className="text-[9px] text-[var(--text-muted)] mt-1.5 font-bold uppercase tracking-widest opacity-40">Eventos mapeados</p>
         </div>
 
-        <div className="p-6 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl transition-all hover:bg-[var(--accent-soft)]">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
-              <Activity className="w-4 h-4" />
+        <div className="p-5 bg-[var(--input-bg)] rounded-[2rem] border border-[var(--border-primary)] shadow-sm transition-all hover:bg-[var(--accent-soft)]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-1.5 bg-green-500/10 rounded-xl text-green-500">
+              <Activity className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Status Sincronizado</span>
+            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Status Sincronizado</span>
           </div>
-          <div className="text-4xl font-black text-[var(--text-primary)]">{stats.status.sync}</div>
-          <div className="flex items-center gap-1.5 mt-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-            <span className="text-[10px] font-bold text-green-500 uppercase">Operacional</span>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">{stats.status.sync}</div>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.3)]" />
+            <span className="text-[9px] font-bold text-green-500 uppercase">Operacional</span>
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-2 p-7 bg-[var(--input-bg)] rounded-3xl border border-[var(--border-primary)] shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-[var(--accent-end)]/10 rounded-xl text-[var(--accent-end)]">
-              <TrendingUp className="w-4 h-4" />
+        <div className="col-span-1 md:col-span-2 p-6 bg-[var(--input-bg)] rounded-[2rem] border border-[var(--border-primary)] shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-1.5 bg-[var(--accent-end)]/10 rounded-xl text-[var(--accent-end)]">
+              <TrendingUp className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Principais Tipos / Serviços (Top 5)</span>
+            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-none">Principais Tipos / Serviços (Top 5)</span>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {stats.types.map((t, i) => (
-              <div key={i} className="flex items-center gap-2 px-3 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--input-border)] shadow-sm hover:border-[var(--accent-start)]/30 transition-all">
-                <span className="text-[10px] font-bold text-[var(--text-primary)] line-clamp-1 max-w-[150px]">{t.name}</span>
-                <span className="text-[10px] font-black text-[var(--accent-start)] bg-[var(--accent-start)]/10 px-1.5 rounded-lg border border-[var(--accent-start)]/10">{t.count}</span>
+              <div key={i} className="flex items-center gap-2 px-2.5 py-1.5 bg-[var(--input-bg)] rounded-xl border border-[var(--input-border)] shadow-sm hover:border-[var(--accent-start)]/30 transition-all">
+                <span className="text-[9px] font-bold text-[var(--text-primary)] line-clamp-1 max-w-[150px]">{t.name}</span>
+                <span className="text-[9px] font-bold text-[var(--accent-start)] bg-[var(--accent-start)]/10 px-1 rounded-lg border border-[var(--accent-start)]/10">{t.count}</span>
               </div>
             ))}
-            {stats.types.length === 0 && <span className="text-[10px] text-[var(--text-muted)] italic">Aguardando dados...</span>}
+            {stats.types.length === 0 && <span className="text-[9px] text-[var(--text-muted)] italic">Aguardando dados...</span>}
           </div>
         </div>
       </div>
@@ -280,7 +280,7 @@ export default function AgendaManagementPage() {
             <button
               key={opt}
               onClick={() => setDateRange(opt)}
-              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest ${dateRange === opt
+              className={`px-4 py-2 rounded-xl text-[9px] font-bold transition-all uppercase tracking-widest ${dateRange === opt
                   ? "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
                   : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
@@ -296,7 +296,7 @@ export default function AgendaManagementPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="bg-transparent text-[9px] font-black text-[var(--text-muted)] focus:outline-none cursor-pointer uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors"
+            className="bg-transparent text-[9px] font-bold text-[var(--text-muted)] focus:outline-none cursor-pointer uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors"
           >
             <option value="date" className="bg-[var(--bg-primary)] text-[var(--text-primary)]">Ordenar por Data</option>
             <option value="name" className="bg-[var(--bg-primary)] text-[var(--text-primary)]">Ordenar por Nome</option>
@@ -345,7 +345,7 @@ export default function AgendaManagementPage() {
         ) : processedEvents.length === 0 ? (
           <div className="p-24 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)] backdrop-blur-sm">
             <CalendarIcon className="w-16 h-16 text-[var(--text-muted)] opacity-10 mx-auto mb-6" />
-            <p className="text-[10px] text-[var(--text-muted)] font-black uppercase tracking-[0.3em]">Nenhum evento encontrado</p>
+            <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-[0.3em]">Nenhum evento encontrado</p>
             <p className="text-[11px] text-[var(--text-muted)] opacity-40 mt-3 max-w-xs mx-auto">Ajuste os filtros ou realize uma nova sincronização.</p>
           </div>
         ) : (
@@ -358,7 +358,7 @@ export default function AgendaManagementPage() {
                 {/* Status Indicator Dot */}
                 <div className="absolute top-8 left-8 flex items-center gap-2 bg-[var(--bg-primary)] backdrop-blur-xl px-3 py-1.5 rounded-full border border-[var(--border-primary)] shadow-2xl">
                   <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-start)] shadow-[0_0_10px_rgba(255,44,141,0.5)]" />
-                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Sincronizado</span>
+                  <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Sincronizado</span>
                 </div>
 
                 <div className="flex justify-end items-start mb-8">
@@ -380,7 +380,7 @@ export default function AgendaManagementPage() {
                       <CalendarIcon className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Data do Serviço</p>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Data do Serviço</p>
                       <p className="text-xs font-bold text-[var(--text-primary)]">{event.start && format(new Date(event.start), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
                     </div>
                   </div>
@@ -390,7 +390,7 @@ export default function AgendaManagementPage() {
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Horário Previsto</p>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Horário Previsto</p>
                       <p className="text-xs font-bold text-[var(--text-primary)]">
                         {event.start && format(new Date(event.start), "HH:mm")} - {event.end && format(new Date(event.end), "HH:mm")}
                       </p>
@@ -445,7 +445,7 @@ export default function AgendaManagementPage() {
             />
             <button
               onClick={handleAddType}
-              className="px-6 py-4 bg-[var(--accent-start)] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--accent-end)] transition-all shadow-xl shadow-[var(--accent-start)]/20"
+              className="px-6 py-4 bg-[var(--accent-start)] text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-[var(--accent-end)] transition-all shadow-xl shadow-[var(--accent-start)]/20"
             >
               Adicionar
             </button>
@@ -455,7 +455,7 @@ export default function AgendaManagementPage() {
             {oneToOneTypes.length === 0 ? (
               <div className="py-16 text-center space-y-3 opacity-20">
                  <Settings2 size={32} className="mx-auto" />
-                 <p className="text-[10px] font-black uppercase tracking-widest">Nenhum tipo cadastrado</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum tipo cadastrado</p>
               </div>
             ) : (
               oneToOneTypes.map((type, index) => (
@@ -481,7 +481,7 @@ export default function AgendaManagementPage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-3 px-10 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-md"
+              className="flex items-center gap-3 px-10 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-md"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <BadgeCheck className="w-4 h-4" />}
               {isSaving ? "Salvando..." : "Salvar Alterações"}

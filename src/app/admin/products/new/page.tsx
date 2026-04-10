@@ -6,7 +6,7 @@ import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 
 /**
- * New Product Page — BPlen HUB 🧬
+ * New Product Page — BPlen HUB
  * Ponto de entrada para criação de novos produtos no ecossistema.
  */
 export default function NewProductPage() {
@@ -17,7 +17,7 @@ export default function NewProductPage() {
       <header className="space-y-6">
         <Link 
           href="/admin/products"
-          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
+          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Voltar para Lista de Produtos
@@ -27,8 +27,8 @@ export default function NewProductPage() {
               <Package size={24} />
            </div>
            <div>
-              <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">Novo Produto</h1>
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-60 italic">Definição de ecossistema e entrega estratégica</p>
+              <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">Novo <span className="text-[var(--accent-start)] italic">Produto</span></h1>
+              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-70 italic">Definição de ecossistema e entrega estratégica</p>
            </div>
         </div>
       </header>

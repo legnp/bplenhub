@@ -8,7 +8,7 @@ import { ChevronLeft, Eye, FlaskConical, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * BPlen HUB — Admin Form Preview (Sandbox 🧪)
+ * BPlen HUB — Admin Form Preview (Sandbox)
  * Ambiente seguro para testar roteiros, máscaras e lógica condicional.
  */
 export default function FormPreviewPage() {
@@ -40,7 +40,7 @@ export default function FormPreviewPage() {
   }
 
   const handleMockSubmit = async (responses: any) => {
-    console.log("🧪 [PREVIEW SUBMIT]:", responses);
+    console.log("[PREVIEW SUBMIT]:", responses);
     // Simula delay de rede
     await new Promise(resolve => setTimeout(resolve, 1500));
     setComplete(true);
@@ -59,7 +59,7 @@ export default function FormPreviewPage() {
           Sair do Preview
         </button>
 
-        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/20 rounded-full text-[var(--accent-start)] text-[10px] font-black uppercase tracking-widest animate-pulse">
+        <div className="flex items-center gap-3 px-4 py-2 bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/20 rounded-full text-[var(--accent-start)] text-[10px] font-bold uppercase tracking-widest animate-pulse">
            <FlaskConical size={12} />
            Modo Sandbox Ativo
         </div>
@@ -68,10 +68,11 @@ export default function FormPreviewPage() {
       <div className="max-w-[800px] mx-auto glass-morphism border border-[var(--border-primary)] rounded-[32px] overflow-hidden shadow-2xl bg-white/5 backdrop-blur-sm">
         <header className="p-8 pb-0 text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[var(--text-muted)] text-[9px] font-bold uppercase tracking-widest mb-4">
-               <Eye size={10} /> Pré-visualização Operacional
+               Pré-visualização Operacional
             </div>
-            <h1 className="text-3xl font-black tracking-tighter text-[var(--text-primary)]">
-              {config.title}
+            <h1 className="text-3xl font-bold tracking-tight">
+              <span className="text-[var(--text-primary)]">{config.title.split(' ')[0]}</span>
+              <span className="text-[var(--accent-start)] ml-2">{config.title.split(' ').slice(1).join(' ')}</span>
             </h1>
         </header>
 
@@ -101,7 +102,7 @@ export default function FormPreviewPage() {
                   <CheckCircle2 size={40} />
                </div>
                <div className="space-y-2">
-                 <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tight">Preview Concluído!</h2>
+                 <h2 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Preview Concluído!</h2>
                  <p className="text-[var(--text-muted)] text-sm max-w-sm mx-auto">
                     No modo real, os dados seriam salvos no Sheets e no Perfil do Usuário com a matrícula correspondente.
                  </p>

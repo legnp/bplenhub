@@ -41,8 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className={`flex min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-all duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
       
-      {/* 🔮 Ghost Sidebar Dashboard */}
-      <aside className="w-68 fixed h-full bg-[var(--input-bg)] backdrop-blur-3xl border-r border-[var(--border-primary)] shadow-2xl p-8 flex flex-col z-20">
+      {/* Ghost Sidebar Dashboard (Pure Typography) */}
+      <aside className="w-68 fixed h-full bg-[var(--input-bg)] backdrop-blur-3xl border-r border-[var(--border-primary)] shadow-2xl p-7 flex flex-col z-20">
         <div className="mb-12 space-y-2">
            <div className="flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] rounded-xl shadow-lg shadow-[var(--accent-start)]/20">
@@ -52,31 +52,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 BPlen <span className="text-[var(--accent-start)] italic">Admin</span>
               </h2>
            </div>
-           <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--text-muted)] font-black opacity-60">Control Center</p>
+           <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--text-muted)] font-bold opacity-60">Control Center</p>
         </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto pr-2 custom-scrollbar">
-          <NavLink href="/admin" icon={<LayoutDashboard size={18} />}>Dashboard</NavLink>
-          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Operação</div>
-          <NavLink href="/admin/agenda" icon={<Calendar size={18} />}>Agenda Hub</NavLink>
-          <NavLink href="/admin/gestao-agenda" icon={<Settings size={18} />}>Gestão de Agenda</NavLink>
-          <NavLink href="/admin/reunioes" icon={<Briefcase size={18} />}>Gestão de Reuniões</NavLink>
+          <NavLink href="/admin" icon={<LayoutDashboard size={18} />}>DASHBOARD</NavLink>
+          <div className="pt-4 pb-2 px-4 text-[8px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Operação</div>
+          <NavLink href="/admin/agenda" icon={<Calendar size={18} />}>SINCRONIZAR AGENDA</NavLink>
+          <NavLink href="/admin/gestao-agenda" icon={<Settings size={18} />}>PROGRAMAÇÃO HUB</NavLink>
           
-          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Conteúdo & Vendas</div>
-          <NavLink href="/admin/products" icon={<Zap size={18} />}>Builder de Produtos</NavLink>
-          <NavLink href="/admin/portfolio" icon={<FileText size={18} />}>Gestão de Portfólio</NavLink>
-          <NavLink href="/admin/marketing" icon={<Ticket size={18} />}>Marketing & Cupons</NavLink>
-          <NavLink href="/admin/social" icon={<Globe size={18} />}>Gestão Social</NavLink>
+          <div className="pt-4 pb-2 px-4 text-[8px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Conteúdo & Vendas</div>
+          <NavLink href="/admin/products" icon={<Zap size={18} />}>PORTFÓLIO</NavLink>
+          <NavLink href="/admin/marketing" icon={<Ticket size={18} />}>CUPONS E OFERTAS</NavLink>
+          <NavLink href="/admin/social" icon={<Globe size={18} />}>MEDIA E EDITORIAL</NavLink>
           
-          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Dados & Usuários</div>
-          <NavLink href="/admin/users" icon={<Users size={18} />}>Gestão de Usuários</NavLink>
-          <NavLink href="/admin/forms" icon={<FileText size={18} />}>Banco de Respostas</NavLink>
-          <NavLink href="/admin/pesquisas" icon={<LayoutDashboard size={18} />}>Pesquisas Interativas</NavLink>
+          <div className="pt-4 pb-2 px-4 text-[8px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Dados & Usuários</div>
+          <NavLink href="/admin/users" icon={<Users size={18} />}>GESTÃO DE USUÁRIOS</NavLink>
+          <NavLink href="/admin/forms" icon={<FileText size={18} />}>FORMULÁRIOS</NavLink>
+          <NavLink href="/admin/pesquisas" icon={<LayoutDashboard size={18} />}>SURVEYS</NavLink>
         </nav>
 
         <div className="mt-auto pt-6 border-t border-[var(--border-primary)]/50">
            <div className="p-4 rounded-2xl bg-[var(--accent-soft)] border border-[var(--accent-start)]/10 text-center">
-              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--accent-start)] mb-1">Acesso Privilegiado</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent-start)] mb-1">Acesso Privilegiado</p>
               <p className="text-[10px] text-[var(--text-muted)]">Navegação administrativa habilitada para o seu perfil.</p>
            </div>
         </div>

@@ -23,19 +23,16 @@ export default async function AdminSurveysPage() {
   const { surveys, stats } = await getAdminSurveysAnalytics();
 
   return (
-    <div className="p-8 space-y-12 animate-fade-in-up">
+    <div className="p-6 md:p-8 space-y-10 animate-fade-in-up">
       
       {/* Header Admin */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-4 text-left">
-            Surveys e Inteligência
-            <span className="px-3 py-1 rounded-full bg-[var(--accent-soft)] text-[var(--accent-start)] text-[10px] font-bold uppercase tracking-widest border border-[var(--accent-start)]/20">
-              Admin
-            </span>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            SURVEYS
           </h1>
-          <p className="text-sm text-[var(--text-muted)] text-left">
-            Monitoramento de pesquisas institucionais e diagnósticos analíticos (Soberania de Dados).
+          <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-70">
+            Gerenciamento de surveys para pesquisas e análises.
           </p>
         </div>
 
@@ -45,7 +42,7 @@ export default async function AdminSurveysPage() {
         </button>
       </div>
 
-      {/* Stats Quick View (Dados Reais 🛰️) */}
+      {/* Stats Quick View (Dados Reais) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 rounded-3xl bg-[var(--input-bg)] border border-[var(--border-primary)] space-y-4 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-[var(--text-muted)]">
@@ -79,7 +76,7 @@ export default async function AdminSurveysPage() {
         </div>
       </div>
 
-      {/* Main List Table (Dados Agregados 📋) */}
+      {/* Main List Table (Dados Agregados) */}
       <div className="rounded-[2.5rem] bg-[var(--input-bg)] border border-[var(--border-primary)] overflow-hidden shadow-2xl">
         
         {/* Table Filters Header */}
@@ -102,11 +99,11 @@ export default async function AdminSurveysPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-[var(--border-primary)]">
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Título da Survey / Contexto</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Respostas</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Status Real</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Última Interação</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] text-right">Análise</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Título da Survey / Contexto</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Respostas</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Status Real</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Última Interação</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 text-right">Análise</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +114,7 @@ export default async function AdminSurveysPage() {
                       <span className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-start)] transition-colors leading-relaxed">
                         {survey.title}
                       </span>
-                      <span className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mt-1">ID: {survey.id}</span>
+                      <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold tracking-widest mt-1">ID: {survey.id}</span>
                     </div>
                   </td>
                   <td className="p-6">
@@ -129,7 +126,7 @@ export default async function AdminSurveysPage() {
                     </div>
                   </td>
                   <td className="p-6">
-                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest border border-green-500/20">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20">
                       <CheckCircle2 size={10} /> Ativa
                     </span>
                   </td>

@@ -32,7 +32,7 @@ import { getAdminProducts } from "@/actions/products";
 import { Product } from "@/types/products";
 
 /**
- * BPlen HUB — Gestão de Usuários e Governança 👥🏗️🛡️
+ * BPlen HUB — Gestão de Usuários e Governança
  * Fundação para controle de papéis e produtos/serviços granulares.
  */
 
@@ -209,19 +209,19 @@ export default function UsersManagementPage() {
       {/* Header section com Estetíca Premium */}
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="space-y-1 text-left">
-          <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)]">
-            Gestão de <span className="text-[var(--accent-start)] italic">Usuários</span>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            GESTÃO DE <span className="text-[var(--accent-start)] italic">USUÁRIOS</span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm font-medium opacity-60">
-            Controle centralizado de membros, papéis e permissões de acesso.
+          <p className="text-[var(--text-muted)] text-sm font-medium opacity-70">
+            Gestão centralizada de usuários, papéis e permissões de acesso.
           </p>
         </div>
 
         <div className="flex flex-col md:flex-row items-center gap-3">
-          <div className="flex items-center gap-3 glass px-6 py-3 border-blue-500/10 bg-blue-500/5">
-            <Activity size={16} className="text-blue-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-               Role/Service Engine Active
+          <div className="flex items-center gap-3 bg-[var(--accent-soft)]/20 border border-[var(--accent-start)]/10 px-6 py-3 rounded-2xl">
+            <Activity size={16} className="text-[var(--accent-start)] animate-pulse" />
+            <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent-start)]">
+               Governance Engine Active
             </span>
           </div>
 
@@ -241,15 +241,15 @@ export default function UsersManagementPage() {
                 alert(`Erro crítico: ${err.message}`);
               }
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 text-[var(--accent-start)] rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-[var(--accent-start)] hover:text-white transition-all group"
+            className="flex items-center gap-2 px-6 py-3 bg-[var(--accent-start)] text-white rounded-full text-[9px] font-bold uppercase tracking-widest hover:bg-[var(--accent-end)] transition-all group shadow-lg shadow-[var(--accent-start)]/20"
           >
-            <Rocket size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ShieldCheck size={14} className="group-hover:scale-110 transition-transform" />
             Migrar Dados Legados (Cleanup)
           </button>
         </div>
       </div>
 
-      {/* ⚠️ Alerta de Erro (Debug) */}
+      {/* Alerta de Erro (Debug) */}
       <AnimatePresence>
         {error && (
           <motion.div 
@@ -262,12 +262,12 @@ export default function UsersManagementPage() {
                <X size={18} />
             </div>
             <div className="flex-1">
-               <h5 className="text-[10px] font-black uppercase tracking-widest">Erro de Sincronização</h5>
+               <h5 className="text-[10px] font-bold uppercase tracking-widest">Erro de Sincronização</h5>
                <p className="text-sm font-medium opacity-80">{error}</p>
             </div>
             <button 
               onClick={() => fetchUsersAndProducts()}
-              className="px-6 py-2 bg-red-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] transition-all"
+              className="px-6 py-2 bg-red-500 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] transition-all"
             >
               Tentar Novamente
             </button>
@@ -293,7 +293,7 @@ export default function UsersManagementPage() {
             <button
               key={role}
               onClick={() => setRoleFilter(role as any)}
-              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest whitespace-nowrap ${roleFilter === role
+              className={`px-4 py-2 rounded-xl text-[9px] font-bold transition-all uppercase tracking-widest whitespace-nowrap ${roleFilter === role
                   ? role === 'suspended' ? "bg-red-500 text-white shadow-xl shadow-red-500/20" :  "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
                   : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
@@ -310,11 +310,11 @@ export default function UsersManagementPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[var(--input-bg)]/80 border-b border-[var(--border-primary)]">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Identidade / Membro</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Papel (Role)</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Acessos Granulares</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Status</th>
-                <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ações</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Identidade / Membro</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Papel (Role)</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Acessos Granulares</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Status</th>
+                <th className="px-8 py-5 text-right text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-primary)]">
@@ -334,7 +334,7 @@ export default function UsersManagementPage() {
                            <UserCircle size={24} className="text-[var(--text-muted)] opacity-30" />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-black text-sm text-[var(--text-primary)] truncate flex items-center gap-2">
+                          <h4 className="font-bold text-sm text-[var(--text-primary)] truncate flex items-center gap-2">
                              {user.name}
                              {user.nickname && <span className="text-[9px] px-1.5 py-0.5 bg-[var(--accent-start)]/10 text-[var(--accent-start)] rounded-md">@{user.nickname}</span>}
                           </h4>
@@ -352,7 +352,7 @@ export default function UsersManagementPage() {
                           value={user.role}
                           onChange={(e) => handleUpdateRole(user.matricula, e.target.value as UserRole)}
                           disabled={processingUser === user.matricula}
-                          className={`appearance-none font-black text-[9px] uppercase tracking-widest pl-3 pr-8 py-2 rounded-xl border transition-all cursor-pointer focus:outline-none ${
+                          className={`appearance-none font-bold text-[9px] uppercase tracking-widest pl-3 pr-8 py-2 rounded-xl border transition-all cursor-pointer focus:outline-none ${
                             user.role === 'admin' 
                             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" 
                             : user.role === 'suspended'
@@ -378,13 +378,13 @@ export default function UsersManagementPage() {
                          {Object.entries(user.services).filter(([_, active]) => active).map(([id]) => {
                             const productName = products.find(p => p.id === id || p.slug === id)?.title;
                             return (
-                              <div key={id} className={`px-2 py-1 border rounded-lg text-[8px] font-black uppercase tracking-tighter ${id === 'member_area_access' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600' : 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)]/70'}`}>
+                              <div key={id} className={`px-2 py-1 border rounded-lg text-[8px] font-bold uppercase tracking-tighter ${id === 'member_area_access' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600' : 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)]/70'}`}>
                                  {id === 'member_area_access' ? 'Portaria' : (productName || id)}
                               </div>
                             );
                          })}
                          {Object.values(user.services).filter(v => v === true).length === 0 && (
-                            <div className="px-2 py-1 bg-gray-500/5 border border-dashed border-gray-500/20 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-tighter">
+                            <div className="px-2 py-1 bg-gray-500/5 border border-dashed border-gray-500/20 rounded-lg text-[8px] font-bold text-gray-400 uppercase tracking-tighter">
                                Nenhum Serviço Ativo
                             </div>
                          )}
@@ -406,7 +406,7 @@ export default function UsersManagementPage() {
                          className="p-3 rounded-xl bg-black text-white hover:bg-[var(--accent-start)] transition-all shadow-lg shadow-black/10 flex items-center gap-2 ml-auto"
                        >
                           <Settings size={14} />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Configurações</span>
+                          <span className="text-[9px] font-bold uppercase tracking-widest">Configurações</span>
                        </button>
                     </td>
                   </tr>
@@ -417,7 +417,7 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Modal de Gestão de Usuário REFORMULADO 🛡️⚖️ */}
+      {/* Modal de Gestão de Usuário REFORMULADO */}
       <AnimatePresence>
         {selectedUser && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
@@ -437,14 +437,14 @@ export default function UsersManagementPage() {
                 {/* Modal Header */}
                 <div className="p-8 border-b border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-between items-center text-left">
                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest">Governança & Mapeamento</p>
-                      <h3 className="text-xl font-black text-[var(--text-primary)]">{selectedUser.name}</h3>
+                      <p className="text-[10px] font-bold text-[var(--accent-start)] uppercase tracking-widest">Governança & Mapeamento</p>
+                      <h3 className="text-xl font-bold text-[var(--text-primary)]">{selectedUser.name}</h3>
                       <div className="flex gap-4 mt-4">
                         {["services", "assessments"].map((tab) => (
                           <button
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
-                            className={`text-[9px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all ${
+                            className={`text-[9px] font-bold uppercase tracking-[0.2em] pb-2 border-b-2 transition-all ${
                               activeTab === tab 
                               ? "border-[var(--accent-start)] text-[var(--accent-start)]" 
                               : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -466,14 +466,14 @@ export default function UsersManagementPage() {
                       <div className="space-y-10">
                          {/* SEÇÃO 1: Níveis de Plataforma (Role & Status) */}
                          <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
+                            <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
                                <ShieldCheck size={16} /> Níveis de Plataforma & Segurança
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                {/* Role: Administrativo */}
                                <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'admin' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
                                   <div>
-                                     <p className="text-[10px] font-black uppercase text-[var(--text-primary)]">Modo Administrativo</p>
+                                     <p className="text-[10px] font-bold uppercase text-[var(--text-primary)]">Modo Administrativo</p>
                                      <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Gestão Completa do Hub</p>
                                   </div>
                                   <button 
@@ -487,7 +487,7 @@ export default function UsersManagementPage() {
                                {/* Role: Suspended (Banimento) */}
                                <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'suspended' ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
                                   <div>
-                                     <p className="text-[10px] font-black uppercase text-red-500">Banir Usuário</p>
+                                     <p className="text-[10px] font-bold uppercase text-red-500">Banir Usuário</p>
                                      <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Bloqueio total irrecorrível</p>
                                   </div>
                                   <button 
@@ -502,7 +502,7 @@ export default function UsersManagementPage() {
 
                          {/* SEÇÃO 2: Serviços Contratados (Dinâmico do Catálogo) */}
                          <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
+                            <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
                                <Rocket size={16} /> Serviços do Portfólio
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -515,7 +515,7 @@ export default function UsersManagementPage() {
                                  className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
                                >
                                   <div>
-                                     <p className={`text-[10px] font-black uppercase ${selectedUser.services.member_area_access ? 'text-emerald-500' : ''}`}>Área de Membros</p>
+                                     <p className={`text-[10px] font-bold uppercase ${selectedUser.services.member_area_access ? 'text-emerald-500' : ''}`}>Área de Membros</p>
                                      <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Acesso Base à Plataforma</p>
                                   </div>
                                   <div className={`w-10 h-5 rounded-full relative transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500' : 'bg-gray-700'}`}>
@@ -537,8 +537,8 @@ export default function UsersManagementPage() {
                                        className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
                                      >
                                         <div className="flex-1 min-w-0 pr-4">
-                                           <p className={`text-[10px] font-black uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
-                                           <p className="text-[7px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em] mt-1">{product.serviceCode || 'Serviço Ativo'}</p>
+                                           <p className={`text-[10px] font-bold uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
+                                           <p className="text-[7px] text-[var(--text-muted)] font-bold uppercase tracking-[0.2em] mt-1">{product.serviceCode || 'Serviço Ativo'}</p>
                                         </div>
                                         <div className={`w-10 h-5 rounded-full relative transition-all shrink-0 ${isActive ? 'bg-[var(--accent-start)]' : 'bg-gray-700'}`}>
                                            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? 'left-6' : 'left-1'}`} />
@@ -554,7 +554,7 @@ export default function UsersManagementPage() {
                         {loadingAssessments ? (
                           <div className="flex flex-col items-center justify-center py-20 gap-4">
                              <Loader2 size={32} className="animate-spin text-[var(--accent-start)]" />
-                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Mapeando Pesquisas... (Admin)</p>
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Mapeando Pesquisas... (Admin)</p>
                           </div>
                         ) : userAssessments.length > 0 ? (
                            <div className="grid grid-cols-1 gap-4">
@@ -568,7 +568,7 @@ export default function UsersManagementPage() {
                                         {test.isReleased ? <CheckCircle2 size={18} /> : <Activity size={18} />}
                                      </div>
                                      <div>
-                                        <h5 className="font-black text-sm text-[var(--text-primary)]">{test.title}</h5>
+                                        <h5 className="font-bold text-sm text-[var(--text-primary)]">{test.title}</h5>
                                         <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
                                            Submetido em {new Date(test.submittedAt).toLocaleDateString("pt-BR")}
                                         </p>
@@ -577,7 +577,7 @@ export default function UsersManagementPage() {
                                   
                                   <button 
                                     onClick={() => handleToggleRelease(test.id, test.isReleased)}
-                                    className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                                    className={`px-5 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${
                                       test.isReleased 
                                       ? "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" 
                                       : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
@@ -597,13 +597,13 @@ export default function UsersManagementPage() {
                            </div>
                          )}
 
-                         {/* Link DISC Custom (Assessment de Terceiros) 🧬 */}
-                         <div className="p-7 bg-blue-500/[0.03] border border-blue-500/10 rounded-[2rem] space-y-5">
+                         {/* Portal DISC (External Link) */}
+                         <div className="p-7 bg-[var(--accent-soft)]/20 border border-[var(--accent-start)]/10 rounded-[2rem] space-y-5">
                             <div className="flex items-center gap-3">
-                               <div className="p-2 bg-blue-500/10 rounded-xl text-blue-600">
+                               <div className="p-2 bg-[var(--accent-start)]/10 rounded-xl text-[var(--accent-start)]">
                                   <Link2 size={16} />
                                </div>
-                               <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Portal DISC (External Link)</h6>
+                               <h6 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-start)]">Portal DISC (External Link)</h6>
                             </div>
                             <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-relaxed max-w-sm ml-1 opacity-60">
                                Insira o link individual gerado no portal DISC para este membro.
@@ -620,7 +620,7 @@ export default function UsersManagementPage() {
                                <button 
                                   onClick={handleSaveDiscLink}
                                   disabled={savingDisc}
-                                  className="px-6 bg-blue-500/10 text-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 border border-blue-500/20 disabled:opacity-30 self-stretch"
+                                  className="px-6 bg-[var(--accent-start)]/10 text-[var(--accent-start)] rounded-2xl text-[9px] font-bold uppercase tracking-widest hover:bg-[var(--accent-start)] hover:text-white transition-all flex items-center gap-2 border border-[var(--accent-start)]/20 disabled:opacity-30 self-stretch"
                                >
                                   {savingDisc ? <Loader2 size={14} className="animate-spin" /> : <Settings size={14} />}
                                   Salvar Link
@@ -629,7 +629,7 @@ export default function UsersManagementPage() {
 
                             <button 
                                onClick={() => setShowDiscDevolutiva(true)}
-                               className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+                               className="w-full py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-[var(--accent-start)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
                             >
                                <Trophy size={16} className="group-hover:rotate-12 transition-transform" />
                                Lançar Devolutiva DISC
@@ -645,7 +645,7 @@ export default function UsersManagementPage() {
                     <button 
                       onClick={() => handleUpdateServices(selectedUser.matricula, selectedUser.services)}
                       disabled={processingUser === selectedUser.matricula}
-                      className="flex items-center gap-3 px-12 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
+                      className="flex items-center gap-3 px-12 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
                     >
                         {processingUser === selectedUser.matricula ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                         {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Governança"}
@@ -663,7 +663,7 @@ export default function UsersManagementPage() {
             user={selectedUser} 
             onClose={() => setShowDiscDevolutiva(false)} 
             onSuccess={() => {
-              alert("✅ Devolutiva publicada!");
+              alert("Devolutiva publicada!");
               fetchUsersAndProducts();
             }}
           />

@@ -23,19 +23,16 @@ export default function FormsManagementPage() {
   const forms = FORMS_REGISTRY;
 
   return (
-    <div className="p-8 space-y-12 animate-fade-in-up">
+    <div className="p-6 md:p-8 space-y-10 animate-fade-in-up">
       
       {/* Header Admin */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] flex items-center gap-4 text-left">
-            Formulários Operacionais
-            <span className="px-3 py-1 rounded-full bg-[var(--accent-soft)] text-[var(--accent-start)] text-[10px] font-bold uppercase tracking-widest border border-[var(--accent-start)]/20">
-              Admin
-            </span>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            FORMULÁRIOS
           </h1>
-          <p className="text-sm text-[var(--text-muted)] text-left">
-            Gerenciamento de roteiros de cadastro, triagem e CRM (Soberania de Dados).
+          <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-70">
+            Gerenciamento de formulário para workflows, triagem e CRM.
           </p>
         </div>
 
@@ -65,9 +62,9 @@ export default function FormsManagementPage() {
             <span className="text-[10px] font-bold uppercase tracking-widest">Interaçõe 24h</span>
           </div>
           <div className="text-4xl font-bold text-[var(--accent-start)] text-left">
-            🛰️
+            OFFLINE
           </div>
-          <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest text-left">Monitoramento em Tempo Real</p>
+          <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest text-left">Sincronização Ativa</p>
         </div>
         <div className="p-6 rounded-3xl bg-[var(--input-bg)] border border-[var(--border-primary)] space-y-4 shadow-sm hover:shadow-md transition-all border-l-4 border-l-[var(--accent-start)]">
           <div className="flex items-center justify-between text-[var(--text-muted)]">
@@ -92,7 +89,7 @@ export default function FormsManagementPage() {
                 className="w-full bg-[var(--bg-primary)]/50 border border-[var(--input-border)] rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent-start)]/50 transition-all font-medium placeholder:text-[var(--text-muted)] placeholder:opacity-40"
               />
            </div>
-           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">
              Gestão de Operações BPlen HUB
            </p>
         </div>
@@ -102,10 +99,10 @@ export default function FormsManagementPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-[var(--border-primary)]">
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Título do Formulário / ID</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Tipo</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Sincronização</th>
-                <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] text-right">Ações</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Título do Formulário / ID</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Tipo</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60">Sincronização</th>
+                <th className="p-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -116,11 +113,11 @@ export default function FormsManagementPage() {
                       <span className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-start)] transition-colors leading-relaxed">
                         {form.title}
                       </span>
-                      <span className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest mt-1 font-mono">ID: {form.id}</span>
+                      <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest mt-1 font-mono">ID: {form.id}</span>
                     </div>
                   </td>
                   <td className="p-6">
-                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-start)]/5 text-[var(--accent-start)] text-[10px] font-bold uppercase tracking-widest border border-[var(--accent-start)]/20">
                       {form.kind}
                     </span>
                   </td>
@@ -130,8 +127,8 @@ export default function FormsManagementPage() {
                         {form.sheetNamePrefix || "Não configurado"}
                       </span>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest">Drive Sync Ativo</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Drive Sync Ativo</span>
                       </div>
                     </div>
                   </td>
@@ -165,7 +162,7 @@ export default function FormsManagementPage() {
         {/* Footer Admin Table */}
         <div className="p-8 flex justify-between items-center text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest bg-[var(--bg-primary)]/40">
            Exibindo {forms.length} roteiros operacionais (Forms_Global)
-           <div className="flex gap-4 font-black">
+           <div className="flex gap-4 font-bold">
               <button disabled className="opacity-30">Página Anterior</button>
               <button disabled className="opacity-30">Próxima Página</button>
            </div>
