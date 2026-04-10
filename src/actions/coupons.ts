@@ -4,8 +4,7 @@ import admin, { getAdminDb } from "@/lib/firebase-admin";
 import { requireAdmin, requireAuth } from "@/lib/auth-guards";
 import { Coupon, CouponValidationResult } from "@/types/marketing";
 import { revalidatePath } from "next/cache";
-
-const COUPONS_COLLECTION = "marketing_coupons";
+import { COUPONS_COLLECTION } from "@/config/collections";
 
 /**
  * BPlen HUB — Coupon Engine (Server Actions) 💸🎟️

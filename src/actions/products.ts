@@ -3,8 +3,7 @@
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
 import { revalidatePath } from "next/cache";
-
-export const PRODUCTS_COLLECTION = "products";
+import { PRODUCTS_COLLECTION } from "@/config/collections";
 
 /**
  * BPlen HUB — Product Engine Server Actions 🧬

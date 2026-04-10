@@ -3,7 +3,7 @@
 import admin, { getAdminDb } from "@/lib/firebase-admin";
 import { requireAuth } from "@/lib/auth-guards";
 import { Product } from "@/types/products";
-import { PRODUCTS_COLLECTION } from "./products";
+import { PRODUCTS_COLLECTION } from "@/config/collections";
 import { revalidatePath } from "next/cache";
 
 /**
