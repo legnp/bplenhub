@@ -23,13 +23,13 @@ export default async function AdminSurveysPage() {
   const { surveys, stats } = await getAdminSurveysAnalytics();
 
   return (
-    <div className="p-6 md:p-8 space-y-10 animate-fade-in-up">
+    <div className="space-y-10 animate-fade-in-up">
       
       {/* Header Admin */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
-            SURVEYS
+            SURVEYS <span className="text-[var(--accent-start)] italic ml-1">e Inteligência</span>
           </h1>
           <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-70">
             Gerenciamento de surveys para pesquisas e análises.

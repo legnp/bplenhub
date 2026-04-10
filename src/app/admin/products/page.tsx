@@ -45,17 +45,13 @@ export default function AdminProductsPage() {
   );
 
   return (
-    <div className="p-6 md:p-8 space-y-10 animate-fade-in pb-24">
+    <div className="space-y-10 animate-fade-in pb-24">
       
       {/* Header Estratégico */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
-            <Package size={16} />
-            <span className="text-[9px] font-bold uppercase tracking-[0.4em]">Ecossistema BPlen</span>
-          </div>
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-            PORTFÓLIO
+            PORTFÓLIO <span className="text-[var(--accent-start)] italic ml-1">de Serviços</span>
           </h1>
           <div className="flex items-center gap-4 mt-2">
              <p className="text-[var(--text-muted)] text-[11px] max-w-sm leading-relaxed opacity-70">

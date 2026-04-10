@@ -123,11 +123,9 @@ export async function getProductsByAudience(audience: 'people' | 'companies' | '
     const snap = await db.collection(PRODUCTS_COLLECTION)
       .where("status", "==", "active")
       .where("targetAudiences", "array-contains", audience)
-      .orderBy("order", "asc")
       .get();
 
-    // Filtro adicional: Se for 'internal', removemos da vitrine pública 🛡️
-    // Filtro adicional: Se for 'internal', removemos da vitrine pública 🛡️
+    // Mapeamento e Ordenação em Memória (Resiliência para produtos sem campo 'order' 🛡️)
     return snap.docs
       .map(doc => {
         return safeSerialize<Product>({
@@ -135,7 +133,8 @@ export async function getProductsByAudience(audience: 'people' | 'companies' | '
           id: doc.id
         });
       })
-      .filter(p => !p.targetAudiences?.includes('internal'));
+      .filter(p => !p.targetAudiences?.includes('internal'))
+      .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
   } catch (error) {
     console.error("Erro ao buscar produtos:", error);
     return [];
