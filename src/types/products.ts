@@ -33,8 +33,9 @@ export interface WorkflowStep {
 export interface Product {
   id: string;
   slug: string; // URL amigável
+  serviceCode: string; // Ex: BPL-001 imutável
   title: string;
-  targetAudiences: ('people' | 'companies' | 'partners')[];
+  targetAudiences: ('people' | 'companies' | 'partners' | 'internal')[];
   price: number;
   
   // Flag para Jornada do Membro
@@ -44,6 +45,13 @@ export interface Product {
   sheet: ProductSheet;
   capabilities: CapabilityConfig;
   workflow: WorkflowStep[];
+
+  // Configurações de Governança no Drive 📂
+  driveConfig?: {
+    folderId: string;
+    sheetId: string;
+    sheetUrl: string;
+  };
 
   // Cotas de Serviço (Destaque para Agendamentos)
   grantedQuotas: Record<string, number>; // Tipo de Evento -> Quantidade Inclusa

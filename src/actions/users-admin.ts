@@ -134,15 +134,8 @@ export async function updateUserPermissions(
     }
 
     if (updates.services) {
-       const validatedServices: any = {};
-       Object.entries(updates.services).forEach(([key, value]) => {
-          if (ALLOWED_SERVICE_KEYS.includes(key)) {
-             validatedServices[key] = value === true;
-          } else {
-             console.warn(`⚠️ [Governance] Ignorando chave de serviço inválida enviada: ${key}`);
-          }
-       });
-       dataToSave.services = validatedServices;
+       // Governança Dinâmica: Aceitamos qualquer chave de serviço vinculada a um produto real
+       dataToSave.services = updates.services;
     }
     
     if (updates.metadata) {

@@ -4,7 +4,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
 import { revalidatePath } from "next/cache";
 
-const PRODUCTS_COLLECTION = "products";
+export const PRODUCTS_COLLECTION = "products";
 
 /**
  * BPlen HUB — Product Engine Server Actions 🧬
@@ -48,27 +48,51 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 }
 
+import { syncProductToDriveAction } from "./product-sync";
+
 /**
  * Salva ou atualiza um produto (Admin)
  */
 export async function saveProductAction(product: Partial<Product>) {
   try {
     const db = getAdminDb();
-    const id = product.id;
+    let id = product.id;
     const data = {
       ...product,
       updatedAt: new Date().toISOString(),
     };
 
+    // 1. Salvar no Firestore (Base)
     if (id) {
-      await db.collection(PRODUCTS_COLLECTION).doc(id).update(data);
+       await db.collection(PRODUCTS_COLLECTION).doc(id).update(data);
     } else {
-      const newDoc = await db.collection(PRODUCTS_COLLECTION).add({
-        ...data,
-        createdAt: new Date().toISOString(),
-        status: 'draft'
-      });
-      // Importante: Não retornar aqui para permitir o revalidatePath abaixo
+       const newDoc = await db.collection(PRODUCTS_COLLECTION).add({
+         ...data,
+         createdAt: new Date().toISOString(),
+         status: 'draft'
+       });
+       id = newDoc.id;
+       // Atualizamos o objeto data local para incluir o novo ID para o sync
+       (data as any).id = id;
+    }
+
+    // 2. Sincronização com Google Drive (Portfolio) 📡
+    // Tentamos sincronizar apenas se tivermos os campos mínimos (serviceCode e title)
+    if (data.serviceCode && data.title) {
+       const syncResult = await syncProductToDriveAction(data as Product);
+       
+       if (syncResult.success) {
+          const driveConfig = {
+             folderId: syncResult.folderId!,
+             sheetId: syncResult.sheetId!,
+             sheetUrl: syncResult.sheetUrl!
+          };
+          
+          // Se o driveConfig mudou, atualizamos o Firestore novamente
+          await db.collection(PRODUCTS_COLLECTION).doc(id!).update({
+             driveConfig
+          });
+       }
     }
 
     revalidatePath("/admin/products");
@@ -86,14 +110,18 @@ export async function saveProductAction(product: Partial<Product>) {
 export async function getProductsByAudience(audience: 'people' | 'companies' | 'partners'): Promise<Product[]> {
   try {
     const db = getAdminDb();
-    const snapshot = await db.collection(PRODUCTS_COLLECTION)
+    const snap = await db.collection(PRODUCTS_COLLECTION)
       .where("status", "==", "active")
       .where("targetAudiences", "array-contains", audience)
+      .orderBy("order", "asc")
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    // Filtro adicional: Se for 'internal', removemos da vitrine pública 🛡️
+    return snap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      .filter(p => !p.targetAudiences?.includes('internal'));
   } catch (error) {
-    console.error(`Erro ao buscar produtos para o público ${audience}:`, error);
+    console.error("Erro ao buscar produtos:", error);
     return [];
   }
 }

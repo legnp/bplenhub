@@ -41,7 +41,7 @@ const THEMES: ThemeOption[] = [
 
 export function HubHeader() {
   const { theme, setTheme } = useTheme();
-  const { logout } = useAuthContext();
+  const { user, nickname, logout } = useAuthContext();
   const router = useRouter();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isSocialMenuOpen, setIsSocialMenuOpen] = useState(false);
@@ -181,9 +181,31 @@ export function HubHeader() {
                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
                    animate={{ opacity: 1, y: 0, scale: 1 }}
                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                   className="absolute top-16 right-0 p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-40 backdrop-blur-[var(--glass-blur)] z-[200]"
+                   className="absolute top-16 right-0 p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-56 backdrop-blur-[var(--glass-blur)] z-[200]"
                  >
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                       
+                       {/* 🌐 Status de Conexão */}
+                       <div className="flex items-center gap-2 py-1 px-2 bg-[var(--accent-start)]/5 rounded-lg border border-[var(--accent-start)]/5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">Sincronizado</span>
+                       </div>
+
+                       {/* 👤 Identidade do Usuário */}
+                       <div className="space-y-1.5 px-1">
+                          <p className="text-[11px] font-black tracking-tight text-[var(--text-primary)] leading-tight uppercase truncate">
+                             {user?.displayName || "Membro BPlen"}
+                          </p>
+                          <div className="flex flex-col gap-0.5">
+                             <p className="text-[10px] font-bold text-[var(--accent-start)] italic">
+                                @{nickname || "user"}
+                             </p>
+                             <p className="text-[8px] font-bold text-[var(--text-muted)] opacity-60 truncate">
+                                {user?.email}
+                             </p>
+                          </div>
+                       </div>
+
                        {/* Links Principais do Usuário */}
                        <div className="space-y-1">
                           <Link 
@@ -209,33 +231,30 @@ export function HubHeader() {
                           </button>
                        </div>
 
-                       <div className="h-px bg-[var(--border-primary)]" />
+                       <div className="h-px bg-[var(--border-primary)] opacity-40" />
 
-                       <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Conectar</p>
-                       <div className="grid grid-cols-2 gap-3">
-                          {socialLinks.map((social, i) => (
-                            <Link
-                              key={i}
-                              href={social.url}
-                              target="_blank"
-                              className="p-3.5 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
-                              title={social.name}
-                            >
-                               <div className="opacity-100 transition-opacity">
-                                  {social.icon}
-                               </div>
-                            </Link>
-                          ))}
+                       <div className="space-y-3">
+                          <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Conexão Digital</p>
+                          <div className="grid grid-cols-2 gap-2">
+                             {socialLinks.map((social, i) => (
+                               <Link
+                                 key={i}
+                                 href={social.url}
+                                 target="_blank"
+                                 className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
+                                 title={social.name}
+                               >
+                                  <div className="scale-90 group-hover:scale-100 transition-transform">
+                                     {social.icon}
+                                  </div>
+                               </Link>
+                             ))}
+                          </div>
                        </div>
                     </div>
                  </motion.div>
                )}
             </AnimatePresence>
-         </div>
-
-         <div className="hidden lg:flex items-center gap-3 px-4 py-2.5 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
-            Sincronizado
          </div>
       </div>
     </header>

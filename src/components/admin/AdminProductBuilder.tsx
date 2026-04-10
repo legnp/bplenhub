@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   FileText,
   Users,
-  Handshake
+  Handshake,
+  ShieldCheck
 } from "lucide-react";
 import { SURVEY_REGISTRY } from "@/config/surveys";
 import { saveProductAction } from "@/actions/products";
@@ -176,10 +177,23 @@ function IdentityForm({ product, setProduct }: any) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
+                ID do Serviço 
+                <span className="text-[7px] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] px-2 py-0.5 rounded-full font-black">Imutável</span>
+              </label>
+              <input 
+                type="text" 
+                placeholder="Ex: BPL-001"
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-black outline-none focus:border-[var(--accent-primary)] transition-all uppercase" 
+                value={product.serviceCode}
+                onChange={(e) => setProduct({...product, serviceCode: e.target.value.toUpperCase()})}
+              />
+           </div>
+           <div className="space-y-2">
               <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Título do Produto</label>
               <input 
                 type="text" 
-                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs outline-none focus:border-[var(--accent-primary)] transition-all" 
+                className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs outline-none focus:border-[var(--accent-primary)] transition-all font-bold" 
                 value={product.title}
                 onChange={(e) => setProduct({...product, title: e.target.value})}
               />
@@ -201,7 +215,8 @@ function IdentityForm({ product, setProduct }: any) {
               {[
                 { id: 'people', label: 'Pessoas (Individual)', icon: <Users size={14} /> },
                 { id: 'companies', label: 'Empresas (Corporativo)', icon: <Layout size={14} /> },
-                { id: 'partners', label: 'Parceiros (Agências/Mestres)', icon: <Handshake size={14} /> }
+                { id: 'partners', label: 'Parceiros (Agências/Mestres)', icon: <Handshake size={14} /> },
+                { id: 'internal', label: 'Uso Interno (Privado)', icon: <ShieldCheck size={14} /> }
               ].map((audience) => {
                 const isSelected = product.targetAudiences?.includes(audience.id as any);
                 return (
@@ -270,7 +285,50 @@ function IdentityForm({ product, setProduct }: any) {
   );
 }
 
+import { uploadProductCoverAction } from "@/actions/product-sync";
+import { useAuth } from "@/hooks/use-auth";
+
 function SheetForm({ product, setProduct }: any) {
+   const [isUploading, setIsUploading] = useState(false);
+   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
+   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!product.serviceCode) {
+        alert("Por favor, defina o ID do Serviço na aba Identidade antes de fazer upload.");
+        return;
+      }
+
+      setIsUploading(true);
+      setUploadStatus("Iniciando...");
+      
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("serviceCode", product.serviceCode);
+        // O folderId pode ser nulo se for a primeira vez, a action lidará com isso ou podemos forçar um save primeiro
+        if (product.driveConfig?.folderId) {
+          formData.append("folderId", product.driveConfig.folderId);
+        }
+
+        const result = await uploadProductCoverAction(formData);
+        if (result.success && result.url) {
+           setProduct({ ...product, sheet: { ...product.sheet, coverImage: result.url } });
+           setUploadStatus("Sucesso!");
+        } else {
+           throw new Error(result.error);
+        }
+      } catch (err: any) {
+        alert("Erro no upload: " + err.message);
+        setUploadStatus("Erro.");
+      } finally {
+        setIsUploading(false);
+        setTimeout(() => setUploadStatus(null), 3000);
+      }
+   };
+
    return (
      <div className="space-y-8 max-w-3xl">
        <div className="space-y-2">
@@ -289,21 +347,153 @@ function SheetForm({ product, setProduct }: any) {
              <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Preço de Venda (R$)</label>
              <input 
                type="number" 
-               className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs" 
+               className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-black shadow-inner" 
                value={product.price}
                onChange={(e) => setProduct({...product, price: parseFloat(e.target.value)})}
              />
           </div>
           <div className="space-y-2">
-             <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">URL da Capa (Serviço)</label>
-             <input 
-               type="text" 
-               placeholder="Link da imagem..."
-               className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-xs font-mono" 
-               value={product.sheet.coverImage}
-               onChange={(e) => setProduct({...product, sheet: { ...product.sheet, coverImage: e.target.value }})}
-             />
+             <label className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Capa do Serviço (Drive)</label>
+             <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Link gerado automaticamente..."
+                  readOnly
+                  className="flex-1 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-4 text-[10px] font-mono opacity-80" 
+                  value={product.sheet.coverImage}
+                />
+                <div className="relative">
+                   <button 
+                     type="button"
+                     disabled={isUploading}
+                     className="h-full px-6 bg-[var(--accent-primary)] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest disabled:opacity-50 hover:scale-105 transition-all"
+                   >
+                     {isUploading ? "Enviando..." : uploadStatus || "Upload"}
+                   </button>
+                   <input 
+                     type="file" 
+                     className="absolute inset-0 opacity-0 cursor-pointer" 
+                     accept="image/*"
+                     onChange={handleFileChange}
+                     disabled={isUploading}
+                   />
+                </div>
+             </div>
+             <p className="text-[7px] text-[var(--text-muted)] uppercase tracking-widest italic px-2">A foto será salva na pasta do serviço no Google Drive.</p>
           </div>
+       </div>
+
+       {product.driveConfig?.sheetUrl && (
+         <div className="p-6 border border-[var(--accent-primary)]/20 bg-[var(--accent-primary)]/5 rounded-[2rem] flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <div className="p-3 bg-green-500/10 text-green-500 rounded-xl">
+                  <FileText size={18} />
+               </div>
+               <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest">Planilha de Registro Sincronizada</p>
+                  <p className="text-[8px] text-[var(--text-muted)] underline cursor-pointer" onClick={() => window.open(product.driveConfig?.sheetUrl, '_blank')}>Ver no Google Sheets</p>
+               </div>
+            </div>
+            <CheckCircle2 size={16} className="text-green-500" />
+         </div>
+       )}
+
+       {/* Editor de FAQ (Perguntas Frequentes) 📌 */}
+       <div className="pt-8 border-t border-[var(--border-primary)] space-y-6">
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <div className="p-2 bg-[var(--accent-primary)]/10 rounded-xl text-[var(--accent-primary)]">
+                   <HelpCircle size={16} />
+                </div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest">Perguntas Frequentes (FAQ)</h4>
+             </div>
+             <button 
+               type="button"
+               onClick={() => {
+                  const currentFaq = product.sheet.faq || [];
+                  setProduct({ 
+                     ...product, 
+                     sheet: { 
+                        ...product.sheet, 
+                        faq: [...currentFaq, { question: "Nova Pergunta", answer: "" }] 
+                     } 
+                  });
+               }}
+               className="px-4 py-2 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:border-[var(--accent-primary)] transition-all flex items-center gap-2"
+             >
+                <Plus size={12} />
+                Adicionar FAQ
+             </button>
+          </div>
+
+          <div className="space-y-4">
+             {product.sheet.faq?.map((item: any, idx: number) => (
+                <div key={idx} className="p-6 bg-white/5 border border-white/5 rounded-2xl space-y-4 group relative">
+                   <button 
+                      type="button"
+                      onClick={() => {
+                         const newFaq = product.sheet.faq.filter((_: any, i: number) => i !== idx);
+                         setProduct({ ...product, sheet: { ...product.sheet, faq: newFaq } });
+                      }}
+                      className="absolute top-4 right-4 p-2 text-red-500/50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                   >
+                      <Trash2 size={14} />
+                   </button>
+                   
+                   <div className="space-y-2">
+                      <label className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)]">Pergunta</label>
+                      <input 
+                        type="text"
+                        className="w-full bg-transparent border-b border-white/10 text-[11px] font-black pb-1 focus:border-[var(--accent-primary)] outline-none transition-all"
+                        value={item.question}
+                        onChange={(e) => {
+                           const newFaq = [...product.sheet.faq];
+                           newFaq[idx].question = e.target.value;
+                           setProduct({ ...product, sheet: { ...product.sheet, faq: newFaq } });
+                        }}
+                      />
+                   </div>
+
+                   <div className="space-y-2">
+                      <label className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)]">Resposta</label>
+                      <textarea 
+                        rows={2}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-[10px] leading-relaxed outline-none focus:border-[var(--accent-primary)] transition-all"
+                        value={item.answer}
+                        onChange={(e) => {
+                           const newFaq = [...product.sheet.faq];
+                           newFaq[idx].answer = e.target.value;
+                           setProduct({ ...product, sheet: { ...product.sheet, faq: newFaq } });
+                        }}
+                      />
+                   </div>
+                </div>
+             ))}
+
+             {(!product.sheet.faq || product.sheet.faq.length === 0) && (
+                <div className="p-10 border border-dashed border-[var(--border-primary)] rounded-3xl text-center opacity-30">
+                   <p className="text-[9px] font-black uppercase tracking-widest">Nenhuma pergunta frequente cadastrada.</p>
+                </div>
+             )}
+          </div>
+       </div>
+
+       {/* Termos e Condições Legais ⚖️ */}
+       <div className="pt-8 border-t border-[var(--border-primary)] space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="p-2 bg-[var(--accent-primary)]/10 rounded-xl text-[var(--accent-primary)]">
+                <ShieldCheck size={16} />
+             </div>
+             <h4 className="text-[10px] font-black uppercase tracking-widest">Termos, Condições e Regras (Contrato)</h4>
+          </div>
+          <textarea 
+            rows={8}
+            placeholder="Insira as regras, termos de uso ou minuta de contrato deste serviço específico..."
+            className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-6 text-[10px] leading-relaxed outline-none focus:border-[var(--accent-primary)] transition-all font-medium italic opacity-80" 
+            value={product.sheet.termsAndConditions}
+            onChange={(e) => setProduct({...product, sheet: { ...product.sheet, termsAndConditions: e.target.value }})}
+          />
+          <p className="text-[7px] text-[var(--text-muted)] uppercase tracking-widest px-2">* Estes termos serão apresentados ao cliente antes da finalização da contratação.</p>
        </div>
      </div>
    );

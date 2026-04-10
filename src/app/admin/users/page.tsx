@@ -28,6 +28,8 @@ import { getAdminUsersList, updateUserPermissions } from "@/actions/users-admin"
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
 import { DiscDevolutivaModal } from "@/components/admin/DiscDevolutivaModal";
+import { getAdminProducts } from "@/actions/products";
+import { Product } from "@/types/products";
 
 /**
  * BPlen HUB — Gestão de Usuários e Governança 👥🏗️🛡️
@@ -38,21 +40,13 @@ const ROLE_OPTIONS: { id: UserRole; label: string; icon: any }[] = [
   { id: "admin", label: "Administrador", icon: ShieldCheck },
   { id: "member", label: "Membro", icon: Users },
   { id: "visitor", label: "Visitante", icon: UserCircle },
-];
-
-const PREDEFINED_SERVICES = [
-  { id: "hub_community", label: "Comunidade HUB" },
-  { id: "survey_welcome", label: "Dossiê de Boas-Vindas" },
-  { id: "member_area_access", label: "🔒 Área de Membro" }, // NOVO ENTITLEMENT
-  { id: "content_premium", label: "Conteúdos Premium" },
-  { id: "mentoria_1to1", label: "Mentoria 1-to-1" },
-  { id: "career_planning", label: "Planejamento de Carreira" },
-  { id: "behavioral_analysis", label: "Análise Comportamental" },
+  { id: "suspended", label: "Banido / Suspenso", icon: ShieldOff },
 ];
 
 export default function UsersManagementPage() {
   const { isAdmin: currentAdminStatus, loading: authLoading } = useAuthContext();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +61,32 @@ export default function UsersManagementPage() {
   const [discLinkInput, setDiscLinkInput] = useState("");
   const [savingDisc, setSavingDisc] = useState(false);
   const [showDiscDevolutiva, setShowDiscDevolutiva] = useState(false);
+
+  const fetchUsersAndProducts = async () => {
+    setLoading(true);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const [usersResult, productsResult] = await Promise.all([
+        getAdminUsersList(token),
+        getAdminProducts()
+      ]);
+      
+      if (usersResult.success && usersResult.data) {
+        setUsers(usersResult.data);
+      }
+      setProducts(productsResult);
+      setError(null);
+    } catch (err: any) {
+      console.error("Fetch Error:", err);
+      setError("Erro ao sincronizar dados administrativos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsersAndProducts();
+  }, []);
 
   // Sincronizar input do DISC quando o usuário mudar
   useEffect(() => {
@@ -88,30 +108,6 @@ export default function UsersManagementPage() {
        load();
     }
   }, [selectedUser, activeTab]);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      const result = await getAdminUsersList(token);
-      
-      if (result.success && result.data) {
-        setUsers(result.data);
-        setError(null);
-      } else {
-        setError(result.error || "Falha desconhecida ao carregar usuários.");
-      }
-    } catch (err: any) {
-      console.error("Fetch Error:", err);
-      setError("Erro interno ao processar a requisição.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -135,6 +131,9 @@ export default function UsersManagementPage() {
       setUsers(prev => prev.map(u => 
         u.matricula === targetMatricula ? { ...u, role: newRole, isAdmin: newRole === 'admin' } : u
       ));
+      if (selectedUser?.matricula === targetMatricula) {
+        setSelectedUser(prev => prev ? { ...prev, role: newRole, isAdmin: newRole === 'admin' } : null);
+      }
     } catch (err: any) {
       alert(err.message || "Erro ao atualizar perfil.");
     } finally {
@@ -234,7 +233,7 @@ export default function UsersManagementPage() {
                 const res = await runWelcomeMigration();
                 if (res.success && res.results) {
                   alert(`Sucesso! ${res.results.migrated} usuários migrados de um total de ${res.results.total}. (${res.results.skipped} pulados).`);
-                  fetchUsers();
+                  fetchUsersAndProducts();
                 } else {
                   alert(`Falha na migração de dados.`);
                 }
@@ -267,7 +266,7 @@ export default function UsersManagementPage() {
                <p className="text-sm font-medium opacity-80">{error}</p>
             </div>
             <button 
-              onClick={() => fetchUsers()}
+              onClick={() => fetchUsersAndProducts()}
               className="px-6 py-2 bg-red-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-[1.02] transition-all"
             >
               Tentar Novamente
@@ -289,17 +288,17 @@ export default function UsersManagementPage() {
           />
         </div>
 
-        <div className="flex items-center bg-[var(--bg-primary)]/50 p-1.5 rounded-2xl border border-[var(--input-border)] gap-1">
-          {['all', 'admin', 'member', 'visitor'].map((role) => (
+        <div className="flex items-center bg-[var(--bg-primary)]/50 p-1.5 rounded-2xl border border-[var(--input-border)] gap-1 overflow-x-auto">
+          {['all', 'admin', 'member', 'visitor', 'suspended'].map((role) => (
             <button
               key={role}
               onClick={() => setRoleFilter(role as any)}
-              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest ${roleFilter === role
-                  ? "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
+              className={`px-4 py-2 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest whitespace-nowrap ${roleFilter === role
+                  ? role === 'suspended' ? "bg-red-500 text-white shadow-xl shadow-red-500/20" :  "bg-[var(--accent-start)] text-white shadow-xl shadow-[var(--accent-start)]/20"
                   : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 }`}
             >
-              {role === 'all' ? 'Todos' : role}
+              {role === 'all' ? 'Todos' : role === 'suspended' ? 'Banidos' : role}
             </button>
           ))}
         </div>
@@ -314,7 +313,7 @@ export default function UsersManagementPage() {
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Identidade / Membro</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Papel (Role)</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Acessos Granulares</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Onboard</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Status</th>
                 <th className="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ações</th>
               </tr>
             </thead>
@@ -327,7 +326,7 @@ export default function UsersManagementPage() {
                 ))
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.matricula} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={user.matricula} className={`hover:bg-white/[0.02] transition-colors group ${user.role === 'suspended' ? 'opacity-60 grayscale' : ''}`}>
                     {/* Identidade */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
@@ -356,46 +355,47 @@ export default function UsersManagementPage() {
                           className={`appearance-none font-black text-[9px] uppercase tracking-widest pl-3 pr-8 py-2 rounded-xl border transition-all cursor-pointer focus:outline-none ${
                             user.role === 'admin' 
                             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" 
-                            : user.role === 'member'
-                            ? "bg-blue-500/10 border-blue-500/20 text-blue-600"
-                            : "bg-gray-500/10 border-gray-500/20 text-gray-500"
+                            : user.role === 'suspended'
+                            ? "bg-red-500/10 border-red-500/20 text-red-600"
+                            : "bg-blue-500/10 border-blue-500/20 text-blue-600"
                           } disabled:opacity-30`}
                         >
                           <option value="visitor">Visitante</option>
                           <option value="member">Membro</option>
                           <option value="admin">Administrador</option>
+                          <option value="suspended">Banido</option>
                         </select>
                         <ChevronDown size={10} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40" />
                       </div>
                     </td>
 
-                    {/* Acessos (Destaque para Entitlements) */}
+                    {/* Acessos (Destaque para Entitlements Dinâmicos) */}
                     <td className="px-8 py-6">
                       <button 
                         onClick={() => { setSelectedUser(user); setActiveTab("services"); }}
                         className="flex flex-wrap gap-1.5 hover:scale-[1.02] transition-transform text-left"
                       >
-                         {Object.values(user.services).filter(v => v === true).length > 0 ? (
-                            Object.entries(user.services)
-                              .filter(([_, active]) => active)
-                              .map(([id]) => (
-                                <div key={id} className="px-2 py-1 bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 rounded-lg text-[8px] font-black text-[var(--accent-start)]/70 uppercase tracking-tighter">
-                                   {PREDEFINED_SERVICES.find(s => s.id === id)?.label || id}
-                                </div>
-                              ))
-                         ) : (
+                         {Object.entries(user.services).filter(([_, active]) => active).map(([id]) => {
+                            const productName = products.find(p => p.id === id || p.slug === id)?.title;
+                            return (
+                              <div key={id} className={`px-2 py-1 border rounded-lg text-[8px] font-black uppercase tracking-tighter ${id === 'member_area_access' ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600' : 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)]/70'}`}>
+                                 {id === 'member_area_access' ? 'Portaria' : (productName || id)}
+                              </div>
+                            );
+                         })}
+                         {Object.values(user.services).filter(v => v === true).length === 0 && (
                             <div className="px-2 py-1 bg-gray-500/5 border border-dashed border-gray-500/20 rounded-lg text-[8px] font-black text-gray-400 uppercase tracking-tighter">
-                               Acesso Padrão (Sem Serviços)
+                               Nenhum Serviço Ativo
                             </div>
                          )}
                       </button>
                     </td>
 
-                    {/* Status Onboard */}
+                    {/* Status de Governança */}
                     <td className="px-8 py-6">
-                      <div className={`text-[10px] font-bold uppercase tracking-widest ${user.onboardStatus === 'completed' ? 'text-green-500' : 'text-amber-500 opacity-60'}`}>
-                         {user.onboardStatus === 'completed' ? <CheckCircle2 size={14} className="inline mr-1" /> : <Loader2 size={12} className="inline mr-1 animate-spin" />}
-                         {user.onboardStatus === 'completed' ? "Ativo" : "Pendente"}
+                      <div className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${user.role === 'suspended' ? 'text-red-500' : 'text-green-500'}`}>
+                         {user.role === 'suspended' ? <ShieldAlert size={14} /> : <CheckCircle2 size={14} />}
+                         {user.role === 'suspended' ? "Suspenso" : "Ativo"}
                       </div>
                     </td>
 
@@ -417,7 +417,7 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Modal de Gestão de Usuário (Serviços + Assessments) */}
+      {/* Modal de Gestão de Usuário REFORMULADO 🛡️⚖️ */}
       <AnimatePresence>
         {selectedUser && (
           <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
@@ -432,7 +432,7 @@ export default function UsersManagementPage() {
                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                animate={{ opacity: 1, scale: 1, y: 0 }}
                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-               className="relative w-full max-w-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] overflow-hidden shadow-2xl"
+               className="relative w-full max-w-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] overflow-hidden shadow-2xl"
              >
                 {/* Modal Header */}
                 <div className="p-8 border-b border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-between items-center text-left">
@@ -461,45 +461,93 @@ export default function UsersManagementPage() {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="p-10 space-y-12 max-h-[60vh] overflow-y-auto custom-scrollbar">
                    {activeTab === "services" ? (
-                      <div className="grid grid-cols-1 gap-4">
-                         {PREDEFINED_SERVICES.map((service) => {
-                            const isActive = selectedUser.services[service.id];
-                            return (
-                               <button 
-                                 key={service.id}
-                                 onClick={() => {
-                                    const newServices = { ...selectedUser.services, [service.id]: !isActive };
-                                    setSelectedUser({ ...selectedUser, services: newServices });
-                                 }}
-                                 className={`p-6 border rounded-[1.5rem] flex items-center justify-between transition-all group ${
-                                   isActive 
-                                   ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/30" 
-                                   : "bg-[var(--input-bg)] border-[var(--border-primary)]"
-                                 }`}
-                               >
-                                  <div className="flex items-center gap-4 text-left">
-                                     <div className={`p-3 rounded-xl border transition-all ${
-                                        isActive ? "bg-[var(--accent-start)] text-white border-[var(--accent-start)]" : "bg-white/5 border-[var(--border-primary)] text-gray-500"
-                                     }`}>
-                                        {isActive ? <Rocket size={18} /> : <Layers size={18} />}
-                                     </div>
-                                     <div>
-                                        <h5 className={`font-black text-sm transition-colors ${isActive ? "text-[var(--accent-start)]" : "text-[var(--text-primary)]"}`}>
-                                           {service.label}
-                                        </h5>
-                                        <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60 mt-1">
-                                           Liberação de trilha & Hub
-                                        </p>
-                                     </div>
+                      <div className="space-y-10">
+                         {/* SEÇÃO 1: Níveis de Plataforma (Role & Status) */}
+                         <div className="space-y-6">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
+                               <ShieldCheck size={16} /> Níveis de Plataforma & Segurança
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               {/* Role: Administrativo */}
+                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'admin' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase text-[var(--text-primary)]">Modo Administrativo</p>
+                                     <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Gestão Completa do Hub</p>
                                   </div>
-                                  <div className={`w-10 h-5 rounded-full relative transition-all ${isActive ? "bg-[var(--accent-start)]" : "bg-gray-700"}`}>
-                                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? "left-6" : "left-1"}`} />
+                                  <button 
+                                    onClick={() => handleUpdateRole(selectedUser.matricula, selectedUser.role === 'admin' ? 'member' : 'admin')}
+                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.role === 'admin' ? 'bg-emerald-500' : 'bg-gray-700'}`}
+                                  >
+                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.role === 'admin' ? 'left-7' : 'left-1'}`} />
+                                  </button>
+                               </div>
+
+                               {/* Role: Suspended (Banimento) */}
+                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'suspended' ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase text-red-500">Banir Usuário</p>
+                                     <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Bloqueio total irrecorrível</p>
+                                  </div>
+                                  <button 
+                                    onClick={() => handleUpdateRole(selectedUser.matricula, selectedUser.role === 'suspended' ? 'member' : 'suspended')}
+                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.role === 'suspended' ? 'bg-red-500' : 'bg-gray-700'}`}
+                                  >
+                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.role === 'suspended' ? 'left-7' : 'left-1'}`} />
+                                  </button>
+                               </div>
+                            </div>
+                         </div>
+
+                         {/* SEÇÃO 2: Serviços Contratados (Dinâmico do Catálogo) */}
+                         <div className="space-y-6">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
+                               <Rocket size={16} /> Serviços do Portfólio
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               {/* Portaria / Área de Membro (Fixa) */}
+                               <button 
+                                 onClick={() => {
+                                    const n = { ...selectedUser.services, member_area_access: !selectedUser.services.member_area_access };
+                                    setSelectedUser({ ...selectedUser, services: n });
+                                 }}
+                                 className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
+                               >
+                                  <div>
+                                     <p className={`text-[10px] font-black uppercase ${selectedUser.services.member_area_access ? 'text-emerald-500' : ''}`}>Área de Membros</p>
+                                     <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Acesso Base à Plataforma</p>
+                                  </div>
+                                  <div className={`w-10 h-5 rounded-full relative transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500' : 'bg-gray-700'}`}>
+                                     <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${selectedUser.services.member_area_access ? 'left-6' : 'left-1'}`} />
                                   </div>
                                </button>
-                            );
-                         })}
+
+                               {/* Produtos do Catálogo (Dinâmicos) */}
+                               {products.map((product) => {
+                                  const key = product.id || product.slug;
+                                  const isActive = selectedUser.services[key];
+                                  return (
+                                     <button 
+                                       key={product.id}
+                                       onClick={() => {
+                                          const n = { ...selectedUser.services, [key]: !isActive };
+                                          setSelectedUser({ ...selectedUser, services: n });
+                                       }}
+                                       className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
+                                     >
+                                        <div className="flex-1 min-w-0 pr-4">
+                                           <p className={`text-[10px] font-black uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
+                                           <p className="text-[7px] text-[var(--text-muted)] font-black uppercase tracking-[0.2em] mt-1">{product.serviceCode || 'Serviço Ativo'}</p>
+                                        </div>
+                                        <div className={`w-10 h-5 rounded-full relative transition-all shrink-0 ${isActive ? 'bg-[var(--accent-start)]' : 'bg-gray-700'}`}>
+                                           <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? 'left-6' : 'left-1'}`} />
+                                        </div>
+                                     </button>
+                                  );
+                               })}
+                            </div>
+                         </div>
                       </div>
                    ) : (
                       <div className="space-y-6">
@@ -535,7 +583,7 @@ export default function UsersManagementPage() {
                                       : "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
                                     }`}
                                   >
-                             {test.isReleased ? "Ocultar do Cliente" : "Liberar para Cliente"}
+                                     {test.isReleased ? "Ocultar do Cliente" : "Liberar para Cliente"}
                                   </button>
                                </div>
                              ))}
@@ -558,7 +606,7 @@ export default function UsersManagementPage() {
                                <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Portal DISC (External Link)</h6>
                             </div>
                             <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] leading-relaxed max-w-sm ml-1 opacity-60">
-                               Insira o link individual gerado no portal DISC para este membro. O botão "Iniciar" na plataforma levará o usuário para este endereço.
+                               Insira o link individual gerado no portal DISC para este membro.
                             </p>
                             
                             <div className="flex gap-2">
@@ -584,94 +632,23 @@ export default function UsersManagementPage() {
                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
                             >
                                <Trophy size={16} className="group-hover:rotate-12 transition-transform" />
-                               Lançar Devolutiva DISC (Inject Results)
+                               Lançar Devolutiva DISC
                             </button>
-                         </div>
-
-                         {/* Seção de Recuperação de Identidade (Bugfix 🧬) */}
-                         <div className="pt-12 border-t border-[var(--border-primary)] border-dashed space-y-6">
-                            <div className="flex items-center gap-3 mb-2">
-                               <div className="p-2 bg-amber-500/10 rounded-xl">
-                                  <ShieldAlert size={16} className="text-amber-600" />
-                                </div>
-                               <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Recuperação de Identidade</h6>
-                            </div>
-                            
-                            <div className="p-7 bg-amber-500/[0.03] border border-amber-500/10 rounded-[2rem] space-y-5">
-                               <p className="text-[9px] font-bold text-amber-600 uppercase tracking-[0.2em] leading-relaxed max-w-sm">
-                                  Se o cliente não vê os resultados, solicite o UID dele (no rodapé da página de resultados dele) e vincule abaixo.
-                               </p>
-                               
-                               <div className="flex flex-col gap-3">
-                                  <div className="flex gap-2">
-                                    <input 
-                                       type="text"
-                                       placeholder="Colar UID de Login do Cliente..."
-                                       className="bg-black/5 border border-amber-500/20 rounded-2xl px-5 py-3.5 text-[10px] font-mono flex-1 text-[var(--text-primary)] focus:border-amber-500/50 outline-none transition-all placeholder:opacity-30"
-                                       id="manual-uid-input"
-                                    />
-                                    <button 
-                                       onClick={async () => {
-                                          const input = document.getElementById('manual-uid-input') as HTMLInputElement;
-                                          if (!input.value) return;
-                                          
-                                          setLoadingAssessments(true);
-                                          try {
-                                             const token = await auth.currentUser?.getIdToken();
-                                             const { forceIdentifyUser } = await import('@/actions/users-admin');
-                                             const res = await forceIdentifyUser(selectedUser.matricula, input.value.trim(), token);
-                                             
-                                             if (res.success) {
-                                                alert('✅ Identidade vinculada com sucesso! Peça ao cliente para atualizar a página.');
-                                                // Atualiza o estado local para mostrar o novo UID (capturado antes de limpar)
-                                                const newUid = input.value.trim();
-                                                setSelectedUser({ ...selectedUser, uid: newUid });
-                                                input.value = '';
-                                                fetchUsers(); 
-                                             } else {
-                                                alert('❌ Erro ao vincular: ' + (res.error || 'Erro desconhecido'));
-                                             }
-                                          } catch (err: any) {
-                                             alert('❌ Erro crítico: ' + err.message);
-                                          } finally {
-                                             setLoadingAssessments(false);
-                                          }
-                                       }}
-                                       className="px-6 bg-amber-500 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all flex items-center gap-2 shadow-xl shadow-amber-500/10 group"
-                                    >
-                                       <Link2 size={14} className="group-hover:rotate-45 transition-transform" />
-                                       Vincular
-                                    </button>
-                                  </div>
-                                  <div className="flex items-center gap-2 px-2 opacity-40">
-                                     <div className="w-1 h-1 rounded-full bg-amber-500" />
-                                     <p className="text-[8px] font-medium uppercase tracking-widest text-[var(--text-muted)]">
-                                        UID Atual vinculada: {selectedUser.uid || 'Nenhuma'}
-                                     </p>
-                                  </div>
-                               </div>
-                            </div>
                          </div>
                       </div>
                    )}
                 </div>
 
-                {/* Modal Footer (Apenas para Tab Serviços) */}
+                {/* Modal Footer */}
                 {activeTab === "services" && (
                   <div className="p-8 border-t border-[var(--border-primary)] bg-[var(--input-bg)]/50 flex justify-end gap-4">
                     <button 
-                      onClick={() => setSelectedUser(null)}
-                      className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-white transition-all"
-                    >
-                        Cancelar
-                    </button>
-                    <button 
                       onClick={() => handleUpdateServices(selectedUser.matricula, selectedUser.services)}
                       disabled={processingUser === selectedUser.matricula}
-                      className="flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
+                      className="flex items-center gap-3 px-12 py-4 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
                     >
                         {processingUser === selectedUser.matricula ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                        {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Acessos"}
+                        {processingUser === selectedUser.matricula ? "Salvando..." : "Atualizar Governança"}
                     </button>
                   </div>
                 )}
@@ -686,32 +663,12 @@ export default function UsersManagementPage() {
             user={selectedUser} 
             onClose={() => setShowDiscDevolutiva(false)} 
             onSuccess={() => {
-              alert("✅ Devolutiva publicada e injetada com sucesso!");
-              fetchUsers();
+              alert("✅ Devolutiva publicada!");
+              fetchUsersAndProducts();
             }}
           />
         )}
       </AnimatePresence>
-
-      {/* Rodapé Informativo */}
-      <div className="p-8 glass bg-[var(--input-bg)]/50 rounded-[2.5rem] border-[var(--border-primary)] flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-[var(--accent-start)]/5 blur-3xl rounded-full -mr-16 -mt-16" />
-          <div className="space-y-1 text-left relative z-10">
-              <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Entitlements Framework v1.0</h5>
-              <p className="text-[10px] text-[var(--text-muted)] opacity-60">
-                 Os papéis definem permissões de plataforma, enquanto os acessos granulares liberam produtos e conteúdos específicos.
-              </p>
-          </div>
-          <div className="flex items-center gap-4 relative z-10 shrink-0">
-              <div className="text-right">
-                  <p className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-widest">Base de Governança</p>
-                  <p className="text-[10px] font-bold text-[var(--text-primary)]">User_Permissions/access</p>
-              </div>
-              <div className="w-10 h-10 rounded-2xl bg-[var(--accent-start)]/10 flex items-center justify-center text-[var(--accent-start)]">
-                  <Layers size={18} />
-              </div>
-          </div>
-      </div>
     </div>
   );
 }

@@ -28,6 +28,11 @@ export async function requireAdmin(idToken?: string): Promise<Session> {
     throw new AuthorizationError("Sessão inválida ou expirada. Autentique-se novamente.");
   }
 
+  // 🚨 BLOCK: Banimento Global
+  if (session.role === "suspended") {
+     throw new AuthorizationError("Sua conta foi suspensa por violar os termos da consultoria. Entre em contato com o suporte.");
+  }
+
   if (!session.isAdmin) {
     console.error(`❌ [Authorization] Acesso bloqueado para o UID: ${session.uid}`);
     throw new AuthorizationError("Você não tem permissão para realizar esta operação.");
@@ -53,6 +58,11 @@ export async function requireMemberAccess(idToken?: string): Promise<Session> {
     throw new AuthorizationError("Sessão inválida ou expirada. Autentique-se novamente.");
   }
 
+  // 🚨 BLOCK: Banimento Global
+  if (session.role === "suspended") {
+     throw new AuthorizationError("Acesso Negado: Sua assinatura bPlen foi suspensa. Verifique sua situação financeira ou termos de uso.");
+  }
+
   // Governança: Admin tem acesso irrestrito, ou membro com entitlement específico
   const hasAccess = session.isAdmin || session.services?.member_area_access === true;
 
@@ -62,5 +72,27 @@ export async function requireMemberAccess(idToken?: string): Promise<Session> {
   }
 
   console.log(`✅ [Authorization] Acesso à Área de Membro autorizado para: ${session.email}`);
+  return session;
+}
+
+/**
+ * Exige apenas autenticação simples para prosseguir (ex: Checkout).
+ * 
+ * @param idToken Token de Identidade opcional.
+ * @returns Objeto Session se autenticado.
+ * @throws {AuthorizationError} Se a identidade não for resolvida.
+ */
+export async function requireAuth(idToken?: string): Promise<Session> {
+  const session = await getServerSession(idToken);
+
+  if (!session) {
+    throw new AuthorizationError("Sessão inválida ou expirada. Autentique-se novamente.");
+  }
+
+  // Banimento impede até o checkout
+  if (session.role === "suspended") {
+     throw new AuthorizationError("Sua conta está suspensa. Não é possível realizar novas contratações.");
+  }
+
   return session;
 }

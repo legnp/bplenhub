@@ -4,7 +4,7 @@ import { Timestamp } from "firebase/firestore";
  * BPlen HUB — User Permissions & Roles (Governança 👥🛡️)
  */
 
-export type UserRole = "visitor" | "member" | "admin";
+export type UserRole = "visitor" | "member" | "admin" | "suspended";
 
 /**
  * Catálogo de Serviços/Produtos BPlen (Foundation)

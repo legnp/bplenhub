@@ -12,7 +12,10 @@ import {
   Briefcase, 
   Users, 
   LayoutDashboard,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Globe,
+  Ticket
 } from "lucide-react";
 import { HubHeader } from "@/components/hub/HubHeader";
 
@@ -52,12 +55,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
            <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--text-muted)] font-black opacity-60">Control Center</p>
         </div>
 
-        <nav className="flex-1 space-y-1.5">
+        <nav className="flex-1 space-y-1.5 overflow-y-auto pr-2 custom-scrollbar">
+          <NavLink href="/admin" icon={<LayoutDashboard size={18} />}>Dashboard</NavLink>
+          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Operação</div>
           <NavLink href="/admin/agenda" icon={<Calendar size={18} />}>Agenda Hub</NavLink>
           <NavLink href="/admin/gestao-agenda" icon={<Settings size={18} />}>Gestão de Agenda</NavLink>
-          <NavLink href="/admin/forms" icon={<FileText size={18} />}>Gestão de Formulários</NavLink>
-          <NavLink href="/admin/portfolio" icon={<Briefcase size={18} />}>Gestão de Portfólio</NavLink>
+          <NavLink href="/admin/reunioes" icon={<Briefcase size={18} />}>Gestão de Reuniões</NavLink>
+          
+          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Conteúdo & Vendas</div>
+          <NavLink href="/admin/products" icon={<Zap size={18} />}>Builder de Produtos</NavLink>
+          <NavLink href="/admin/portfolio" icon={<FileText size={18} />}>Gestão de Portfólio</NavLink>
+          <NavLink href="/admin/marketing" icon={<Ticket size={18} />}>Marketing & Cupons</NavLink>
+          <NavLink href="/admin/social" icon={<Globe size={18} />}>Gestão Social</NavLink>
+          
+          <div className="pt-4 pb-2 px-4 text-[8px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Dados & Usuários</div>
           <NavLink href="/admin/users" icon={<Users size={18} />}>Gestão de Usuários</NavLink>
+          <NavLink href="/admin/forms" icon={<FileText size={18} />}>Banco de Respostas</NavLink>
           <NavLink href="/admin/pesquisas" icon={<LayoutDashboard size={18} />}>Pesquisas Interativas</NavLink>
         </nav>
 

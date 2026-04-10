@@ -14,7 +14,8 @@ export async function seedInitialProductsAction() {
     {
       title: "Onboarding Estratégico",
       slug: "onboarding",
-      targetAudiences: ["people"],
+      serviceCode: "BPL-000",
+      targetAudiences: ["internal"],
       price: 0,
       isStepJourney: true,
       order: 1,
@@ -51,6 +52,7 @@ export async function seedInitialProductsAction() {
     {
       title: "Análise Comportamental (DISC)",
       slug: "analise-comportamental",
+      serviceCode: "BPL-001",
       targetAudiences: ["people", "companies"],
       price: 497,
       isStepJourney: true,
