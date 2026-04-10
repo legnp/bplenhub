@@ -50,7 +50,16 @@ export async function getAdminCouponsList(idToken: string) {
     
     return {
       success: true,
-      data: snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coupon))
+      data: snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
+          expiryDate: data.expiryDate?.toDate?.()?.toISOString() || data.expiryDate || null,
+        } as Coupon;
+      })
     };
   } catch (err: any) {
     return { success: false, error: err.message };

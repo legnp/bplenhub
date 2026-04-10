@@ -742,7 +742,8 @@ export async function getSyncedEvents(): Promise<GoogleCalendarEvent[]> {
         return {
           ...data,
           lastSync: data.lastSync?.toDate?.()?.toISOString() || null,
-          postEventUpdatedAt: data.postEventUpdatedAt?.toDate?.()?.toISOString() || null
+          postEventUpdatedAt: data.postEventUpdatedAt?.toDate?.()?.toISOString() || null,
+          summarySheetUpdatedAt: data.summarySheetUpdatedAt?.toDate?.()?.toISOString() || null
         } as GoogleCalendarEvent;
       });
     } catch (error) {

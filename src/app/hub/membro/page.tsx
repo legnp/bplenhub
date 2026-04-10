@@ -27,10 +27,10 @@ export default async function MemberAreaPage() {
     redirect("/hub");
   }
 
-  // 3. Buscar Serviços Ativos do Usuário 📡
+  // 3. Buscar Todos os Serviços e Status de Acesso 📡
   const result = await getMyActiveServicesAction(idToken);
-  const activeProducts = result.success ? (result.data || []) : [];
+  const products = result.success ? (result.data || []) : [];
 
   // 4. Renderização Autorizada — Somente após validação legítima no servidor.
-  return <MemberAreaView activeProducts={activeProducts} />;
+  return <MemberAreaView products={products} />;
 }

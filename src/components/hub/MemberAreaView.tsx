@@ -1,20 +1,21 @@
 import React from "react";
-import { ShieldCheck, ArrowRight, Zap, Briefcase } from "lucide-react";
+import { ShieldCheck, ArrowRight, Zap, Briefcase, Lock } from "lucide-react";
 import { Product } from "@/types/products";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface MemberAreaViewProps {
-  activeProducts: Product[];
+  products: (Product & { isUnlocked: boolean })[];
 }
 
 /**
  * MEMBER AREA VIEW — O Conteúdo Real da Área de Membro 🏗️
  * Apresentado apenas após autorização soberana do servidor.
  */
-export function MemberAreaView({ activeProducts }: MemberAreaViewProps) {
+export function MemberAreaView({ products }: MemberAreaViewProps) {
   
-  if (activeProducts.length === 0) {
+  if (products.length === 0) {
     return (
       <div className="w-full max-w-7xl mx-auto px-6 py-20 min-h-[70vh] flex flex-col items-center justify-center text-center space-y-8 animate-fade-in">
         <div className="p-8 rounded-[3rem] bg-white/5 border border-white/10 opacity-30">
@@ -39,6 +40,8 @@ export function MemberAreaView({ activeProducts }: MemberAreaViewProps) {
     );
   }
 
+  const unlockedCount = products.filter(p => p.isUnlocked).length;
+
   return (
     <div className="w-full max-w-7xl mx-auto px-6 py-12 space-y-12 animate-fade-in">
       
@@ -49,29 +52,52 @@ export function MemberAreaView({ activeProducts }: MemberAreaViewProps) {
          </h1>
          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)] flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Ecossistema BPlen Ativo — {activeProducts.length} itens
+            Ecossistema BPlen Ativo — {unlockedCount} itens desbloqueados
          </p>
       </div>
 
       {/* 📦 Grid de Cards de Serviço */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {activeProducts.map((product) => (
-            <Link key={product.id} href={`/hub/servicos/${product.slug}`}>
-               <div className="group relative p-8 rounded-[2.5rem] bg-white/5 border border-white/10 hover:border-[var(--accent-start)]/30 hover:bg-white/[0.08] transition-all duration-500 hover:-translate-y-2 overflow-hidden h-full flex flex-col justify-between">
+         {products.map((product) => (
+            <Link 
+              key={product.id} 
+              href={product.isUnlocked ? `/hub/servicos/${product.slug}` : `/servicos/${product.slug}`}
+              className={!product.isUnlocked ? "cursor-pointer" : ""}
+            >
+               <div className={cn(
+                 "group relative p-8 rounded-[2.5rem] border transition-all duration-500 hover:-translate-y-2 overflow-hidden h-full flex flex-col justify-between",
+                 product.isUnlocked 
+                   ? "bg-white/5 border-white/10 hover:border-[var(--accent-start)]/30 hover:bg-white/[0.08]" 
+                   : "bg-white/[0.02] border-white/5 grayscale-[0.6] opacity-80 hover:grayscale-0 hover:opacity-100"
+               )}>
                   {/* Background Accents */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-start)] rounded-full blur-[60px] opacity-0 group-hover:opacity-5 transition-opacity" />
+                  {product.isUnlocked && (
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-start)] rounded-full blur-[60px] opacity-0 group-hover:opacity-5 transition-opacity" />
+                  )}
                   
                   <div className="space-y-4">
-                     <div className="w-12 h-12 rounded-2xl bg-[var(--accent-start)]/10 text-[var(--accent-start)] flex items-center justify-center p-3">
-                        <Zap size={24} />
+                     <div className={cn(
+                       "w-12 h-12 rounded-2xl flex items-center justify-center p-3 transition-colors",
+                       product.isUnlocked ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)]" : "bg-white/5 text-gray-500"
+                     )}>
+                        {product.isUnlocked ? <Zap size={24} /> : <Lock size={20} />}
                      </div>
                      <div className="space-y-1">
-                        <h3 className="text-lg font-black tracking-tight uppercase leading-none group-hover:text-[var(--accent-start)] transition-colors">
+                        <h3 className={cn(
+                          "text-lg font-black tracking-tight uppercase leading-none transition-colors",
+                          product.isUnlocked ? "group-hover:text-[var(--accent-start)]" : "text-gray-400"
+                        )}>
                            {product.title}
                         </h3>
-                        <p className="text-[9px] font-black italic uppercase tracking-widest text-[var(--text-muted)] opacity-60">
-                           Code: {product.serviceCode}
-                        </p>
+                        {product.isUnlocked ? (
+                          <p className="text-[9px] font-black italic uppercase tracking-widest text-[var(--text-muted)] opacity-60">
+                             Code: {product.serviceCode}
+                          </p>
+                        ) : (
+                          <p className="text-[9px] font-black uppercase tracking-widest text-[var(--accent-start)] opacity-80">
+                             Premium Access
+                          </p>
+                        )}
                      </div>
                      <p className="text-[11px] font-medium text-[var(--text-muted)] line-clamp-3 leading-relaxed">
                         {product.sheet.description}
@@ -80,15 +106,19 @@ export function MemberAreaView({ activeProducts }: MemberAreaViewProps) {
 
                   <div className="pt-8 flex items-center justify-between">
                      <div className="flex -space-x-2">
-                        {/* Indicadores de Deliverables */}
-                        {product.capabilities.surveys.length > 0 && (
+                        {product.isUnlocked && product.capabilities.surveys.length > 0 && (
                            <div className="w-6 h-6 rounded-full bg-white/10 border border-[var(--bg-primary)] flex items-center justify-center" title="Pesquisas inclusas">
                               <ShieldCheck size={10} className="text-emerald-500" />
                            </div>
                         )}
                      </div>
-                     <div className="flex items-center gap-2 text-[var(--accent-start)]">
-                        <span className="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">Acessar Portal</span>
+                     <div className={cn(
+                       "flex items-center gap-2 transition-all",
+                       product.isUnlocked ? "text-[var(--accent-start)]" : "text-white/40 group-hover:text-white"
+                     )}>
+                        <span className="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                          {product.isUnlocked ? "Acessar Portal" : "Contratar Agora"}
+                        </span>
                         <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                      </div>
                   </div>

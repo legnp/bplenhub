@@ -37,9 +37,17 @@ export async function getServiceDeliveryDataAction(slug: string, idToken: string
 
     const product = { id: productSnap.docs[0].id, ...productSnap.docs[0].data() } as Product;
 
-    // 🛡️ 2. Validar se o usuário possui este serviço contratado
-    const userPermRef = db.collection("User_Permissions").doc(session.uid);
-    const userPermSnap = await userPermRef.get();
+    // 🧬 2. Resolver Matrícula para busca de Governança V3
+    const authMapSnap = await db.doc(`_AuthMap/${session.uid}`).get();
+    const matricula = authMapSnap.exists ? authMapSnap.data()?.matricula : null;
+
+    if (!matricula) {
+       throw new Error("Identidade não vinculada. Entre em contato com o suporte.");
+    }
+
+    // 🛡️ 3. Validar se o usuário possui este serviço contratado (Hierarquia V3)
+    const permissionsPath = `User/${matricula}/User_Permissions/access`;
+    const userPermSnap = await db.doc(permissionsPath).get();
     const userPerms = userPermSnap.data() || {};
     const isAdmin = userPerms.role === "admin";
     const serviceEntitlement = userPerms.services?.[product.serviceCode];
@@ -48,11 +56,9 @@ export async function getServiceDeliveryDataAction(slug: string, idToken: string
        throw new Error("Você não possui acesso a este serviço. Que tal contratá-lo agora?");
     }
 
-    // 🤖 3. Calcular Progresso Automático (Milestones)
-    // Buscamos se o usuário já completou as pesquisas ou formulários vinculados.
+    // 🤖 4. Calcular Progresso Automático (Milestones)
     const completedMilestones: string[] = [];
 
-    // Verificação de Pesquisas (Surveys)
     if (product.capabilities.surveys.length > 0) {
        const resultsSnap = await db.collection("Survey_Results")
          .where("userId", "==", session.uid)
@@ -67,10 +73,10 @@ export async function getServiceDeliveryDataAction(slug: string, idToken: string
        });
     }
 
-    // 📊 4. Consumo de Cotas (Simulação elegante por enquanto)
+    // 📊 5. Consumo de Cotas
     const quotas = {
        total: Object.values(product.grantedQuotas).reduce((acc, val) => acc + val, 0),
-       used: 0 // TODO: Integrar com contagem de agendamentos reais
+       used: 0 
     };
 
     return {
@@ -90,35 +96,56 @@ export async function getServiceDeliveryDataAction(slug: string, idToken: string
 }
 
 /**
- * Lista todos os serviços que o usuário possui ativos.
+ * Lista o catálogo de serviços do Hub com o status de acesso do usuário.
+ * Estrutura Híbrida: Mostra o que já possui e o que pode contratar.
  */
 export async function getMyActiveServicesAction(idToken: string) {
   try {
     const session = await requireAuth(idToken);
     const db = getAdminDb();
 
-    const userPermRef = db.collection("User_Permissions").doc(session.uid);
-    const userPermSnap = await userPermRef.get();
-    
-    if (!userPermSnap.exists) return { success: true, data: [] };
-    
-    const perms = userPermSnap.data() || {};
-    const serviceCodes = Object.keys(perms.services || {}).filter(code => perms.services[code] === true);
+    // 1. Resolver Matrícula
+    const authMapSnap = await db.doc(`_AuthMap/${session.uid}`).get();
+    const matricula = authMapSnap.exists ? authMapSnap.data()?.matricula : null;
 
-    if (serviceCodes.length === 0) return { success: true, data: [] };
+    let userServices: Record<string, boolean> = {};
+    let isAdmin = false;
 
+    if (matricula) {
+      // 2. Buscar Permissões no Caminho Hierárquico V3
+      const permissionsPath = `User/${matricula}/User_Permissions/access`;
+      const userPermSnap = await db.doc(permissionsPath).get();
+      const perms = userPermSnap.data() || {};
+      userServices = perms.services || {};
+      isAdmin = perms.role === "admin";
+    }
+
+    // 3. Buscar TODOS os produtos visíveis do catálogo
     const productsSnap = await db.collection(PRODUCTS_COLLECTION)
-      .where("serviceCode", "in", serviceCodes)
+      .where("isVisible", "==", true)
       .get();
 
-    const products = productsSnap.docs.map(doc => ({
+    const allProducts = productsSnap.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as Product[];
 
-    return { success: true, data: products };
+    // 4. Mapear status de Desbloqueio (isUnlocked)
+    const enrichedProducts = allProducts.map(product => {
+       const isUnlocked = isAdmin || userServices[product.serviceCode] === true;
+       return {
+         ...product,
+         isUnlocked
+       };
+    });
+
+    // Ordenação: Desbloqueados primeiro
+    enrichedProducts.sort((a, b) => (a.isUnlocked === b.isUnlocked) ? 0 : a.isUnlocked ? -1 : 1);
+
+    return { success: true, data: enrichedProducts };
 
   } catch (err: any) {
+    console.error("❌ [getMyActiveServicesAction Error]:", err);
     return { success: false, error: err.message };
   }
 }
