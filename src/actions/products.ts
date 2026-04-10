@@ -1,7 +1,9 @@
 "use server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/auth-guards";
 import { Product } from "@/types/products";
+import { safeSerialize } from "@/lib/utils/firestore";
 import { revalidatePath } from "next/cache";
 import { PRODUCTS_COLLECTION } from "@/config/collections";
 
@@ -13,13 +15,18 @@ import { PRODUCTS_COLLECTION } from "@/config/collections";
 /**
  * Busca todos os produtos para a administração
  */
-export async function getAdminProducts(): Promise<Product[]> {
+export async function getAdminProducts(idToken?: string): Promise<Product[]> {
   try {
+    await requireAdmin(idToken);
     const db = getAdminDb();
-    const snapshot = await db.collection(PRODUCTS_COLLECTION)
-      .get();
+    const snapshot = await db.collection(PRODUCTS_COLLECTION).get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return snapshot.docs.map(doc => {
+      return safeSerialize<Product>({
+        ...doc.data(),
+        id: doc.id
+      });
+    });
   } catch (error) {
     console.error("Erro ao buscar produtos para o admin:", error);
     return [];
@@ -40,7 +47,10 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     if (snapshot.empty) return null;
     
     const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Product;
+    return safeSerialize<Product>({
+      ...doc.data(),
+      id: doc.id
+    });
   } catch (error) {
     console.error(`Erro ao buscar produto com slug ${slug}:`, error);
     return null;
@@ -52,8 +62,9 @@ import { syncProductToDriveAction } from "./product-sync";
 /**
  * Salva ou atualiza um produto (Admin)
  */
-export async function saveProductAction(product: Partial<Product>) {
+export async function saveProductAction(product: Partial<Product>, idToken?: string) {
   try {
+    await requireAdmin(idToken);
     const db = getAdminDb();
     let id = product.id;
     const data = {
@@ -116,8 +127,14 @@ export async function getProductsByAudience(audience: 'people' | 'companies' | '
       .get();
 
     // Filtro adicional: Se for 'internal', removemos da vitrine pública 🛡️
+    // Filtro adicional: Se for 'internal', removemos da vitrine pública 🛡️
     return snap.docs
-      .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      .map(doc => {
+        return safeSerialize<Product>({
+          ...doc.data(),
+          id: doc.id
+        });
+      })
       .filter(p => !p.targetAudiences?.includes('internal'));
   } catch (error) {
     console.error("Erro ao buscar produtos:", error);
@@ -137,7 +154,12 @@ export async function getJourneyProducts(): Promise<Product[]> {
       .orderBy("order", "asc")
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return snapshot.docs.map(doc => {
+      return safeSerialize<Product>({
+        ...doc.data(),
+        id: doc.id
+      });
+    });
   } catch (error) {
     console.error("Erro ao buscar produtos da jornada:", error);
     return [];

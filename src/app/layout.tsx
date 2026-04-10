@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import CookieConsent from "@/components/shared/CookieConsent";
+import GoogleAnalyticsLoader from "@/components/shared/GoogleAnalyticsLoader";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,6 +31,9 @@ export default function RootLayout({
             <div id="main-content" className="flex-1 flex flex-col w-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
               {children}
             </div>
+            {/* Camada Global de Privacidade e Inteligência 🍪📊 */}
+            <CookieConsent />
+            <GoogleAnalyticsLoader />
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -6,6 +6,8 @@ import { Coupon, CouponValidationResult } from "@/types/marketing";
 import { revalidatePath } from "next/cache";
 import { COUPONS_COLLECTION } from "@/config/collections";
 
+import { safeSerialize } from "@/lib/utils/firestore";
+
 /**
  * BPlen HUB — Coupon Engine (Server Actions) 💸🎟️
  */
@@ -13,10 +15,12 @@ import { COUPONS_COLLECTION } from "@/config/collections";
 /**
  * Salva ou Atualiza um Cupom (Admin Only) 🛡️
  */
-export async function saveCouponAction(coupon: Partial<Coupon>, idToken: string) {
+export async function saveCouponAction(coupon: Partial<Coupon>, idToken?: string) {
   try {
     await requireAdmin(idToken);
     const db = getAdminDb();
+// ...
+// (mantendo a lógica interna)
 
     const data: any = {
       ...coupon,
@@ -42,7 +46,7 @@ export async function saveCouponAction(coupon: Partial<Coupon>, idToken: string)
 /**
  * Lista todos os cupons (Admin Only) 🛡️
  */
-export async function getAdminCouponsList(idToken: string) {
+export async function getAdminCouponsList(idToken?: string) {
   try {
     await requireAdmin(idToken);
     const db = getAdminDb();
@@ -51,14 +55,10 @@ export async function getAdminCouponsList(idToken: string) {
     return {
       success: true,
       data: snap.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          id: doc.id,
-          createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
-          updatedAt: data.updatedAt?.toDate?.()?.toISOString() || null,
-          expiryDate: data.expiryDate?.toDate?.()?.toISOString() || data.expiryDate || null,
-        } as Coupon;
+        return safeSerialize<Coupon>({
+          ...doc.data(),
+          id: doc.id
+        });
       })
     };
   } catch (err: any) {

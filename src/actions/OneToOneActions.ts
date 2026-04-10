@@ -1,7 +1,7 @@
 "use server";
 
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import admin, { getAdminDb } from "@/lib/firebase-admin";
+import { requireAdmin } from "@/lib/auth-guards";
 
 /**
  * BPlen HUB — One-to-One Settings Actions
@@ -13,11 +13,12 @@ const SETTINGS_COLLECTION = "Settings";
 
 export async function getOneToOneTypes(): Promise<string[]> {
   try {
-    const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
-    const docSnap = await getDoc(docRef);
+    const db = getAdminDb();
+    const docRef = db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID);
+    const docSnap = await docRef.get();
 
-    if (docSnap.exists()) {
-      return docSnap.data().types || [];
+    if (docSnap.exists) {
+      return docSnap.data()?.types || [];
     }
     return [];
   } catch (error) {
@@ -26,13 +27,22 @@ export async function getOneToOneTypes(): Promise<string[]> {
   }
 }
 
-export async function updateOneToOneTypes(types: string[]) {
+export async function updateOneToOneTypes(types: string[], idToken?: string) {
   try {
-    const docRef = doc(db, SETTINGS_COLLECTION, SETTINGS_DOC_ID);
-    await setDoc(docRef, { types }, { merge: true });
+    // 🛡️ Segurança Real no Servidor
+    await requireAdmin(idToken);
+    
+    const db = getAdminDb();
+    const docRef = db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC_ID);
+    
+    await docRef.set({ 
+      types,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao atualizar tipos 1-to-1:", error);
-    return { success: false, message: "Erro ao salvar configurações." };
+    return { success: false, message: error.message || "Erro ao salvar configurações." };
   }
 }

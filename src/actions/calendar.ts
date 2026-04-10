@@ -1,14 +1,14 @@
 "use server";
 
-import { getAdminDb } from "@/lib/firebase-admin";
-import * as admin from "firebase-admin";
+import admin, { getAdminDb } from "@/lib/firebase-admin";
+import { requireAdmin, requireAuth } from "@/lib/auth-guards";
+import { safeSerialize } from "@/lib/utils/firestore";
 import { getCalendarClient } from "@/lib/google-auth";
 import { serverEnv } from "@/env";
 import { formatISO, addDays, getISOWeek, getYear, parseISO, isBefore, startOfDay, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
-import { requireAdmin } from "@/lib/auth-guards";
 
 import { calendar_v3 } from "googleapis";
 import { getEventStandardSlug } from "@/lib/utils";
@@ -160,8 +160,9 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
  * Sincronização de 90 Dias (Firestore 🛡️)
  * Identifica novos eventos, atualiza existentes e remove "fantasmas" (deletados no Google).
  */
-export async function syncCalendarToFirestore() {
+export async function syncCalendarToFirestore(idToken?: string) {
   try {
+    await requireAdmin(idToken);
     const calendar = await getCalendarClient();
     const db = getAdminDb();
     const now = new Date();
@@ -732,19 +733,17 @@ export async function generateEventSummarySheetAction(
 /**
  * Busca eventos sincronizados diretamente do Firestore.
  */
-export async function getSyncedEvents(): Promise<GoogleCalendarEvent[]> {
+export async function getSyncedEvents(idToken?: string): Promise<GoogleCalendarEvent[]> {
     try {
+      await requireAdmin(idToken);
       const db = getAdminDb();
       const snap = await db.collection("Calendar_Events").get();
       
       return snap.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          lastSync: data.lastSync?.toDate?.()?.toISOString() || null,
-          postEventUpdatedAt: data.postEventUpdatedAt?.toDate?.()?.toISOString() || null,
-          summarySheetUpdatedAt: data.summarySheetUpdatedAt?.toDate?.()?.toISOString() || null
-        } as GoogleCalendarEvent;
+        return safeSerialize<GoogleCalendarEvent>({
+          id: doc.id,
+          ...doc.data()
+        });
       });
     } catch (error) {
       console.error("Erro ao buscar eventos do Firestore:", error);
