@@ -48,6 +48,30 @@ export async function handleFormSideEffects(config: FormConfig, response: FormRe
     await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
     console.log(`✅ [Form Effects] Sincronização Sheets Concluída: ${matricula}`);
 
+    // E. Lógica de Persistência no Perfil do Usuário (Soberania de Dados)
+    if (config.id === "dados_cadastrais") {
+      const db = getAdminDb();
+      await db.doc(`User/${matricula}`).set({
+        profile: {
+          fullName: response.full_name,
+          cpf: response.cpf,
+          birthDate: response.birth_date,
+          phone: response.phone,
+          address: {
+            cep: response.cep,
+            street: response.rua,
+            number: response.numero,
+            complement: response.complemento,
+            city: response.cidade,
+            state: response.estado,
+            country: response.pais
+          },
+          lastRegistrationUpdate: new Date().toISOString()
+        }
+      }, { merge: true });
+      console.log(`✅ [Form Effects] Perfil do Usuário Atualizado: ${matricula}`);
+    }
+
   } catch (driveErr) {
     console.error(`⚠️ [Form Effects] Erro na Sincronização Drive (Ignorado):`, driveErr);
   }

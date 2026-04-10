@@ -34,6 +34,9 @@ export interface FormFieldConfig {
   options?: FormFieldOption[] | string[];
   required?: boolean;
   autoFocus?: boolean;
+  readOnly?: boolean;
+  mask?: "cpf" | "cep" | "phone";
+  validation?: "cpf" | "email";
   description?: string;
   metadata?: Record<string, unknown>;
 }
@@ -43,6 +46,12 @@ export interface FormSectionConfig {
   title?: string; // Título operacional da seção (Recomendado)
   description?: string;
   fields: FormFieldConfig[];
+  logic?: {
+    showIf?: {
+      fieldId: string;
+      value: any;
+    };
+  };
   /** @deprecated Use 'title' para conformidade com Forms_Global */
   question?: string; 
 }
