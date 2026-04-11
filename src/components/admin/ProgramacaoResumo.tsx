@@ -1,0 +1,213 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { 
+  getProgramacaoSummaryAction, 
+  GoogleCalendarEvent 
+} from "@/actions/calendar";
+import { 
+  FileText, 
+  ExternalLink, 
+  TrendingUp, 
+  Users, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  ChevronRight,
+  Loader2,
+  MoreHorizontal
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useAuthContext } from "@/context/AuthContext";
+import PostEventWizard from "./PostEventWizard";
+
+interface EventSummary extends GoogleCalendarEvent {
+  confirmedPresence: number;
+  avgNps: number | null;
+  statusLabel: "futuro" | "pendente" | "concluido";
+  attendeesCount: number;
+}
+
+export default function ProgramacaoResumo() {
+  const { user } = useAuthContext();
+  const [events, setEvents] = useState<EventSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  
+  // Modal Wizard State
+  const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true);
+      try {
+        const idToken = await user?.getIdToken();
+        const data = await getProgramacaoSummaryAction(idToken);
+        setEvents(data);
+      } catch (error) {
+        console.error("Erro ao carregar resumo:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (user) load();
+  }, [user, refreshCounter]);
+
+  const handleOpenWizard = (ev: EventSummary) => {
+    setSelectedEvent(ev);
+    setIsWizardOpen(true);
+  };
+
+  const statusMap = {
+    futuro: { label: "Futuro", color: "bg-blue-500/10 text-blue-400", icon: Clock },
+    pendente: { label: "Pendente Fechamento", color: "bg-amber-500/10 text-amber-500 animate-pulse", icon: AlertCircle },
+    concluido: { label: "Concluído", color: "bg-green-500/10 text-green-500", icon: CheckCircle2 },
+  };
+
+  if (isLoading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center gap-4 opacity-50">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-start)]" />
+        <p className="text-[10px] font-bold uppercase tracking-widest">Carregando Programação...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Table Header (Desktop) */}
+      <div className="hidden md:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_1.5fr_1fr] gap-4 px-8 py-4 bg-[var(--input-bg)]/30 rounded-2xl border border-[var(--border-primary)] text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+        <div>Evento / Tema</div>
+        <div>Orientador</div>
+        <div>Status</div>
+        <div className="text-center">NPS</div>
+        <div className="text-center">Presença</div>
+        <div className="text-center">Inscritos / Vagas</div>
+        <div className="text-right">Ações</div>
+      </div>
+
+      {/* Row List */}
+      <div className="space-y-3">
+        {events.length === 0 ? (
+          <div className="py-20 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[2.5rem] opacity-30">
+            <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma programação encontrada</p>
+          </div>
+        ) : events.map((ev) => {
+          const SIcon = statusMap[ev.statusLabel].icon;
+          return (
+            <div 
+              key={ev.id} 
+              className="group grid grid-cols-1 md:grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_1.5fr_1fr] gap-4 items-center px-8 py-5 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-[2rem] hover:border-[var(--accent-start)]/30 transition-all hover:translate-x-1"
+            >
+              {/* Event Name & Theme */}
+              <div className="flex flex-col gap-1 min-w-0">
+                <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-50">{format(parseISO(ev.start), "dd/MM/yy - HH:mm", { locale: ptBR })}</span>
+                <h4 className="text-sm font-black text-[var(--text-primary)] truncate">{ev.summary}</h4>
+                {ev.theme && <span className="text-[10px] font-medium text-[var(--accent-start)] opacity-70 truncate"># {ev.theme}</span>}
+              </div>
+
+              {/* Mentor */}
+              <div className="text-xs font-bold text-[var(--text-primary)]/80">
+                {ev.mentor || "BPlen Hub"}
+              </div>
+
+              {/* Status */}
+              <div>
+                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${statusMap[ev.statusLabel].color}`}>
+                  <SIcon className="w-3 h-3" />
+                  {statusMap[ev.statusLabel].label}
+                </span>
+              </div>
+
+              {/* NPS */}
+              <div className="text-center">
+                {ev.avgNps ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/5 text-green-500 rounded-lg">
+                    <TrendingUp className="w-3 h-3" />
+                    <span className="text-xs font-black">{ev.avgNps}</span>
+                  </div>
+                ) : (
+                  <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-30">S/ Aval.</span>
+                )}
+              </div>
+
+              {/* Attendance */}
+              <div className="text-center">
+                <div className="inline-flex items-center gap-1.5 text-xs font-black text-[var(--text-primary)]">
+                  <span className={ev.confirmedPresence > 0 ? "text-green-500" : "opacity-30"}>{ev.confirmedPresence}</span>
+                  <span className="opacity-20">/</span>
+                  <span className="opacity-40">{ev.attendeesCount}</span>
+                </div>
+              </div>
+
+              {/* Registered vs Capacity */}
+              <div className="text-center">
+                <div className="flex flex-col items-center gap-1">
+                   <div className="w-full h-1.5 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-primary)]/30">
+                      <div 
+                        className="h-full bg-[var(--accent-start)] rounded-full" 
+                        style={{ width: `${Math.min(100, ((ev.registeredCount || 0) / (ev.totalCapacity || 1)) * 100)}%` }} 
+                      />
+                   </div>
+                   <div className="flex items-center gap-2 text-[9px] font-bold text-[var(--text-muted)] opacity-60">
+                      <Users className="w-2.5 h-2.5" />
+                      {ev.registeredCount || 0} / {ev.totalCapacity || 0} vagas
+                   </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2">
+                {ev.statusLabel !== "futuro" && (
+                  <button 
+                    onClick={() => handleOpenWizard(ev)}
+                    className="p-2.5 bg-[var(--input-bg)] hover:bg-[var(--accent-start)] text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
+                    title={ev.postEventCompleted ? "Ver Resumo" : "Fechar Evento"}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                )}
+                
+                {ev.eventFolderUrl && (
+                  <a 
+                    href={ev.eventFolderUrl} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-2.5 bg-[var(--input-bg)] hover:bg-green-500 text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
+                    title="Acessar Pasta do Drive"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+
+                {ev.meetingMinutesFile?.url && (
+                  <a 
+                    href={ev.meetingMinutesFile.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-2.5 bg-[var(--input-bg)] hover:bg-blue-500 text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
+                    title="Ver Ata"
+                  >
+                    <FileText className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Wizard Modal */}
+      {selectedEvent && (
+        <PostEventWizard 
+          isOpen={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
+          event={selectedEvent}
+          onSuccess={() => setRefreshCounter(p => p + 1)}
+        />
+      )}
+    </div>
+  );
+}

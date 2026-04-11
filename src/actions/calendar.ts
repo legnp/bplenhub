@@ -52,6 +52,7 @@ export interface GoogleCalendarEvent {
   // Administrative Summary Sheet
   summarySheetUrl?: string;
   summarySheetId?: string;
+  eventFolderUrl?: string;
   summarySheetUpdatedAt?: string | null;
   slug?: string;
 }
@@ -720,6 +721,7 @@ export async function generateEventSummarySheetAction(
     await eventRef.update({
       summarySheetUrl: spreadsheetUrl,
       summarySheetId: spreadsheetId,
+      eventFolderUrl: `https://drive.google.com/drive/folders/${eventFolderId}`,
       summarySheetUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
@@ -1043,6 +1045,82 @@ export async function closeAttendeeAction(
   } catch (error) {
     console.error("Erro ao fechar participante (Parte 2):", error);
     return { success: false, message: (error as Error).message };
+  }
+}
+
+/**
+ * Módulo de Gestão Administrativa 360° 🛰️
+ * Busca todos os eventos e consolida métricas de performance (NPS, Presença, Vagas).
+ */
+export async function getProgramacaoSummaryAction(idToken?: string): Promise<any[]> {
+  try {
+    await requireAdmin(idToken);
+    const db = getAdminDb();
+    
+    // 1. Buscar Eventos (Limite de 100 para sanidade do admin)
+    const eventsSnap = await db.collection("Calendar_Events")
+      .orderBy("start", "desc")
+      .limit(100)
+      .get();
+    
+    const events = eventsSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as GoogleCalendarEvent[];
+
+    // 2. Buscar Todos os Attendees em Massa (Collection Group) 🛡️
+    // Isso evita N+1 queries. Filtramos em memória.
+    const attendeesSnap = await db.collectionGroup("attendees").get();
+    const attendeesMap = new Map<string, any[]>();
+    attendeesSnap.forEach(doc => {
+      const eventId = doc.ref.parent.parent?.id;
+      if (eventId) {
+        if (!attendeesMap.has(eventId)) attendeesMap.set(eventId, []);
+        attendeesMap.get(eventId)!.push(doc.data());
+      }
+    });
+
+    // 3. Buscar Avaliações (NPS) em Massa (Collection Group) 🛡️
+    const bookingsSnap = await db.collectionGroup("User_Bookings").get();
+    const ratingsMap = new Map<string, number[]>();
+    bookingsSnap.forEach(doc => {
+      const data = doc.data();
+      if (data.eventId && data.rating > 0) {
+        if (!ratingsMap.has(data.eventId)) ratingsMap.set(data.eventId, []);
+        ratingsMap.get(data.eventId)!.push(data.rating);
+      }
+    });
+
+    // 4. Consolidar Dados
+    return events.map(ev => {
+      const eventAttendees = attendeesMap.get(ev.id) || [];
+      const eventRatings = ratingsMap.get(ev.id) || [];
+      
+      const confirmedPresence = eventAttendees.filter(a => a.attendanceStatus === "present").length;
+      const avgNps = eventRatings.length > 0 
+        ? Number((eventRatings.reduce((a, b) => a + b, 0) / eventRatings.length).toFixed(1))
+        : null;
+
+      // Lógica de Status
+      const evDate = parseISO(ev.start);
+      const isPast = isBefore(evDate, new Date());
+      let status: "futuro" | "pendente" | "concluido" = "futuro";
+      
+      if (ev.postEventCompleted) status = "concluido";
+      else if (isPast) status = "pendente";
+
+      return {
+        ...ev,
+        confirmedPresence,
+        avgNps,
+        statusLabel: status,
+        attendeesCount: eventAttendees.length
+      };
+    });
+
+  } catch (error) {
+    console.error("Erro ao gerar resumo de programação:", error);
+    return [];
   }
 }
 

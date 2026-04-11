@@ -1,24 +1,36 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Calendar from "@/components/ui/Calendar";
 import { getSyncedEvents, GoogleCalendarEvent } from "@/actions/calendar";
-import UserBookings from "@/components/ui/UserBookings";
 import PostEventWizard from "@/components/admin/PostEventWizard";
-import { Settings, Info, CalendarCheck, CheckCircle2, AlertCircle, ChevronRight, Clock } from "lucide-react";
-import { format, isBefore, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { 
+  Info, 
+  LayoutGrid, 
+  Calendar as CalendarIcon, 
+  CheckCircle2, 
+  Clock,
+  LayoutList
+} from "lucide-react";
+import { isBefore, parseISO } from "date-fns";
+
+// Sub-módulos (Abas)
+import ProgramacaoResumo from "@/components/admin/ProgramacaoResumo";
+import FechamentoEventosTab from "@/components/admin/FechamentoEventosTab";
+import GestaoAgendaTab from "@/components/admin/GestaoAgendaTab";
+
+type TabId = "resumo" | "fechamento" | "agenda";
 
 export default function GestaoAgendaPage() {
+  const [activeTab, setActiveTab] = useState<TabId>("resumo");
   const [events, setEvents] = useState<GoogleCalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  // Post Event Wizard State
+  // Post Event Wizard State (Shared)
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<GoogleCalendarEvent | null>(null);
 
-  // Carregar dados iniciais dos eventos sincronizados
+  // Carregar dados iniciais dos eventos sincronizados (para Fechamento e Agenda)
   useEffect(() => {
     async function load() {
       setIsLoading(true);
@@ -45,83 +57,78 @@ export default function GestaoAgendaPage() {
     setIsWizardOpen(true);
   };
 
+  const tabs = [
+    { id: "resumo", label: "Resumo de Programação", icon: LayoutList },
+    { id: "fechamento", label: "Fechamento de Evento", icon: CheckCircle2 },
+    { id: "agenda", label: "Gestão de Agenda", icon: CalendarIcon },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-[1600px] mx-auto">
       {/* Header do Laboratório */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] text-left">
-            PROGRAMAÇÃO <span className="text-[var(--accent-start)] italic">HUB</span>
+          <h1 className="text-4xl font-black tracking-tighter text-[var(--text-primary)] text-left flex items-center gap-3">
+             <div className="p-3 bg-[var(--accent-start)] rounded-2xl shadow-xl shadow-[var(--accent-start)]/20 text-white">
+                <LayoutGrid size={24} className="stroke-[3]" />
+             </div>
+             <div>
+                PROGRAMAÇÃO <span className="text-[var(--accent-start)] italic">HUB</span>
+                <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mt-1 block">Controle Center — Operações Administrativas</p>
+             </div>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm font-medium opacity-70 mt-2 text-left">
-            Visão geral e consolidação da programação BPlen HUB.
-          </p>
+        </div>
+
+        {/* Tab Navigation (Premium Sidebar/Header combo look) */}
+        <div className="flex p-1.5 bg-[var(--input-bg)]/50 backdrop-blur-md rounded-[2rem] border border-[var(--border-primary)] shadow-sm">
+           {tabs.map((tab) => {
+             const Icon = tab.icon;
+             return (
+               <button
+                 key={tab.id}
+                 onClick={() => setActiveTab(tab.id as TabId)}
+                 className={`flex items-center gap-2.5 px-6 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-lg shadow-[var(--text-primary)]/10" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-60 hover:opacity-100"}`}
+               >
+                 <Icon size={14} className={activeTab === tab.id ? "stroke-[3]" : "stroke-[2.5]"} />
+                 {tab.label}
+               </button>
+             );
+           })}
         </div>
       </div>
 
-      {/* NOVO BLOCO: Eventos Pendentes de Fechamento */}
-      <div className="bg-[var(--input-bg)] rounded-[2.5rem] p-8 border border-[var(--border-primary)] shadow-sm">
-         <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-               <div className="p-2.5 bg-[var(--accent-start)]/10 rounded-2xl text-[var(--accent-start)]">
-                  <CheckCircle2 className="w-5 h-5" />
-               </div>
-               <div>
-                  <h2 className="text-xl font-bold text-[var(--text-primary)]">Fechamento de Eventos</h2>
-                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-40">Serviços concluídos aguardando ata e presença</p>
-               </div>
-            </div>
-         </div>
+      <hr className="border-[var(--border-primary)] opacity-50" />
 
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pastEvents.length === 0 ? (
-               <div className="col-span-full py-16 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[2rem] opacity-30">
-                  <Clock className="w-8 h-8 mx-auto mb-3" />
-                  <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum evento passado encontrado</p>
-               </div>
-            ) : pastEvents.slice(0, 6).map(ev => (
-               <div key={ev.id} className="group p-6 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-[2rem] hover:border-[var(--accent-start)]/30 transition-all">
-                  <div className="flex justify-between items-start mb-4">
-                     <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${ev.postEventCompleted ? "bg-green-500/10 text-green-600" : "bg-amber-500/10 text-amber-600 animate-pulse"}`}>
-                        {ev.postEventCompleted ? "Concluído" : "Pendente"}
-                     </span>
-                     <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-40">
-                        {format(parseISO(ev.start), "dd/MM/yy")}
-                     </span>
-                  </div>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-6 line-clamp-1">{ev.summary}</h4>
-                  
-                  <button 
-                    onClick={() => handleOpenWizard(ev)}
-                    className="w-full py-3 bg-[var(--input-bg)] hover:bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-xl text-[9px] font-bold uppercase tracking-widest text-[var(--text-primary)] flex items-center justify-center gap-2 group-hover:bg-[var(--accent-start)] group-hover:text-white group-hover:border-transparent transition-all"
-                  >
-                     {ev.postEventCompleted ? "Ver / Editar" : "Fechar Evento"}
-                     <ChevronRight className="w-3 h-3" />
-                  </button>
-               </div>
-            ))}
-         </div>
+      {/* Main Content Area */}
+      <div className="min-h-[600px]">
+        {activeTab === "resumo" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <ProgramacaoResumo />
+          </div>
+        )}
+
+        {activeTab === "fechamento" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <FechamentoEventosTab 
+                pastEvents={pastEvents} 
+                handleOpenWizard={handleOpenWizard} 
+             />
+          </div>
+        )}
+
+        {activeTab === "agenda" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <GestaoAgendaTab 
+                events={events} 
+                isLoading={isLoading} 
+                refreshCounter={refreshCounter} 
+                setRefreshCounter={setRefreshCounter}
+             />
+          </div>
+        )}
       </div>
 
-      <div className="bg-[var(--input-bg)] rounded-3xl p-1 border border-[var(--border-primary)] shadow-inner">
-        <Calendar 
-          events={events} 
-          isLoading={isLoading} 
-          onMonthChange={(date) => console.log("Mês alterado:", date)}
-          onBookingSuccess={() => setRefreshCounter(p => p + 1)}
-        />
-      </div>
-
-      {/* Meus Agendamentos (Novo Módulo) */}
-      <div className="mt-12 bg-[var(--input-bg)] rounded-3xl p-6 border border-[var(--border-primary)] shadow-sm">
-         <div className="flex items-center gap-2 mb-6 ml-2 text-left">
-            <CalendarCheck className="w-5 h-5 text-[var(--accent-start)]" />
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">Gestão de Meus Compromissos</h2>
-         </div>
-         <UserBookings refreshCounter={refreshCounter} />
-      </div>
-
-      {/* Post Event Wizard Modal */}
+      {/* Post Event Wizard Modal (Shared) */}
       <PostEventWizard 
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
@@ -130,11 +137,16 @@ export default function GestaoAgendaPage() {
       />
 
       {/* Info Help */}
-      <div className="p-4 bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-2xl flex gap-3 text-[var(--text-muted)]">
-        <Info className="w-4 h-4 shrink-0 mt-0.5 text-[var(--accent-start)]" />
-        <p className="text-[11px] font-medium leading-relaxed italic text-left">
-          Nota: O fluxo de pós-evento agora está integrado. Use o painel de &quot;Fechamento de Eventos&quot; para gerenciar a governança e presença dos serviços realizados.
-        </p>
+      <div className="p-6 bg-[var(--accent-soft)]/30 border border-[var(--border-primary)] rounded-[2.5rem] flex gap-4 text-[var(--text-muted)] shadow-sm">
+        <div className="w-10 h-10 bg-[var(--accent-start)]/10 rounded-2xl flex items-center justify-center text-[var(--accent-start)] shrink-0">
+           <Info className="w-5 h-5" />
+        </div>
+        <div className="space-y-1">
+           <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Governança Integrada</p>
+           <p className="text-[11px] font-medium leading-relaxed italic opacity-70">
+              O fluxo de pós-evento está consolidado. Utilize as abas acima para transitar entre a visão analítica de resultados (Resumo), a operação de governança (Fechamento) e a logística de horários (Agenda).
+           </p>
+        </div>
       </div>
     </div>
   );
