@@ -15,10 +15,9 @@ import { isBefore, parseISO } from "date-fns";
 
 // Sub-módulos (Abas)
 import ProgramacaoResumo from "@/components/admin/ProgramacaoResumo";
-import FechamentoEventosTab from "@/components/admin/FechamentoEventosTab";
 import GestaoAgendaTab from "@/components/admin/GestaoAgendaTab";
 
-type TabId = "resumo" | "fechamento" | "agenda";
+type TabId = "resumo" | "agenda";
 
 export default function GestaoAgendaPage() {
   const [activeTab, setActiveTab] = useState<TabId>("resumo");
@@ -26,11 +25,7 @@ export default function GestaoAgendaPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  // Post Event Wizard State (Shared)
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<GoogleCalendarEvent | null>(null);
-
-  // Carregar dados iniciais dos eventos sincronizados (para Fechamento e Agenda)
+  // Carregar dados iniciais dos eventos sincronizados (para Agenda)
   useEffect(() => {
     async function load() {
       setIsLoading(true);
@@ -46,20 +41,8 @@ export default function GestaoAgendaPage() {
     load();
   }, [refreshCounter]);
 
-  const pastEvents = events.filter(ev => {
-    if (!ev.start) return false;
-    const evDate = parseISO(ev.start);
-    return isBefore(evDate, new Date());
-  }).sort((a,b) => parseISO(b.start).getTime() - parseISO(a.start).getTime());
-
-  const handleOpenWizard = (event: GoogleCalendarEvent) => {
-    setSelectedEvent(event);
-    setIsWizardOpen(true);
-  };
-
   const tabs = [
-    { id: "resumo", label: "Resumo de Programação", icon: LayoutList },
-    { id: "fechamento", label: "Fechamento de Evento", icon: CheckCircle2 },
+    { id: "resumo", label: "Gestão de Programação", icon: LayoutList },
     { id: "agenda", label: "Gestão de Agenda", icon: CalendarIcon },
   ];
 
@@ -83,15 +66,16 @@ export default function GestaoAgendaPage() {
         <div className="flex p-1.5 bg-[var(--input-bg)]/50 backdrop-blur-md rounded-[2rem] border border-[var(--border-primary)] shadow-sm">
            {tabs.map((tab) => {
              const Icon = tab.icon;
+             const isSelected = activeTab === tab.id;
              return (
-               <button
-                 key={tab.id}
-                 onClick={() => setActiveTab(tab.id as TabId)}
-                 className={`flex items-center gap-2.5 px-6 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? "bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-lg shadow-[var(--text-primary)]/10" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-60 hover:opacity-100"}`}
-               >
-                 <Icon size={14} className={activeTab === tab.id ? "stroke-[3]" : "stroke-[2.5]"} />
-                 {tab.label}
-               </button>
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TabId)}
+                  className={`flex items-center gap-2.5 px-6 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? "bg-[var(--text-primary)] text-[var(--bg-primary)] shadow-lg shadow-[var(--text-primary)]/10" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-60 hover:opacity-100"}`}
+                >
+                  <Icon size={14} className={isSelected ? "stroke-[3]" : "stroke-[2.5]"} />
+                  {tab.label}
+                </button>
              );
            })}
         </div>
@@ -107,15 +91,6 @@ export default function GestaoAgendaPage() {
           </div>
         )}
 
-        {activeTab === "fechamento" && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <FechamentoEventosTab 
-                pastEvents={pastEvents} 
-                handleOpenWizard={handleOpenWizard} 
-             />
-          </div>
-        )}
-
         {activeTab === "agenda" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
              <GestaoAgendaTab 
@@ -128,14 +103,6 @@ export default function GestaoAgendaPage() {
         )}
       </div>
 
-      {/* Post Event Wizard Modal (Shared) */}
-      <PostEventWizard 
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        event={selectedEvent}
-        onSuccess={() => setRefreshCounter(p => p + 1)}
-      />
-
       {/* Info Help */}
       <div className="p-6 bg-[var(--accent-soft)]/30 border border-[var(--border-primary)] rounded-[2.5rem] flex gap-4 text-[var(--text-muted)] shadow-sm">
         <div className="w-10 h-10 bg-[var(--accent-start)]/10 rounded-2xl flex items-center justify-center text-[var(--accent-start)] shrink-0">
@@ -144,7 +111,7 @@ export default function GestaoAgendaPage() {
         <div className="space-y-1">
            <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Governança Integrada</p>
            <p className="text-[11px] font-medium leading-relaxed italic opacity-70">
-              O fluxo de pós-evento está consolidado. Utilize as abas acima para transitar entre a visão analítica de resultados (Resumo), a operação de governança (Fechamento) e a logística de horários (Agenda).
+              O fluxo de fechamento de eventos foi unificado. Agora, todas as operações de governança e análise de resultados estão concentradas na aba principal "Gestão de Programação".
            </p>
         </div>
       </div>

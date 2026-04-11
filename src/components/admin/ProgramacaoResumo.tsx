@@ -15,7 +15,8 @@ import {
   AlertCircle, 
   ChevronRight,
   Loader2,
-  MoreHorizontal
+  MoreHorizontal,
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -54,6 +55,9 @@ export default function ProgramacaoResumo() {
   const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
 
+  // Dropdown Menu State
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
   useEffect(() => {
     async function load() {
       setIsLoading(true);
@@ -70,9 +74,19 @@ export default function ProgramacaoResumo() {
     if (user) load();
   }, [user, refreshCounter]);
 
+  // Click away listener for dropdown
+  useEffect(() => {
+    const handleClickAway = () => setActiveMenuId(null);
+    if (activeMenuId) {
+      window.addEventListener("click", handleClickAway);
+    }
+    return () => window.removeEventListener("click", handleClickAway);
+  }, [activeMenuId]);
+
   const handleOpenWizard = (ev: EventSummary) => {
     setSelectedEvent(ev);
     setIsWizardOpen(true);
+    setActiveMenuId(null);
   };
 
   const statusMap = {
@@ -105,10 +119,10 @@ export default function ProgramacaoResumo() {
                    const { healProgramacaoMasterAction } = await import("@/actions/calendar");
                    const res = await healProgramacaoMasterAction(idToken);
                    if (res.success) {
-                     alert(`Sucesso! ${res.processed} eventos processados.`);
-                     setRefreshCounter(p => p + 1);
+                      alert(`Sucesso! ${res.processed} eventos processados.`);
+                      setRefreshCounter(p => p + 1);
                    } else {
-                     alert("Erro no Healing: " + res.message);
+                      alert("Erro no Healing: " + res.message);
                    }
                  }
                } catch (err) {
@@ -132,7 +146,7 @@ export default function ProgramacaoResumo() {
         <div className="text-center">NPS</div>
         <div className="text-center">Presença</div>
         <div className="text-center">Inscritos / Vagas</div>
-        <div className="text-right">Ações</div>
+        <div className="text-right pr-4">Ações</div>
       </div>
 
       {/* Row List */}
@@ -143,6 +157,8 @@ export default function ProgramacaoResumo() {
           </div>
         ) : events.map((ev) => {
           const SIcon = statusMap[ev.statusLabel].icon;
+          const isMenuOpen = activeMenuId === ev.id;
+
           return (
             <div 
               key={ev.id} 
@@ -206,40 +222,73 @@ export default function ProgramacaoResumo() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-2">
-                {ev.statusLabel !== "futuro" && (
-                  <button 
-                    onClick={() => handleOpenWizard(ev)}
-                    className="p-2.5 bg-[var(--input-bg)] hover:bg-[var(--accent-start)] text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
-                    title={ev.postEventCompleted ? "Ver Resumo" : "Fechar Evento"}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                )}
-                
-                {ev.folderUrl && (
-                  <a 
-                    href={ev.folderUrl} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="p-2.5 bg-[var(--input-bg)] hover:bg-green-500 text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
-                    title="Acessar Pasta do Drive"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
+              {/* Actions Dropdown */}
+              <div className="flex items-center justify-end relative">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMenuId(isMenuOpen ? null : ev.id);
+                  }}
+                  className={`p-2.5 rounded-xl border transition-all ${isMenuOpen ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)] shadow-lg" : "bg-[var(--input-bg)] hover:bg-[var(--input-bg-hover)] text-[var(--text-muted)] border-[var(--border-primary)]"}`}
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
 
-                {ev.meetingMinutesFile?.url && (
-                  <a 
-                    href={ev.meetingMinutesFile.url} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="p-2.5 bg-[var(--input-bg)] hover:bg-blue-500 text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"
-                    title="Ver Ata"
+                {isMenuOpen && (
+                  <div 
+                    className="absolute top-full right-0 mt-2 w-56 p-2 bg-[var(--bg-primary)]/90 backdrop-blur-xl border border-[var(--border-primary)] rounded-[1.5rem] shadow-2xl z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <FileText className="w-4 h-4" />
-                  </a>
+                    <div className="flex flex-col gap-1">
+                      {/* Close Event Action */}
+                      {ev.statusLabel !== "futuro" && (
+                        <button 
+                          onClick={() => handleOpenWizard(ev)}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--accent-start)] hover:text-white transition-all text-left text-[11px] font-bold group/item"
+                        >
+                          <CheckCircle2 className="w-4 h-4 opacity-50 group-hover/item:opacity-100" />
+                          <span>{ev.postEventCompleted ? "Ver Resumo / Dados" : "Fechar Evento"}</span>
+                        </button>
+                      )}
+
+                      <hr className="my-1 border-[var(--border-primary)] opacity-30 mx-2" />
+
+                      {/* External Links */}
+                      <a 
+                        href={ev.htmlLink} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--input-bg-hover)] transition-all text-left text-[11px] font-bold group/item"
+                      >
+                         <CalendarIcon className="w-4 h-4 opacity-50 text-blue-400" />
+                         <span>Google Calendar</span>
+                      </a>
+
+                      {ev.folderUrl && (
+                        <a 
+                          href={ev.folderUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--input-bg-hover)] transition-all text-left text-[11px] font-bold group/item"
+                        >
+                           <ExternalLink className="w-4 h-4 opacity-50 text-green-500" />
+                           <span>Pasta do Drive</span>
+                        </a>
+                      )}
+
+                      {/* Minutes Action */}
+                      <a 
+                        href={ev.meetingMinutesFile?.url || "#"} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        onClick={(e) => !ev.meetingMinutesFile?.url && e.preventDefault()}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left text-[11px] font-bold group/item ${ev.meetingMinutesFile?.url ? "hover:bg-[var(--input-bg-hover)]" : "opacity-30 cursor-not-allowed grayscale"}`}
+                      >
+                         <FileText className="w-4 h-4 opacity-50 text-amber-500" />
+                         <span>Visualizar Ata</span>
+                      </a>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

@@ -372,7 +372,10 @@ export async function bookEventAction(
       };
     });
 
-    // 4. Enviar E-mail (FORA DA TRANSAÇÃO PARA EVITAR TIMEOUTS ⚡)
+    // 4. Atualizar Central de Dados (Datas_Center Snapshot) 🛰️
+    await updateGlobalProgramacaoRegistryAction();
+    
+    // 5. Enviar E-mail (FORA DA TRANSAÇÃO PARA EVITAR TIMEOUTS ⚡)
     if (trxResult.success && trxResult.emailData) {
       const { startTime, summary, mentor, theme, htmlLink } = trxResult.emailData;
       
@@ -575,7 +578,10 @@ export async function adminAddAttendeeAction(
       };
     });
 
-    // 4. E-mail de Confirmação (Padrão HUB)
+    // 4. Atualizar Central de Dados (Datas_Center Snapshot) 🛰️
+    await updateGlobalProgramacaoRegistryAction();
+
+    // 5. E-mail de Confirmação (Padrão HUB)
     if (trxResult.success && trxResult.emailData) {
       const { startTime, summary, mentor, theme, htmlLink } = trxResult.emailData;
       try {
@@ -929,7 +935,10 @@ export async function cancelBookingAction(
       };
     });
 
-    // Fora da transação: Envio Seguro do E-mail de Cancelamento (Resend Premium)
+    // 4. Atualizar Central de Dados (Datas_Center Snapshot) 🛰️
+    await updateGlobalProgramacaoRegistryAction();
+
+    // 5. Fora da transação: Envio Seguro do E-mail de Cancelamento (Resend Premium)
     if (trxResult.success && trxResult.email) {
       try {
         const platformLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hub.bplen.com'}/admin/gestao-agenda`;
