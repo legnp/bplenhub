@@ -22,11 +22,26 @@ import { ptBR } from "date-fns/locale";
 import { useAuthContext } from "@/context/AuthContext";
 import PostEventWizard from "./PostEventWizard";
 
-interface EventSummary extends GoogleCalendarEvent {
-  confirmedPresence: number;
-  avgNps: number | null;
+interface EventSummary {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  mentor: string;
+  theme?: string;
   statusLabel: "futuro" | "pendente" | "concluido";
-  attendeesCount: number;
+  folderUrl: string | null;
+  htmlLink: string;
+  registeredCount: number;
+  totalCapacity: number;
+  metrics: {
+    presenceCount: number;
+    npsAvg: number;
+    reviewsCount: number;
+  };
+  // Campos legados ou de transição que o PostEventWizard pode precisar
+  postEventCompleted?: boolean;
+  meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
 }
 
 export default function ProgramacaoResumo() {
@@ -78,6 +93,38 @@ export default function ProgramacaoResumo() {
   return (
     <div className="space-y-4">
       {/* Table Header (Desktop) */}
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)] ml-2">Snapshot Global de Programação</p>
+        <button 
+          onClick={async () => {
+             if (confirm("Deseja recalcular todas as métricas históricas? Isso pode levar alguns segundos.")) {
+               setIsLoading(true);
+               try {
+                 const idToken = await user?.getIdToken();
+                 if (idToken) {
+                   const { healProgramacaoMasterAction } = await import("@/actions/calendar");
+                   const res = await healProgramacaoMasterAction(idToken);
+                   if (res.success) {
+                     alert(`Sucesso! ${res.processed} eventos processados.`);
+                     setRefreshCounter(p => p + 1);
+                   } else {
+                     alert("Erro no Healing: " + res.message);
+                   }
+                 }
+               } catch (err) {
+                 console.error(err);
+               } finally {
+                 setIsLoading(false);
+               }
+             }
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-start)]/10 hover:bg-[var(--accent-start)]/20 text-[var(--accent-start)] rounded-xl border border-[var(--accent-start)]/20 transition-all text-[9px] font-black uppercase tracking-widest"
+        >
+           <TrendingUp className="w-3 h-3" />
+           Recalcular Métricas (Healing)
+        </button>
+      </div>
+
       <div className="hidden md:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_1.5fr_1fr] gap-4 px-8 py-4 bg-[var(--input-bg)]/30 rounded-2xl border border-[var(--border-primary)] text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
         <div>Evento / Tema</div>
         <div>Orientador</div>
@@ -123,10 +170,11 @@ export default function ProgramacaoResumo() {
 
               {/* NPS */}
               <div className="text-center">
-                {ev.avgNps ? (
+                {ev.metrics.npsAvg > 0 ? (
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/5 text-green-500 rounded-lg">
                     <TrendingUp className="w-3 h-3" />
-                    <span className="text-xs font-black">{ev.avgNps}</span>
+                    <span className="text-xs font-black">{ev.metrics.npsAvg}</span>
+                    <span className="text-[8px] opacity-40 font-bold">({ev.metrics.reviewsCount})</span>
                   </div>
                 ) : (
                   <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-30">S/ Aval.</span>
@@ -136,9 +184,9 @@ export default function ProgramacaoResumo() {
               {/* Attendance */}
               <div className="text-center">
                 <div className="inline-flex items-center gap-1.5 text-xs font-black text-[var(--text-primary)]">
-                  <span className={ev.confirmedPresence > 0 ? "text-green-500" : "opacity-30"}>{ev.confirmedPresence}</span>
+                  <span className={ev.metrics.presenceCount > 0 ? "text-green-500" : "opacity-30"}>{ev.metrics.presenceCount}</span>
                   <span className="opacity-20">/</span>
-                  <span className="opacity-40">{ev.attendeesCount}</span>
+                  <span className="opacity-40">{ev.registeredCount}</span>
                 </div>
               </div>
 
@@ -170,9 +218,9 @@ export default function ProgramacaoResumo() {
                   </button>
                 )}
                 
-                {ev.eventFolderUrl && (
+                {ev.folderUrl && (
                   <a 
-                    href={ev.eventFolderUrl} 
+                    href={ev.folderUrl} 
                     target="_blank" 
                     rel="noreferrer"
                     className="p-2.5 bg-[var(--input-bg)] hover:bg-green-500 text-[var(--text-muted)] hover:text-white rounded-xl border border-[var(--border-primary)] transition-all"

@@ -55,6 +55,13 @@ export interface GoogleCalendarEvent {
   eventFolderUrl?: string;
   summarySheetUpdatedAt?: string | null;
   slug?: string;
+
+  // Real-time Aggregated Metrics (Datas_Center Ready 🛰️)
+  metrics?: {
+    presenceCount: number;
+    npsAvg: number;
+    reviewsCount: number;
+  };
 }
 
 export interface UserBooking {
@@ -233,14 +240,15 @@ export async function syncCalendarToFirestore(idToken?: string) {
         lastSync: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
 
-      syncCount++;
     }
+
+    // 3. Atualizar Central de Dados (Datas_Center) 🛰️
+    await updateGlobalProgramacaoRegistryAction();
 
     return { 
       success: true, 
       synced: syncCount, 
       deleted: deleteCount,
-      timestamp: new Date().toISOString() 
     };
   } catch (err: unknown) {
     const error = err as Error;
@@ -817,13 +825,48 @@ export async function submitEvaluationAction(
     }, { merge: true });
 
     // 2. Persistência Institucional (Survey_Global)
-    // Criamos um ID dinâmico vinculado ao agendamento
     const dynamicConfig = {
       ...bookingEvaluationSurveyConfig,
       id: `${bookingEvaluationSurveyConfig.id}_${bookingId}`
     };
 
     await submitSurvey(dynamicConfig, { rating, feedback }, userUid);
+
+    // 3. Atualizar Métricas no Registro Global (Real-time NPS) 🛰️
+    try {
+      const bookingSnap = await bookingRef.get();
+      const eventId = bookingSnap.data()?.eventId;
+      
+      if (eventId) {
+        // Busca todas as avaliações deste evento (Requer índice de collectionGroup)
+        const allRatingsSnap = await db.collectionGroup("User_Bookings")
+          .where("eventId", "==", eventId)
+          .get();
+        
+        const ratingsArr: number[] = [];
+        allRatingsSnap.forEach(d => {
+          const r = d.data().rating;
+          if (r > 0) ratingsArr.push(r);
+        });
+
+        if (ratingsArr.length > 0) {
+          const avgNps = parseFloat((ratingsArr.reduce((a, b) => a + b, 0) / ratingsArr.length).toFixed(1));
+          const eventRef = db.collection("Calendar_Events").doc(eventId);
+          
+          await eventRef.set({
+            metrics: {
+              npsAvg: avgNps,
+              reviewsCount: ratingsArr.length
+            }
+          }, { merge: true });
+          
+          // Atualiza o Snapshot Instantâneo (Datas_Center)
+          await updateGlobalProgramacaoRegistryAction();
+        }
+      }
+    } catch (metricError) {
+      console.error("Erro ao atualizar métricas NPS (ignorado):", metricError);
+    }
     
     return { success: true };
   } catch (error) {
@@ -1017,6 +1060,9 @@ export async function closeAttendeeAction(
     await db.runTransaction(async (transaction) => {
       // Registrar no Evento
       const attendeeRef = eventRef.collection("attendees").doc(userId);
+      const attendeeSnap = await transaction.get(attendeeRef);
+      const prevStatus = attendeeSnap.exists ? attendeeSnap.data()?.attendanceStatus : null;
+
       transaction.set(attendeeRef, {
         attendanceStatus: data.attendanceStatus,
         participantFeedback: data.participantFeedback,
@@ -1025,6 +1071,13 @@ export async function closeAttendeeAction(
         attendanceCheckedAt: admin.firestore.FieldValue.serverTimestamp(),
         attendanceCheckedBy: data.checkedBy
       }, { merge: true });
+
+      // Atualizar Contador de Presença Real-time 🛰️
+      if (data.attendanceStatus === "present" && prevStatus !== "present") {
+        transaction.update(eventRef, { "metrics.presenceCount": admin.firestore.FieldValue.increment(1) });
+      } else if (data.attendanceStatus !== "present" && prevStatus === "present") {
+        transaction.update(eventRef, { "metrics.presenceCount": admin.firestore.FieldValue.increment(-1) });
+      }
 
       // Atualizar User_Bookings se existir (Camada de Leitura Rápida)
       if (bookingDoc) {
@@ -1041,6 +1094,9 @@ export async function closeAttendeeAction(
       }
     });
 
+    // 4. Atualizar Central de Dados (Datas_Center Snapshot) 🛰️
+    await updateGlobalProgramacaoRegistryAction();
+
     return { success: true };
   } catch (error) {
     console.error("Erro ao fechar participante (Parte 2):", error);
@@ -1048,79 +1104,148 @@ export async function closeAttendeeAction(
   }
 }
 
+
 /**
- * Módulo de Gestão Administrativa 360° 🛰️
- * Busca todos os eventos e consolida métricas de performance (NPS, Presença, Vagas).
+ * Snapshot de Alta Performance: Datas_Center 🛰️
+ * Consolida todos os eventos da coleção Calendar_Events em um único Documento Global.
+ * É chamado automaticamente em todos os gatilhos de mudança (Sync, Presença, NPS).
+ */
+export async function updateGlobalProgramacaoRegistryAction() {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Buscar todos os eventos (Ordenados por data) para o Snapshot
+    const eventsSnap = await db.collection("Calendar_Events")
+      .orderBy("start", "desc")
+      .limit(500)
+      .get();
+      
+    const eventsRegistry = eventsSnap.docs.map(doc => {
+      const data = doc.data() as GoogleCalendarEvent;
+      
+      // Lógica de Status em tempo real para o Snapshot
+      const evDate = parseISO(data.start);
+      const isPast = isBefore(evDate, new Date());
+      let status: "futuro" | "pendente" | "concluido" = "futuro";
+      if (data.postEventCompleted) status = "concluido";
+      else if (isPast) status = "pendente";
+
+      return {
+        id: doc.id,
+        summary: data.summary,
+        start: data.start,
+        end: data.end,
+        mentor: data.mentor || "BPlen",
+        theme: data.theme || null,
+        statusLabel: status,
+        folderUrl: data.eventFolderUrl || null,
+        htmlLink: data.htmlLink || "",
+        registeredCount: data.registeredCount || 0,
+        totalCapacity: data.totalCapacity || 0,
+        metrics: data.metrics || { presenceCount: 0, npsAvg: 0, reviewsCount: 0 }
+      };
+    });
+
+    // 2. Salvar na Matriz Pai (Datas_Center)
+    await db.collection("Datas_Center").doc("Programacao_Registry").set({
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      count: eventsRegistry.length,
+      events: eventsRegistry
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar Datas_Center/Programacao_Registry:", error);
+    return { success: false, message: (error as Error).message };
+  }
+}
+
+/**
+ * REATOR DE DASHBOARD 🛰️ (Versão Datas_Center)
+ * Agora lê instantaneamente do Datas_Center em vez de processar subcoleções.
  */
 export async function getProgramacaoSummaryAction(idToken?: string): Promise<any[]> {
   try {
     await requireAdmin(idToken);
     const db = getAdminDb();
     
-    // 1. Buscar Eventos (Limite de 100 para sanidade do admin)
-    const eventsSnap = await db.collection("Calendar_Events")
-      .orderBy("start", "desc")
-      .limit(100)
-      .get();
+    const registrySnap = await db.collection("Datas_Center").doc("Programacao_Registry").get();
     
-    const events = eventsSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as GoogleCalendarEvent[];
+    if (!registrySnap.exists) {
+      // Se ainda não existir, tenta atualizar uma primeira vez para não retornar vazio
+      await updateGlobalProgramacaoRegistryAction();
+      const retrySnap = await db.collection("Datas_Center").doc("Programacao_Registry").get();
+      return retrySnap.data()?.events || [];
+    }
 
-    // 2. Buscar Todos os Attendees em Massa (Collection Group) 🛡️
-    // Isso evita N+1 queries. Filtramos em memória.
-    const attendeesSnap = await db.collectionGroup("attendees").get();
-    const attendeesMap = new Map<string, any[]>();
-    attendeesSnap.forEach(doc => {
-      const eventId = doc.ref.parent.parent?.id;
-      if (eventId) {
-        if (!attendeesMap.has(eventId)) attendeesMap.set(eventId, []);
-        attendeesMap.get(eventId)!.push(doc.data());
-      }
-    });
-
-    // 3. Buscar Avaliações (NPS) em Massa (Collection Group) 🛡️
-    const bookingsSnap = await db.collectionGroup("User_Bookings").get();
-    const ratingsMap = new Map<string, number[]>();
-    bookingsSnap.forEach(doc => {
-      const data = doc.data();
-      if (data.eventId && data.rating > 0) {
-        if (!ratingsMap.has(data.eventId)) ratingsMap.set(data.eventId, []);
-        ratingsMap.get(data.eventId)!.push(data.rating);
-      }
-    });
-
-    // 4. Consolidar Dados
-    return events.map(ev => {
-      const eventAttendees = attendeesMap.get(ev.id) || [];
-      const eventRatings = ratingsMap.get(ev.id) || [];
-      
-      const confirmedPresence = eventAttendees.filter(a => a.attendanceStatus === "present").length;
-      const avgNps = eventRatings.length > 0 
-        ? Number((eventRatings.reduce((a, b) => a + b, 0) / eventRatings.length).toFixed(1))
-        : null;
-
-      // Lógica de Status
-      const evDate = parseISO(ev.start);
-      const isPast = isBefore(evDate, new Date());
-      let status: "futuro" | "pendente" | "concluido" = "futuro";
-      
-      if (ev.postEventCompleted) status = "concluido";
-      else if (isPast) status = "pendente";
-
-      return {
-        ...ev,
-        confirmedPresence,
-        avgNps,
-        statusLabel: status,
-        attendeesCount: eventAttendees.length
-      };
-    });
+    const data = registrySnap.data();
+    return data?.events || [];
 
   } catch (error) {
-    console.error("Erro ao gerar resumo de programação:", error);
+    console.error("Erro ao ler resumo de programação do Datas_Center:", error);
     return [];
+  }
+}
+
+/**
+ * THE BIG HEAL 🛰️
+ * Script de reparo para reconstruir retroativamente as métricas de todos os eventos.
+ * Essencial após a migração para a arquitetura de Snapshot (Datas_Center).
+ */
+export async function healProgramacaoMasterAction(idToken: string) {
+  try {
+    await requireAdmin(idToken);
+    const db = getAdminDb();
+    
+    // 1. Buscar todos os eventos
+    const eventsSnap = await db.collection("Calendar_Events").get();
+    console.log(`[Healing] Iniciando processamento de ${eventsSnap.size} eventos...`);
+
+    // 2. Processar métricas para cada evento em paralelo (com limite implícito pelo Firestore SDK)
+    const results = await Promise.all(eventsSnap.docs.map(async (doc) => {
+      const eventId = doc.id;
+      
+      // Contar Presenças na subcoleção do evento
+      const attendeesSnap = await db.collection("Calendar_Events").doc(eventId).collection("attendees")
+        .where("attendanceStatus", "==", "present")
+        .get();
+      
+      // Contar NPS (Collection Group filtrado por evento)
+      const ratingsSnap = await db.collectionGroup("User_Bookings")
+        .where("eventId", "==", eventId)
+        .get();
+      
+      let totalRating = 0;
+      let reviewsCount = 0;
+      ratingsSnap.forEach(d => {
+        const r = d.data().rating;
+        if (r > 0) {
+          totalRating += r;
+          reviewsCount++;
+        }
+      });
+
+      const npsAvg = reviewsCount > 0 ? parseFloat((totalRating / reviewsCount).toFixed(1)) : 0;
+
+      // Atualizar Documento do Evento com as métricas consolidadas
+      await doc.ref.set({
+        metrics: {
+          presenceCount: attendeesSnap.size,
+          npsAvg: npsAvg,
+          reviewsCount: reviewsCount
+        }
+      }, { merge: true });
+
+      return eventId;
+    }));
+
+    // 3. Atualizar o Snapshot Global no final
+    await updateGlobalProgramacaoRegistryAction();
+
+    return { success: true, processed: results.length };
+  } catch (error) {
+    console.error("Erro no Healing de Programação:", error);
+    return { success: false, message: (error as Error).message };
   }
 }
 
