@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   getProgramacaoSummaryAction, 
   GoogleCalendarEvent 
@@ -16,7 +16,13 @@ import {
   ChevronRight,
   Loader2,
   MoreHorizontal,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Search,
+  X,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -45,6 +51,10 @@ interface EventSummary {
   meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
 }
 
+type SortField = "date" | "name" | "nps" | "presence" | "capacity";
+type SortDirection = "asc" | "desc";
+type StatusFilter = "todos" | "futuro" | "pendente" | "concluido";
+
 export default function ProgramacaoResumo() {
   const { user } = useAuthContext();
   const [events, setEvents] = useState<EventSummary[]>([]);
@@ -57,6 +67,12 @@ export default function ProgramacaoResumo() {
 
   // Dropdown Menu State
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // Search, Filter & Sort State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("todos");
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   useEffect(() => {
     async function load() {
@@ -89,10 +105,85 @@ export default function ProgramacaoResumo() {
     setActiveMenuId(null);
   };
 
+  const handleSortToggle = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection(field === "date" ? "asc" : "desc");
+    }
+  };
+
+  // Filtered & Sorted Events (memoized)
+  const filteredEvents = useMemo(() => {
+    let result = [...events];
+
+    // 1. Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(ev =>
+        ev.summary.toLowerCase().includes(q) ||
+        (ev.theme && ev.theme.toLowerCase().includes(q)) ||
+        ev.mentor.toLowerCase().includes(q)
+      );
+    }
+
+    // 2. Status filter
+    if (statusFilter !== "todos") {
+      result = result.filter(ev => ev.statusLabel === statusFilter);
+    }
+
+    // 3. Sort
+    result.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "date":
+          cmp = new Date(a.start).getTime() - new Date(b.start).getTime();
+          break;
+        case "name":
+          cmp = a.summary.localeCompare(b.summary, "pt-BR");
+          break;
+        case "nps":
+          cmp = (a.metrics.npsAvg || 0) - (b.metrics.npsAvg || 0);
+          break;
+        case "presence":
+          cmp = (a.metrics.presenceCount || 0) - (b.metrics.presenceCount || 0);
+          break;
+        case "capacity":
+          cmp = (a.registeredCount || 0) - (b.registeredCount || 0);
+          break;
+      }
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+
+    return result;
+  }, [events, searchQuery, statusFilter, sortField, sortDirection]);
+
   const statusMap = {
     futuro: { label: "Futuro", color: "bg-blue-500/10 text-blue-400", icon: Clock },
     pendente: { label: "Pendente Fechamento", color: "bg-amber-500/10 text-amber-500 animate-pulse", icon: AlertCircle },
     concluido: { label: "Concluído", color: "bg-green-500/10 text-green-500", icon: CheckCircle2 },
+  };
+
+  const statusFilterOptions: { key: StatusFilter; label: string; color: string }[] = [
+    { key: "todos", label: "Todos", color: "bg-[var(--text-primary)]/5 text-[var(--text-primary)]" },
+    { key: "futuro", label: "Futuro", color: "bg-blue-500/10 text-blue-400" },
+    { key: "pendente", label: "Pendente", color: "bg-amber-500/10 text-amber-500" },
+    { key: "concluido", label: "Concluído", color: "bg-green-500/10 text-green-500" },
+  ];
+
+  // Count per status for badges
+  const statusCounts = useMemo(() => {
+    const counts = { todos: events.length, futuro: 0, pendente: 0, concluido: 0 };
+    events.forEach(ev => { counts[ev.statusLabel]++; });
+    return counts;
+  }, [events]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="w-2.5 h-2.5 opacity-30" />;
+    return sortDirection === "asc" 
+      ? <ArrowUp className="w-2.5 h-2.5 text-[var(--accent-start)]" /> 
+      : <ArrowDown className="w-2.5 h-2.5 text-[var(--accent-start)]" />;
   };
 
   if (isLoading) {
@@ -106,7 +197,7 @@ export default function ProgramacaoResumo() {
 
   return (
     <div className="space-y-4">
-      {/* Table Header (Desktop) */}
+      {/* Header Row */}
       <div className="flex items-center justify-between mb-2">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)] ml-2">Snapshot Global de Programação</p>
         <button 
@@ -139,23 +230,108 @@ export default function ProgramacaoResumo() {
         </button>
       </div>
 
+      {/* ─── Search, Filter & Sort Toolbar ─── */}
+      <div className="flex flex-col gap-3 p-4 bg-[var(--input-bg)]/20 rounded-[1.5rem] border border-[var(--border-primary)]">
+        {/* Search Bar */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
+          <input 
+            type="text"
+            placeholder="Buscar por evento, tema ou orientador..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-10 py-3 bg-[var(--bg-primary)]/60 border border-[var(--border-primary)] rounded-2xl text-xs font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:opacity-40 focus:outline-none focus:border-[var(--accent-start)]/40 focus:ring-2 focus:ring-[var(--accent-start)]/10 transition-all"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[var(--input-bg-hover)] transition-all opacity-40 hover:opacity-100"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filters Row */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          {/* Status Filter Chips */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
+            <div className="flex items-center gap-1.5">
+              {statusFilterOptions.map((opt) => {
+                const isActive = statusFilter === opt.key;
+                const count = statusCounts[opt.key];
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setStatusFilter(opt.key)}
+                    className={`
+                      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all
+                      ${isActive 
+                        ? `${opt.color} ring-2 ring-current/20 shadow-sm` 
+                        : "bg-[var(--input-bg)]/40 text-[var(--text-muted)] opacity-50 hover:opacity-80"
+                      }
+                    `}
+                  >
+                    <span>{opt.label}</span>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black ${isActive ? "bg-current/10" : "bg-[var(--border-primary)]/30"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Results Counter */}
+          <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-40">
+            {filteredEvents.length} de {events.length} evento{events.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+
+      {/* ─── Table Header (Desktop) — with sortable columns ─── */}
       <div className="hidden md:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_1.5fr_1fr] gap-4 px-8 py-4 bg-[var(--input-bg)]/30 rounded-2xl border border-[var(--border-primary)] text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-        <div>Evento / Tema</div>
+        <button onClick={() => handleSortToggle("name")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+          <span>Evento / Tema</span>
+          <SortIcon field="name" />
+        </button>
         <div>Orientador</div>
         <div>Status</div>
-        <div className="text-center">NPS</div>
-        <div className="text-center">Presença</div>
-        <div className="text-center">Inscritos / Vagas</div>
+        <button onClick={() => handleSortToggle("nps")} className="flex items-center justify-center gap-1.5 hover:text-[var(--accent-start)] transition-colors">
+          <span>NPS</span>
+          <SortIcon field="nps" />
+        </button>
+        <button onClick={() => handleSortToggle("presence")} className="flex items-center justify-center gap-1.5 hover:text-[var(--accent-start)] transition-colors">
+          <span>Presença</span>
+          <SortIcon field="presence" />
+        </button>
+        <button onClick={() => handleSortToggle("capacity")} className="flex items-center justify-center gap-1.5 hover:text-[var(--accent-start)] transition-colors">
+          <span>Inscritos / Vagas</span>
+          <SortIcon field="capacity" />
+        </button>
         <div className="text-right pr-4">Ações</div>
       </div>
 
       {/* Row List */}
       <div className="space-y-3">
-        {events.length === 0 ? (
+        {filteredEvents.length === 0 ? (
           <div className="py-20 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[2.5rem] opacity-30">
-            <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma programação encontrada</p>
+            <p className="text-[10px] font-black uppercase tracking-widest">
+              {searchQuery || statusFilter !== "todos" 
+                ? "Nenhum evento encontrado com os filtros aplicados" 
+                : "Nenhuma programação encontrada"}
+            </p>
+            {(searchQuery || statusFilter !== "todos") && (
+              <button 
+                onClick={() => { setSearchQuery(""); setStatusFilter("todos"); }}
+                className="mt-3 text-[9px] font-bold text-[var(--accent-start)] hover:underline"
+              >
+                Limpar filtros
+              </button>
+            )}
           </div>
-        ) : events.map((ev) => {
+        ) : filteredEvents.map((ev) => {
           const SIcon = statusMap[ev.statusLabel].icon;
           const isMenuOpen = activeMenuId === ev.id;
 
@@ -241,15 +417,13 @@ export default function ProgramacaoResumo() {
                   >
                     <div className="flex flex-col gap-1">
                       {/* Close Event Action */}
-                      {ev.statusLabel !== "futuro" && (
-                        <button 
-                          onClick={() => handleOpenWizard(ev)}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--accent-start)] hover:text-white transition-all text-left text-[11px] font-bold group/item"
-                        >
-                          <CheckCircle2 className="w-4 h-4 opacity-50 group-hover/item:opacity-100" />
-                          <span>{ev.postEventCompleted ? "Ver Resumo / Dados" : "Fechar Evento"}</span>
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => handleOpenWizard(ev)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[var(--accent-start)] hover:text-white transition-all text-left text-[11px] font-bold group/item"
+                      >
+                        <CheckCircle2 className="w-4 h-4 opacity-50 group-hover/item:opacity-100" />
+                        <span>{ev.postEventCompleted ? "Ver Resumo / Dados" : "Fechar Evento"}</span>
+                      </button>
 
                       <hr className="my-1 border-[var(--border-primary)] opacity-30 mx-2" />
 
