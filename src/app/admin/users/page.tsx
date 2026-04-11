@@ -497,22 +497,14 @@ export default function UsersManagementPage() {
                                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.role === 'suspended' ? 'left-7' : 'left-1'}`} />
                                   </button>
                                </div>
-                            </div>
-                         </div>
 
-                         {/* SEÇÃO 2: Serviços Contratados (Dinâmico do Catálogo) */}
-                         <div className="space-y-6">
-                            <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
-                               <Rocket size={16} /> Serviços do Portfólio
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               {/* Portaria / Área de Membro (Fixa) */}
+                               {/* Portaria / Área de Membro (Nova Localização: Segurança 🔐) */}
                                <button 
                                  onClick={() => {
                                     const n = { ...selectedUser.services, member_area_access: !selectedUser.services.member_area_access };
                                     setSelectedUser({ ...selectedUser, services: n });
                                  }}
-                                 className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
+                                 className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${selectedUser.services.member_area_access ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}
                                >
                                   <div>
                                      <p className={`text-[10px] font-bold uppercase ${selectedUser.services.member_area_access ? 'text-emerald-500' : ''}`}>Área de Membros</p>
@@ -522,7 +514,15 @@ export default function UsersManagementPage() {
                                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${selectedUser.services.member_area_access ? 'left-6' : 'left-1'}`} />
                                   </div>
                                </button>
+                            </div>
+                         </div>
 
+                         {/* SEÇÃO 2: Serviços Contratados (Dinâmico do Catálogo) */}
+                         <div className="space-y-6">
+                            <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent-start)] flex items-center gap-3">
+                               <Rocket size={16} /> Serviços do Portfólio
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                {/* Produtos do Catálogo (Dinâmicos) */}
                                {products.map((product) => {
                                   const key = product.id || product.slug;
@@ -534,7 +534,7 @@ export default function UsersManagementPage() {
                                           const n = { ...selectedUser.services, [key]: !isActive };
                                           setSelectedUser({ ...selectedUser, services: n });
                                        }}
-                                       className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40'}`}
+                                       className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}
                                      >
                                         <div className="flex-1 min-w-0 pr-4">
                                            <p className={`text-[10px] font-bold uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
