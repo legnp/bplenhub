@@ -832,37 +832,45 @@ export async function submitEvaluationAction(
 
     await submitSurvey(dynamicConfig, { rating, feedback }, userUid);
 
-    // 3. Atualizar Métricas no Registro Global (Real-time NPS) 🛰️
+    // 3. Atualizar Métricas no Registro Global (NPS Sem collectionGroup 🛰️)
     try {
       const bookingSnap = await bookingRef.get();
       const eventId = bookingSnap.data()?.eventId;
       
       if (eventId) {
-        // Busca todas as avaliações deste evento (Requer índice de collectionGroup)
-        const allRatingsSnap = await db.collectionGroup("User_Bookings")
-          .where("eventId", "==", eventId)
-          .get();
+        // Buscamos os inscritos do evento para percorrer suas notas individuais (Evita erro de índice)
+        const eventRef = db.collection("Calendar_Events").doc(eventId);
+        const attendeesSnap = await eventRef.collection("attendees").get();
         
         const ratingsArr: number[] = [];
-        allRatingsSnap.forEach(d => {
-          const r = d.data().rating;
-          if (r > 0) ratingsArr.push(r);
-        });
+        
+        await Promise.all(attendeesSnap.docs.map(async (att) => {
+          const attMatricula = att.data().matricula;
+          if (attMatricula) {
+            const bSnap = await db.collection("User").doc(attMatricula)
+              .collection("User_Bookings")
+              .where("eventId", "==", eventId)
+              .get();
+            
+            bSnap.forEach(b => {
+              const r = b.data().rating;
+              if (r > 0) ratingsArr.push(r);
+            });
+          }
+        }));
 
-        if (ratingsArr.length > 0) {
-          const avgNps = parseFloat((ratingsArr.reduce((a, b) => a + b, 0) / ratingsArr.length).toFixed(1));
-          const eventRef = db.collection("Calendar_Events").doc(eventId);
+        const npsAvg = ratingsArr.length > 0 
+          ? parseFloat((ratingsArr.reduce((a, b) => a + b, 0) / ratingsArr.length).toFixed(1)) 
+          : 0;
           
-          await eventRef.set({
-            metrics: {
-              npsAvg: avgNps,
-              reviewsCount: ratingsArr.length
-            }
-          }, { merge: true });
-          
-          // Atualiza o Snapshot Instantâneo (Datas_Center)
-          await updateGlobalProgramacaoRegistryAction();
-        }
+        await eventRef.set({
+          metrics: {
+            npsAvg: npsAvg,
+            reviewsCount: ratingsArr.length
+          }
+        }, { merge: true });
+        
+        await updateGlobalProgramacaoRegistryAction();
       }
     } catch (metricError) {
       console.error("Erro ao atualizar métricas NPS (ignorado):", metricError);
@@ -1201,36 +1209,44 @@ export async function healProgramacaoMasterAction(idToken: string) {
     const eventsSnap = await db.collection("Calendar_Events").get();
     console.log(`[Healing] Iniciando processamento de ${eventsSnap.size} eventos...`);
 
-    // 2. Processar métricas para cada evento em paralelo (com limite implícito pelo Firestore SDK)
+    // 2. Processar métricas para cada evento em paralelo
     const results = await Promise.all(eventsSnap.docs.map(async (doc) => {
       const eventId = doc.id;
+      const eventRef = doc.ref;
       
-      // Contar Presenças na subcoleção do evento
-      const attendeesSnap = await db.collection("Calendar_Events").doc(eventId).collection("attendees")
-        .where("attendanceStatus", "==", "present")
-        .get();
+      // A. Contar Presenças na subcoleção do evento
+      const attendeesSnap = await eventRef.collection("attendees").get();
+      const presenceCount = attendeesSnap.docs.filter(d => d.data().attendanceStatus === "present").length;
       
-      // Contar NPS (Collection Group filtrado por evento)
-      const ratingsSnap = await db.collectionGroup("User_Bookings")
-        .where("eventId", "==", eventId)
-        .get();
-      
+      // B. Contar NPS (Busca individual por participante para evitar erro de índice 🛰️)
       let totalRating = 0;
       let reviewsCount = 0;
-      ratingsSnap.forEach(d => {
-        const r = d.data().rating;
-        if (r > 0) {
-          totalRating += r;
-          reviewsCount++;
+
+      await Promise.all(attendeesSnap.docs.map(async (attDoc) => {
+        const attMatricula = attDoc.data().matricula;
+        if (attMatricula) {
+          // Busca o booking específico desse usuário para este evento
+          const bSnap = await db.collection("User").doc(attMatricula)
+            .collection("User_Bookings")
+            .where("eventId", "==", eventId)
+            .get();
+          
+          bSnap.forEach(b => {
+            const r = b.data().rating;
+            if (r > 0) {
+              totalRating += r;
+              reviewsCount++;
+            }
+          });
         }
-      });
+      }));
 
       const npsAvg = reviewsCount > 0 ? parseFloat((totalRating / reviewsCount).toFixed(1)) : 0;
 
       // Atualizar Documento do Evento com as métricas consolidadas
-      await doc.ref.set({
+      await eventRef.set({
         metrics: {
-          presenceCount: attendeesSnap.size,
+          presenceCount: presenceCount,
           npsAvg: npsAvg,
           reviewsCount: reviewsCount
         }
