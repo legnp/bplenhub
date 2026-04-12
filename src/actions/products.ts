@@ -76,12 +76,22 @@ export async function saveProductAction(product: Partial<Product>, idToken?: str
     if (id) {
        await db.collection(PRODUCTS_COLLECTION).doc(id).update(data);
     } else {
-       const newDoc = await db.collection(PRODUCTS_COLLECTION).add({
+       // [PADRONIZAÇÃO BPlen V3 🧬] 
+       // Usamos o SLUG como ID do documento para garantir governança limpa.
+       if (!product.slug) {
+         throw new Error("O campo 'Slug' é obrigatório para criar um novo produto.");
+       }
+
+       const slugId = product.slug.trim().toLowerCase().replace(/\s+/g, '-');
+       id = slugId;
+
+       await db.collection(PRODUCTS_COLLECTION).doc(id).set({
          ...data,
+         id: id,
          createdAt: new Date().toISOString(),
          status: 'draft'
        });
-       id = newDoc.id;
+
        // Atualizamos o objeto data local para incluir o novo ID para o sync
        (data as any).id = id;
     }

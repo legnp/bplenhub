@@ -30,6 +30,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { DiscDevolutivaModal } from "@/components/admin/DiscDevolutivaModal";
 import { getAdminProducts } from "@/actions/products";
 import { Product } from "@/types/products";
+import { getMemberQuotasAction, updateMemberQuotasAction } from "@/actions/quotas";
 
 /**
  * BPlen HUB — Gestão de Usuários e Governança
@@ -58,6 +59,8 @@ export default function UsersManagementPage() {
   const [activeTab, setActiveTab] = useState<"services" | "assessments">("services");
   const [userAssessments, setUserAssessments] = useState<any[]>([]);
   const [loadingAssessments, setLoadingAssessments] = useState(false);
+  const [editingQuotas, setEditingQuotas] = useState<Record<string, number>>({});
+  const [isLoadingQuotas, setIsLoadingQuotas] = useState(false);
   const [discLinkInput, setDiscLinkInput] = useState("");
   const [savingDisc, setSavingDisc] = useState(false);
   const [showDiscDevolutiva, setShowDiscDevolutiva] = useState(false);
@@ -94,6 +97,27 @@ export default function UsersManagementPage() {
       setDiscLinkInput(selectedUser.metadata?.disc_link || "");
     }
   }, [selectedUser]);
+
+  // Carregar Quotas quando o modal abre
+  useEffect(() => {
+    if (selectedUser && activeTab === "services") {
+      const load = async () => {
+        setIsLoadingQuotas(true);
+        const wallet = await getMemberQuotasAction(selectedUser.uid);
+        if (wallet && wallet.quotas) {
+          const flatQuotas: Record<string, number> = {};
+          Object.entries(wallet.quotas).forEach(([key, val]) => {
+            flatQuotas[key] = val.total || 0;
+          });
+          setEditingQuotas(flatQuotas);
+        } else {
+          setEditingQuotas({});
+        }
+        setIsLoadingQuotas(false);
+      };
+      load();
+    }
+  }, [selectedUser, activeTab]);
 
   // Carregar Assessments quando o modal abre
   useEffect(() => {
@@ -142,10 +166,24 @@ export default function UsersManagementPage() {
   };
 
   const handleUpdateServices = async (targetMatricula: string, services: UserServices) => {
+    if (!selectedUser) return;
     setProcessingUser(targetMatricula);
     try {
       const token = await auth.currentUser?.getIdToken();
+      
+      // 1. Atualizar Acessos (Booleanos)
       await updateUserPermissions(targetMatricula, { services }, token);
+      
+      // 2. Atualizar Cotas (Valores Numéricos)
+      // Filtramos apenas as cotas que pertencem a serviços que estão ativos
+      const finalQuotas: Record<string, number> = {};
+      Object.entries(editingQuotas).forEach(([key, val]) => {
+         if (services[key]) finalQuotas[key] = val;
+      });
+      
+      if (Object.keys(finalQuotas).length > 0) {
+        await updateMemberQuotasAction(selectedUser.uid, finalQuotas);
+      }
       
       setUsers(prev => prev.map(u => 
         u.matricula === targetMatricula ? { ...u, services } : u
@@ -528,22 +566,45 @@ export default function UsersManagementPage() {
                                   const key = product.id || product.slug;
                                   const isActive = selectedUser.services[key];
                                   return (
-                                     <button 
-                                       key={product.id}
-                                       onClick={() => {
-                                          const n = { ...selectedUser.services, [key]: !isActive };
-                                          setSelectedUser({ ...selectedUser, services: n });
-                                       }}
-                                       className={`p-6 rounded-[2rem] border text-left flex items-center justify-between group transition-all ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}
-                                     >
-                                        <div className="flex-1 min-w-0 pr-4">
-                                           <p className={`text-[10px] font-bold uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
-                                           <p className="text-[7px] text-[var(--text-muted)] font-bold uppercase tracking-[0.2em] mt-1">{product.serviceCode || 'Serviço Ativo'}</p>
-                                        </div>
-                                        <div className={`w-10 h-5 rounded-full relative transition-all shrink-0 ${isActive ? 'bg-[var(--accent-start)]' : 'bg-gray-700'}`}>
-                                           <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? 'left-6' : 'left-1'}`} />
-                                        </div>
-                                     </button>
+                                      <div 
+                                        key={product.id}
+                                        className={`p-6 rounded-[2rem] border transition-all flex flex-col gap-4 ${isActive ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}
+                                      >
+                                         <div className="flex items-center justify-between">
+                                            <div className="flex-1 min-w-0 pr-4">
+                                               <p className={`text-[10px] font-bold uppercase truncate ${isActive ? 'text-[var(--accent-start)]' : ''}`}>{product.title}</p>
+                                               <p className="text-[7px] text-[var(--text-muted)] font-bold uppercase tracking-[0.2em] mt-1">{product.serviceCode || 'Serviço Ativo'}</p>
+                                            </div>
+                                            <button 
+                                              onClick={() => {
+                                                 const n = { ...selectedUser.services, [key]: !isActive };
+                                                 setSelectedUser({ ...selectedUser, services: n });
+                                              }}
+                                              className={`w-10 h-5 rounded-full relative transition-all shrink-0 ${isActive ? 'bg-[var(--accent-start)]' : 'bg-gray-700'}`}
+                                            >
+                                               <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isActive ? 'left-6' : 'left-1'}`} />
+                                            </button>
+                                         </div>
+
+                                         {isActive && (
+                                            <div className="pt-3 border-t border-[var(--border-primary)]/30 flex items-center justify-between">
+                                               <div className="flex items-center gap-2">
+                                                  <CreditCard size={12} className="text-[var(--accent-start)]" />
+                                                  <label className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Créditos Disponíveis</label>
+                                               </div>
+                                               <input 
+                                                  type="number"
+                                                  min="0"
+                                                  value={editingQuotas[key] || 0}
+                                                  onChange={(e) => {
+                                                     const val = parseInt(e.target.value) || 0;
+                                                     setEditingQuotas(prev => ({ ...prev, [key]: val }));
+                                                  }}
+                                                  className="w-16 bg-white/5 border border-[var(--border-primary)] rounded-lg p-2 text-[10px] text-center font-black focus:border-[var(--accent-start)] outline-none"
+                                               />
+                                            </div>
+                                         )}
+                                      </div>
                                   );
                                })}
                             </div>
