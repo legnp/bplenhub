@@ -1,45 +1,59 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { JourneyProgress, StepStatus, UserStepProgress } from "@/types/journey";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
+import { JourneyProgress, StepStatus, UserStepProgress, JourneyStep } from "@/types/journey";
+import { getJourneyStagesAction } from "@/actions/journey";
 
 /**
  * BPlen HUB — useJourney 🧬🛡️
  * Logic hook for member journey progress and access control.
+ * Now fully dynamic: fetches stages from Products and progress from User metadata.
  */
-export function useJourney(matricula: string) {
+export function useJourney(uid: string) {
+  const [stages, setStages] = useState<JourneyStep[]>([]);
   const [progress, setProgress] = useState<JourneyProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Initializing mock data or loading from localStorage/Firestore in the future
   useEffect(() => {
-    const loadProgress = async () => {
+    const init = async () => {
       setLoading(true);
-      // Mock progress data
-      const initialSteps: Record<string, UserStepProgress> = {};
-      JOURNEY_STAGES.forEach((stage: any, idx: number) => {
-        initialSteps[stage.id] = {
-          stepId: stage.id,
-          status: idx === 0 ? "current" as any : "locked" as any,
-          completedSubSteps: [],
-          currentSubStepId: stage.substeps[0]?.id
+      try {
+        console.log("🧬 [useJourney] Sincronizando estágios dinâmicos...");
+        
+        // 1. Fetch Stages from Firestore (via Action)
+        const dynamicStages = await getJourneyStagesAction();
+        setStages(dynamicStages);
+
+        // 2. Initialize or Fetch Progress from Firestore
+        // For now, mapping progress based on UID.
+        const initialSteps: Record<string, UserStepProgress> = {};
+        dynamicStages.forEach((stage, idx) => {
+          initialSteps[stage.id] = {
+            stepId: stage.id,
+            status: idx === 0 ? "current" : "locked",
+            completedSubSteps: [],
+            currentSubStepId: stage.substeps[0]?.id
+          };
+        });
+
+        // TODO: In the next phase, load real progress from /users/{uid}/journey
+        const initialProgress: JourneyProgress = {
+          matricula: "MEMBER-ID", // To be replaced by real matricula
+          lastActiveStepId: dynamicStages[0]?.id || "onboarding",
+          steps: initialSteps,
+          overallProgress: 0
         };
-      });
 
-      const mockProgress: JourneyProgress = {
-        matricula,
-        lastActiveStepId: "onboarding",
-        steps: initialSteps,
-        overallProgress: 0
-      };
-
-      setProgress(mockProgress);
-      setLoading(false);
+        setProgress(initialProgress);
+      } catch (error) {
+        console.error("❌ [useJourney] Falha crítica na sincronização:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadProgress();
-  }, [matricula]);
+    if (uid) init();
+  }, [uid]);
 
   const updateSubStep = (stepId: string, subStepId: string, completed: boolean) => {
     if (!progress) return;
@@ -54,8 +68,11 @@ export function useJourney(matricula: string) {
         : step.completedSubSteps.filter(id => id !== subStepId);
 
       // Determine new status if all are completed
-      const allSubSteps = JOURNEY_STAGES.find(s => s.id === stepId)?.substeps || [];
-      const status: StepStatus = newCompleted.length === allSubSteps.length ? "completed" : "current";
+      const stage = stages.find(s => s.id === stepId);
+      const allSubStepsCount = stage?.substeps.length || 0;
+      const status: StepStatus = (newCompleted.length >= allSubStepsCount && allSubStepsCount > 0) 
+        ? "completed" 
+        : "current";
 
       return {
         ...prev,
@@ -72,10 +89,11 @@ export function useJourney(matricula: string) {
   };
 
   const getStepStatus = (stepId: string): StepStatus => {
-     return progress?.steps[stepId]?.status || "locked";
+    return progress?.steps[stepId]?.status || "locked";
   };
 
   return {
+    stages,
     progress,
     loading,
     updateSubStep,

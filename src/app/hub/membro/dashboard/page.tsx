@@ -40,7 +40,6 @@ import { ptBR } from "date-fns/locale";
 import { useJourney } from "@/hooks/useJourney";
 import { JourneyNav } from "@/components/journey/JourneyNav";
 import { StageOverviewCard } from "@/components/journey/StageOverviewCard";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
 import { BookingDetailModal } from "@/components/ui/UserBookings";
 import { submitEvaluationAction } from "@/actions/calendar";
 import Link from "next/link";
@@ -63,7 +62,7 @@ export default function MemberDashboardPage() {
   const [loadingBookings, setLoadingBookings] = useState(true);
 
   // Journey Integration
-  const { progress, loading: loadingJourney, getStepStatus } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading: loadingJourney, getStepStatus } = useJourney(user?.uid || "guest");
   const [activeStageId, setActiveStageId] = useState<string>("onboarding");
 
   // Dashboard Agenda Modal (Reuse)
@@ -89,8 +88,10 @@ export default function MemberDashboardPage() {
   useEffect(() => {
     if (progress?.lastActiveStepId) {
        setActiveStageId(progress.lastActiveStepId);
+    } else if (stages.length > 0) {
+       setActiveStageId(stages[0].id);
     }
-  }, [progress]);
+  }, [progress, stages]);
 
   useEffect(() => {
     if (!user) return;
@@ -220,13 +221,16 @@ export default function MemberDashboardPage() {
 
                      {/* Journey Navigation (Horizontal Stepper) */}
                      <div className="pt-4">
-                        <JourneyNav 
-                           currentStepId={activeStageId} 
-                           stepStatusMap={progress?.steps ? Object.fromEntries(
-                              Object.entries(progress.steps).map(([k, v]) => [k, v.status])
-                           ) : {}}
-                           onSelectStep={setActiveStageId}
-                        />
+                        {stages.length > 0 && (
+                          <JourneyNav 
+                             stages={stages}
+                             currentStepId={activeStageId} 
+                             stepStatusMap={progress?.steps ? Object.fromEntries(
+                                Object.entries(progress.steps).map(([k, v]) => [k, v.status])
+                             ) : {}}
+                             onSelectStep={setActiveStageId}
+                          />
+                        )}
                      </div>
                   </div>
               </section>

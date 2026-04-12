@@ -1,21 +1,20 @@
 "use client";
 
-import React from "react";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
-import { StepStatus } from "@/types/journey";
+import { StepStatus, JourneyStep } from "@/types/journey";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 interface JourneyNavProps {
+  stages: JourneyStep[];
   currentStepId: string;
   stepStatusMap: Record<string, StepStatus>;
   onSelectStep?: (stepId: string) => void;
 }
 
-export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: JourneyNavProps) {
-  const currentStepIndex = JOURNEY_STAGES.findIndex(s => s.id === currentStepId);
+export function JourneyNav({ stages, currentStepId, stepStatusMap, onSelectStep }: JourneyNavProps) {
+  const currentStepIndex = stages.findIndex(s => s.id === currentStepId);
 
   return (
     <div className="w-full py-8 px-4 overflow-visible">
@@ -27,12 +26,12 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
         <motion.div 
           className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] -translate-y-1/2"
           initial={{ width: 0 }}
-          animate={{ width: `${(Math.max(0, currentStepIndex) / (JOURNEY_STAGES.length - 1)) * 100}%` }}
+          animate={{ width: `${(Math.max(0, currentStepIndex) / (stages.length - 1)) * 100}%` }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
         />
 
         <div className="flex justify-between items-center relative z-10">
-          {JOURNEY_STAGES.map((stage, index) => {
+          {stages.map((stage, index) => {
             const status = stepStatusMap[stage.id] || "locked";
             const isCompleted = status === "completed";
             const isCurrent = stage.id === currentStepId;
@@ -43,7 +42,7 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
 
             const Wrapper = onSelectStep ? "div" : Link;
             const wrapperProps = onSelectStep 
-              ? { onClick: () => onSelectStep(stage.id), role: "button" } 
+              ? { onClick: () => onSelectStep ? onSelectStep(stage.id) : null, role: "button" } 
               : { href: `/hub/membro/journey/${stage.id}` };
 
             return (

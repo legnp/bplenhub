@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, redirect } from "next/navigation";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
 import { StepContainer } from "@/components/journey/StepContainer";
 import { SubStepRail } from "@/components/journey/SubStepRail";
 import { StepRenderer } from "@/components/journey/StepRenderer";
@@ -10,6 +9,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { useJourney } from "@/hooks/useJourney";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
 
 /**
  * BPlen HUB — Step Journey Engine 🧬🛡️
@@ -22,12 +22,12 @@ export default function StepJourneyPage() {
   const { user } = useAuthContext();
   
   // Progress Logic
-  const { progress, loading, updateSubStep, getStepStatus } = useJourney(user?.uid || "guest");
-
+  const { stages, progress, loading, updateSubStep, getStepStatus } = useJourney(user?.uid || "guest");
+  
   // Local state for current substep view
   const [currentSubStepId, setCurrentSubStepId] = useState<string>("");
 
-  const stepConfig = JOURNEY_STAGES.find(s => s.id === stepId);
+  const stepConfig = stages.find(s => s.id === stepId);
 
   useEffect(() => {
     if (stepConfig && !currentSubStepId) {
@@ -38,12 +38,12 @@ export default function StepJourneyPage() {
     }
   }, [stepConfig, currentSubStepId, progress, stepId]);
 
-  if (loading || !stepConfig) {
-    return (
-       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-start)]" />
-       </div>
-    );
+  if (loading || (!stepConfig && stages.length === 0)) {
+    return <AtmosphericLoading />;
+  }
+
+  if (!stepConfig && stages.length > 0) {
+     return redirect("/hub/membro/dashboard");
   }
 
   const currentSubStep = stepConfig.substeps.find(ss => ss.id === currentSubStepId) || stepConfig.substeps[0];
@@ -83,14 +83,14 @@ export default function StepJourneyPage() {
             
             // Advance linearly choice
             const currentIndex = stepConfig.substeps.findIndex(ss => ss.id === currentSubStepId);
-            if (currentIndex < stepConfig.substeps.length - 1) {
-              setCurrentSubStepId(stepConfig.substeps[currentIndex + 1].id);
+            if (currentIndex < stepConfig!.substeps.length - 1) {
+              setCurrentSubStepId(stepConfig!.substeps[currentIndex + 1].id);
             } else {
                 // If last sub-step of the stage, go to next stage or show completion
                 alert("Estágio Concluído! Redirecionando para próxima etapa...");
-                const currentStageIdx = JOURNEY_STAGES.findIndex(s => s.id === stepId);
-                if (currentStageIdx < JOURNEY_STAGES.length - 1) {
-                    router.push(`/hub/membro/journey/${JOURNEY_STAGES[currentStageIdx + 1].id}`);
+                const currentStageIdx = stages.findIndex(s => s.id === stepId);
+                if (currentStageIdx < stages.length - 1) {
+                    router.push(`/hub/membro/journey/${stages[currentStageIdx + 1].id}`);
                 }
             }
           }}
