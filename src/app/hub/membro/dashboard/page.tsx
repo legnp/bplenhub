@@ -200,9 +200,12 @@ export default function MemberDashboardPage() {
               className="space-y-12"
             >
               {/* Journey Header (100% width) */}
-              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group shadow-sm transition-all hover:shadow-xl hover:shadow-[var(--accent-primary)]/5">
-                  <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
+              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all hover:shadow-xl hover:shadow-[var(--accent-primary)]/5">
+                  {/* Decorative Background - Encapsulamento para não cortar sombras do conteúdo */}
+                  <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
+                    <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+                       <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
+                    </div>
                   </div>
 
                   <div className="relative z-10 space-y-8">

@@ -18,7 +18,7 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
   const currentStepIndex = JOURNEY_STAGES.findIndex(s => s.id === currentStepId);
 
   return (
-    <div className="w-full overflow-hidden py-8 px-4">
+    <div className="w-full py-8 px-4 overflow-visible">
       <div className="max-w-6xl mx-auto relative">
         {/* Linha de Conexão de Fundo */}
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-[var(--border-primary)] -translate-y-1/2 opacity-20" />

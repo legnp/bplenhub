@@ -263,8 +263,8 @@ export function PublicBookingFlow() {
   // --- CALENDAR GRID LOGIC ---
   const calendarCells = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const endDate = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const endDate = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 0 });
 
     const cells = [];
     let day = startDate;
@@ -617,7 +617,7 @@ export function PublicBookingFlow() {
 
                   <div className="grid grid-cols-8 gap-1">
                     <div className="text-center py-2"><span className="text-[9px] font-black text-[var(--accent-end)] uppercase tracking-tighter opacity-70">SI</span></div>
-                    {["S", "T", "Q", "Q", "S", "S", "D"].map((d, i) => (
+                    {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
                       <div key={i} className="text-center py-2"><span className="text-[9px] font-black text-[var(--text-muted)] opacity-30 uppercase">{d}</span></div>
                     ))}
 
@@ -713,16 +713,16 @@ export function PublicBookingFlow() {
                   )}
 
                   {!isProposalMode && (
-                    <div className="p-4 bg-[var(--accent-soft)] rounded-2xl border border-[var(--border-primary)] text-left mt-6">
-                      <p className="text-[10px] text-[var(--text-muted)] opacity-60 font-medium mb-1">Não encontrou uma boa agenda?</p>
+                    <div className="mt-6 pt-4 border-t border-white/5 flex items-center gap-3">
+                      <p className="text-[9px] text-[var(--text-muted)] opacity-40 uppercase tracking-[0.2em] font-black">Agenda ruim?</p>
                       <button
                         onClick={() => {
                           setIsProposalMode(true);
                           setSelectedSlot(null);
                         }}
-                        className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest hover:underline"
+                        className="text-[9px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em] hover:opacity-70 transition-all border-b border-dashed border-[var(--accent-start)]/40 pb-0.5"
                       >
-                        Faça uma proposta de agenda
+                        Propor novos horários
                       </button>
                     </div>
                   )}
