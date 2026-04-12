@@ -33,6 +33,11 @@ const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string 
     color: "#3B82F6", 
     gradient: "from-blue-500 to-sky-500" 
   },
+  "preparacao-carreira": { // Fallback para slug curta
+    icon: LucideIcons.Compass, 
+    color: "#3B82F6", 
+    gradient: "from-blue-500 to-sky-500" 
+  },
   "analise-comportamental": { 
     icon: LucideIcons.Fingerprint, 
     color: "#8B5CF6", 
@@ -43,12 +48,32 @@ const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string 
     color: "#10B981", 
     gradient: "from-emerald-500 to-teal-500" 
   },
+  "plano-carreira": { // Fallback
+    icon: LucideIcons.Map, 
+    color: "#10B981", 
+    gradient: "from-emerald-500 to-teal-500" 
+  },
   "desenvolvimento-de-carreira": { 
     icon: LucideIcons.TrendingUp, 
     color: "#F59E0B", 
     gradient: "from-amber-500 to-orange-500" 
   },
+  "desenvolvimento-carreira": { // Fallback
+    icon: LucideIcons.TrendingUp, 
+    color: "#F59E0B", 
+    gradient: "from-amber-500 to-orange-500" 
+  },
   "coaching-e-mentoria": { 
+    icon: LucideIcons.MessageSquareHeart, 
+    color: "#6366F1", 
+    gradient: "from-indigo-500 to-violet-500" 
+  },
+  "coaching": { // Fallback 
+    icon: LucideIcons.MessageSquareHeart, 
+    color: "#6366F1", 
+    gradient: "from-indigo-500 to-violet-500" 
+  },
+  "mentoria": { // Fallback 
     icon: LucideIcons.MessageSquareHeart, 
     color: "#6366F1", 
     gradient: "from-indigo-500 to-violet-500" 
@@ -65,7 +90,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
   const currentStepIndex = stages.findIndex(s => s.id === currentStepId);
 
   return (
-    <div className="w-full py-12 px-4 overflow-visible">
+    <div className="w-full py-[5px] px-4 overflow-visible">
       <div className="max-w-6xl mx-auto relative px-2">
         {/* Linha de Conexão de Fundo (Token Border Primary) */}
         <div className="absolute top-[60px] left-0 w-full h-[1px] bg-[var(--border-primary)] opacity-40" />
@@ -92,23 +117,27 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             const theme = STAGE_THEMES[stage.id] || { icon: LucideIcons.Circle, color: "#94A3B8", gradient: "from-slate-400 to-slate-500" };
             const IconComponent = theme.icon;
 
-            // Lógica de Cores do Farol (Beacons) 🚥
-            let beaconColor = "bg-[var(--text-muted)] opacity-30"; 
+            // Lógica de Cores do Farol (Beacons) Rigorosa — BPlen Mapping 🚥
+            let beaconColor = "bg-slate-400/40"; // Default: ⚪ Cinza
             let beaconStatus = "Não Liberado";
             const isPinkPulsing = !telemetry.hasAccess && telemetry.isNext;
 
             if (telemetry.status === "completed") {
-                beaconColor = "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]";
+                // 🟢 Verde: Missão cumprida
+                beaconColor = "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]";
                 beaconStatus = "Concluído";
-            } else if (telemetry.percentage > 0) {
-                beaconColor = "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]";
-                beaconStatus = "Em Progresso";
-            } else if (telemetry.hasAccess) {
-                beaconColor = isCurrent ? "bg-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.7)]" : "bg-blue-400 opacity-80";
-                beaconStatus = isCurrent ? "Foco Atual" : "Liberado";
-            } else if (telemetry.isNext) {
-                beaconColor = "bg-[var(--accent-start)] shadow-[0_0_14px_rgba(255,44,141,0.7)]";
-                beaconStatus = "Aguardando Admin";
+            } else if (isCurrent || (telemetry.percentage > 0 && telemetry.status !== "completed")) {
+                // 🟡 Amarelo: Foco atual (Em progresso)
+                beaconColor = "bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.8)]";
+                beaconStatus = "Foco Atual";
+            } else if (telemetry.hasAccess && telemetry.isNext) {
+                // 🔵 Azul: O horizonte (Próximo liberado)
+                beaconColor = "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)]";
+                beaconStatus = "Próximo Passo";
+            } else if (isPinkPulsing) {
+                // 💗 Rosa BPlen: Aguardando liberação administrativa
+                beaconColor = "bg-[#ff2c8d] shadow-[0_0_15px_rgba(255,44,141,0.8)] animate-pulse";
+                beaconStatus = "Bloqueado Admin";
             }
 
             const Wrapper = onSelectStep ? "div" : Link;
