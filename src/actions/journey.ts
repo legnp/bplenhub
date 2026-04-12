@@ -1,16 +1,18 @@
 "use server";
 
-import { db } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
 import { JourneyStep, SubStepConfig } from "@/types/journey";
 import { surveys } from "@/config/surveys";
 
 /**
- * BPlen HUB — getJourneyStagesAction 🧬🛡️
- * Fetches products marked as journey steps and maps them to the member interface structure.
+ * BPlen HUB — Journey Engine (Server Side) 🧬
+ * Busca dinamicamente os produtos marcados como etapas da jornada no Firestore.
  */
 export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
   try {
+    const db = getAdminDb();
+    console.log("🔍 [JourneyAction] Buscando etapas dinâmicas no Firestore...");
     const productsRef = db.collection("products");
     const snapshot = await productsRef
       .where("isStepJourney", "==", true)
