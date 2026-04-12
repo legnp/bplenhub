@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TypedText } from "@/components/home/TypedText";
+import { TypedText } from "@/components/ui/TypedText";
 import { Volume2, ChevronRight, X, Play } from "lucide-react";
 
 export interface TourStep {
