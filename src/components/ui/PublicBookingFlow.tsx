@@ -154,6 +154,7 @@ export function PublicBookingFlow() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(addDays(startOfDay(new Date()), 3));
   const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [currentDayBlockers, setCurrentDayBlockers] = useState<{ start: string; end: string }[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
