@@ -1159,7 +1159,13 @@ export async function updateGlobalProgramacaoRegistryAction() {
         htmlLink: data.htmlLink || "",
         registeredCount: data.registeredCount || 0,
         totalCapacity: data.totalCapacity || 0,
-        metrics: data.metrics || { presenceCount: 0, npsAvg: 0, reviewsCount: 0 }
+        metrics: data.metrics || { presenceCount: 0, npsAvg: 0, reviewsCount: 0 },
+        // Post-event fields for Wizard pre-population
+        postEventCompleted: data.postEventCompleted || false,
+        lifecycleStatus: data.lifecycleStatus || null,
+        internalGeneralComment: data.internalGeneralComment || "",
+        publicGeneralComment: data.publicGeneralComment || "",
+        meetingMinutesFile: data.meetingMinutesFile || null
       };
     });
 

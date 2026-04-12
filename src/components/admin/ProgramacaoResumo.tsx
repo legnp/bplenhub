@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   getProgramacaoSummaryAction, 
-  GoogleCalendarEvent 
+  GoogleCalendarEvent,
+  EventLifecycleStatus 
 } from "@/actions/calendar";
 import { 
   FileText, 
@@ -46,8 +47,11 @@ interface EventSummary {
     npsAvg: number;
     reviewsCount: number;
   };
-  // Campos legados ou de transição que o PostEventWizard pode precisar
+  // Post-event fields (kept for PostEventWizard pre-population)
   postEventCompleted?: boolean;
+  lifecycleStatus?: EventLifecycleStatus;
+  internalGeneralComment?: string;
+  publicGeneralComment?: string;
   meetingMinutesFile?: { url: string; fileId: string; fileName: string; uploadedAt: string } | null;
 }
 
