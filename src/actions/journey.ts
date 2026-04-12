@@ -14,16 +14,24 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
     const db = getAdminDb();
     console.log("🔍 [JourneyAction] Buscando etapas dinâmicas no Firestore...");
     const productsRef = db.collection("products");
+    
+    // Simplificamos a query para evitar erros de índice composto no Firestore
     const snapshot = await productsRef
       .where("isStepJourney", "==", true)
-      .where("status", "==", "active")
-      .orderBy("order", "asc")
       .get();
 
-    const journeyProducts = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    } as Product));
+    console.log(`📊 [JourneyAction] Documentos encontrados: ${snapshot.size}`);
+
+    const journeyProducts = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Product))
+      // Filtramos e ordenamos em memória para máxima compatibilidade
+      .filter(p => p.status?.toLowerCase() === "active")
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    console.log(`✅ [JourneyAction] Etapas ativas e ordenadas: ${journeyProducts.length}`);
 
     // Map Products to JourneySteps
     const stages: JourneyStep[] = journeyProducts.map((product) => {
