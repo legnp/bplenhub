@@ -30,7 +30,8 @@ import {
   ExternalLink,
   ClipboardList,
   CalendarDays,
-  Eye
+  Eye,
+  Briefcase
 } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
@@ -328,13 +329,6 @@ export default function MemberDashboardPage() {
                 {/* Main: Journey Outcomes Card & Minimized History */}
                 <div className="space-y-8 flex flex-col">
                    
-                   {/* Current Active Stage Card */}
-                   {activeStageId && (
-                      <StageOverviewCard 
-                        stage={JOURNEY_STAGES.find(s => s.id === activeStageId) || JOURNEY_STAGES[0]} 
-                      />
-                   )}
-
                    {/* Informative Minimized History */}
                    <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
                       <div className="flex items-center gap-4">
@@ -381,6 +375,23 @@ export default function MemberDashboardPage() {
                               </Link>
                            </div>
                         )}
+                      </div>
+                   </div>
+
+                   {/* Módulo Gestão de Carreira (Em Desenvolvimento) */}
+                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
+                      <div className="flex items-center gap-4">
+                         <div className="p-3 bg-[var(--accent-primary)]/5 rounded-2xl border border-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
+                            <Briefcase size={20} />
+                         </div>
+                         <div className="flex flex-col text-left">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Módulo Complementar</h3>
+                            <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Gestão de Carreira</p>
+                         </div>
+                      </div>
+                      
+                      <div className="py-14 bg-[var(--input-bg)]/30 border border-dashed border-[var(--border-primary)] rounded-[2.5rem] flex flex-col items-center justify-center text-center">
+                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] italic">Em desenvolvimento</p>
                       </div>
                    </div>
 
