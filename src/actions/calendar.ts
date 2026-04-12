@@ -135,14 +135,14 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
     return items.map((item: calendar_v3.Schema$Event) => {
       const description = item.description || "";
       const capacityMatch = description.match(/Vagas:\s*(\d+)/i);
-      const mentorMatch = description.match(/Orientador:\s*(.*)/i);
-      const themeMatch = description.match(/Tema:\s*(.*)/i);
+      const mentorMatch = description.match(/Orientador:\s*([^<\n\r]+)/i);
+      const themeMatch = description.match(/Tema:\s*([^<\n\r]+)/i);
 
       // Limpar descrição para exibição
       const cleanDescription = description
         .replace(/Vagas:\s*\d+/gi, "")
-        .replace(/Orientador:\s*.*/gi, "")
-        .replace(/Tema:\s*.*/gi, "")
+        .replace(/Orientador:\s*[^<\n\r]*/gi, "")
+        .replace(/Tema:\s*[^<\n\r]*/gi, "")
         .trim();
 
       return {
@@ -154,7 +154,7 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
         location: item.location || "",
         htmlLink: item.htmlLink || "",
         totalCapacity: capacityMatch ? parseInt(capacityMatch[1]) : 0,
-        mentor: mentorMatch ? mentorMatch[1].trim() : "BPlen",
+        mentor: mentorMatch ? mentorMatch[1].trim() : "",
         theme: themeMatch ? themeMatch[1].trim() : undefined,
       };
     });
@@ -211,13 +211,13 @@ export async function syncCalendarToFirestore(idToken?: string) {
 
       const description = item.description || "";
       const capacityMatch = description.match(/Vagas:\s*(\d+)/i);
-      const mentorMatch = description.match(/Orientador:\s*(.*)/i);
-      const themeMatch = description.match(/Tema:\s*(.*)/i);
+      const mentorMatch = description.match(/Orientador:\s*([^<\n\r]+)/i);
+      const themeMatch = description.match(/Tema:\s*([^<\n\r]+)/i);
 
       const cleanDescription = description
         .replace(/Vagas:\s*\d+/gi, "")
-        .replace(/Orientador:\s*.*/gi, "")
-        .replace(/Tema:\s*.*/gi, "")
+        .replace(/Orientador:\s*[^<\n\r]*/gi, "")
+        .replace(/Tema:\s*[^<\n\r]*/gi, "")
         .trim();
 
       const eventRef = db.collection("Calendar_Events").doc(item.id);
@@ -235,7 +235,7 @@ export async function syncCalendarToFirestore(idToken?: string) {
         end: item.end?.dateTime || item.end?.date || "",
         htmlLink: item.htmlLink || "",
         totalCapacity: capacityMatch ? parseInt(capacityMatch[1]) : 0,
-        mentor: mentorMatch ? mentorMatch[1].trim() : "BPlen",
+        mentor: mentorMatch ? mentorMatch[1].trim() : "",
         theme: themeMatch ? themeMatch[1].trim() : null,
         lastSync: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
