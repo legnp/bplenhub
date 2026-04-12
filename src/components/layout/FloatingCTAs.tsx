@@ -73,7 +73,7 @@ export function FloatingCTAs() {
       <div className="fixed top-6 right-6 z-[201] md:hidden">
         <button
           onClick={toggleMenu}
-          className="p-3 bg-[var(--bg-primary)] border border-[var(--border-primary)] backdrop-blur-xl rounded-2xl text-[var(--accent-start)] shadow-2xl active:scale-95 transition-all"
+          className="p-[11px] bg-[var(--bg-primary)] border border-[var(--border-primary)] backdrop-blur-xl rounded-2xl text-[var(--accent-start)] shadow-2xl active:scale-95 transition-all"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -127,7 +127,7 @@ export function FloatingCTAs() {
                    <Link
                       href="/hub"
                       onClick={toggleMenu}
-                      className="w-full block py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20"
+                      className="w-full block py-[18px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20"
                    >
                      ACESSAR BPLEN HUB
                    </Link>
@@ -143,7 +143,7 @@ export function FloatingCTAs() {
                          }
                       }}
                       disabled={isLoggingIn}
-                      className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20 disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-3 py-[18px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20 disabled:opacity-50"
                    >
                      {isLoggingIn ? "CONECTANDO..." : "ACESSAR BPLEN HUB"}
                    </button>
@@ -193,7 +193,7 @@ export function FloatingCTAs() {
             >
               <Link 
                 href="/"
-                className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center shadow-2xl cursor-pointer gap-2"
+                className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-bold tracking-widest text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center shadow-2xl cursor-pointer gap-2"
               >
                 <Home size={14} />
                 HOME
@@ -204,27 +204,27 @@ export function FloatingCTAs() {
 
         <button 
           onClick={toggleServiceModal}
-          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
+          className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-gray-400 hover:bg-white/10 hover:border-white/20 hover:text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
         >
           Nossos Serviços
         </button>
 
         <Link 
           href="/agendar"
-          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+          className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
         >
           Agendar Conversa
         </Link>
         <Link 
           href="/conteudo"
-          className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+          className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
         >
           Explore Conteúdos
         </Link>
         {user ? (
            <Link 
              href="/hub"
-             className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
+             className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
            >
              Acessar BPlen HUB
            </Link>
@@ -239,7 +239,7 @@ export function FloatingCTAs() {
                 }
              }}
              disabled={isLoggingIn}
-             className="w-[140px] md:w-[170px] h-9 md:h-10 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer disabled:opacity-50 gap-2"
+             className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer disabled:opacity-50 gap-2"
            >
              {isLoggingIn ? "Entrando..." : "Acessar BPlen HUB"}
            </button>
