@@ -47,18 +47,6 @@ export default function GestaoAgendaPage() {
                   <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                   Voltar ao Dashboard
               </Link>
-              <div className="space-y-1">
-                 <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase">
-                    Gestão de <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]">Agenda</span>
-                 </h1>
-                 <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-70">
-                    Visualize, agende e gerencie todas as suas sessões e entregas estratégicas.
-                 </p>
-              </div>
-           </div>
-
-           <div className="px-4 py-1.5 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-[8px] font-black uppercase tracking-widest">
-              Agenda Estratégica 🧬
            </div>
         </header>
 
@@ -69,6 +57,7 @@ export default function GestaoAgendaPage() {
               isLoading={isLoading} 
               refreshCounter={refreshCounter} 
               setRefreshCounter={setRefreshCounter}
+              hideCalendar={true}
            />
         </div>
 
