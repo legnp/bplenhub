@@ -793,7 +793,15 @@ export async function getUserBookingsAction(matricula: string): Promise<UserBook
         rating: data.rating || 0,
         feedback: data.feedback || "",
         evaluatedAt: data.evaluatedAt?.toDate?.()?.toISOString() || null,
-        eventDetail: eventDetail || null
+        eventDetail: eventDetail || null,
+        // Post-event mirrored fields (written by closeAttendeeAction)
+        eventLifecycleStatus: data.eventLifecycleStatus || null,
+        attendanceStatus: data.attendanceStatus || null,
+        publicGeneralComment: data.publicGeneralComment || "",
+        meetingMinutesFile: data.meetingMinutesFile || null,
+        participantFeedback: data.participantFeedback || "",
+        participantTasks: data.participantTasks || "",
+        participantDocs: data.participantDocs || []
       };
     }).sort((a: any, b: any) => {
       const startA = a.eventDetail ? new Date(a.eventDetail.start).getTime() : 0;
