@@ -112,7 +112,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
           </div>
         );
 
-      case "booking":
+      case "meeting":
         return (
           <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
              <div className="space-y-4">
