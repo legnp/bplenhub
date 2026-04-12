@@ -581,7 +581,7 @@ export function PublicBookingFlow() {
               </div>
 
               {isProposalMode && (
-                <div className="p-4 bg-[var(--accent-soft)] border border-[var(--accent-start)]/20 rounded-2xl">
+                <div className="py-2.5 px-4 bg-[var(--accent-soft)] border border-[var(--accent-start)]/20 rounded-xl">
                   <p className="text-xs text-[var(--text-primary)] leading-relaxed font-medium">
                     <Sparkles className="w-4 h-4 inline-block mr-2 text-[var(--accent-start)]" />
                     <b>Não encontrou uma boa agenda?</b> Sugira até 3 opções de datas e horários e entraremos em contato para confirmar!
@@ -688,15 +688,15 @@ export function PublicBookingFlow() {
                       className="pt-6 space-y-3 border-t border-[var(--border-primary)]"
                     >
                       <h5 className="text-[10px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-[0.2em] px-1">Seu roteiro sugerido:</h5>
-                      <div className="grid grid-cols-1 gap-1.5">
+                      <div className="grid grid-cols-1 gap-1">
                         {proposalOptions.map((opt, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl group/item hover:border-[var(--accent-start)]/30 transition-all"
+                            className="flex items-center justify-between py-1.5 px-4 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl group/item hover:border-[var(--accent-start)]/30 transition-all"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-1 h-1 rounded-full bg-[var(--accent-start)] shadow-[0_0_8px_var(--accent-start)]" />
-                              <span className="text-[11px] font-bold text-[var(--text-primary)] tracking-tight uppercase">
+                              <span className="text-[10px] font-bold text-[var(--text-primary)] tracking-tight uppercase">
                                 {format(parseISO(opt.date), "dd 'de' MMM", { locale: ptBR })} — <span className="text-[var(--accent-start)]">{opt.time}</span>
                               </span>
                             </div>
