@@ -66,17 +66,38 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
                       ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] shadow-[0_0_20px_rgba(59,130,246,0.3)] scale-110" 
                       : isCompleted
                       ? "border-[var(--success-primary)]/50 bg-[var(--success-primary)]/5 text-[var(--success-primary)]"
-                      : "border-[var(--border-primary)] text-[var(--text-secondary)] opacity-60 hover:opacity-100 hover:border-[var(--accent-primary)]/40",
+                      : "border-[var(--border-primary)] text-[var(--text-secondary)] opacity-60 hover:opacity-100 hover:border-[var(--accent-primary)]/40 hover:shadow-lg hover:shadow-[var(--accent-primary)]/10",
                     status === "locked" && "pointer-events-none opacity-30 grayscale"
                   )}
                 >
                   {isCompleted ? (
-                    <LucideIcons.Check className="w-5 h-5 animate-in zoom-in duration-300" />
+                    <motion.div
+                      whileHover={{ 
+                        y: [0, -3, 0],
+                        transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                      }}
+                    >
+                      <LucideIcons.Check className="w-5 h-5 animate-in zoom-in duration-300" />
+                    </motion.div>
                   ) : (
-                    <IconComponent className={cn(
-                      "w-5 h-5",
-                      isCurrent && "animate-pulse"
-                    )} />
+                    <motion.div
+                      className="flex items-center justify-center"
+                      whileHover={{ 
+                        y: [0, -5, 0],
+                        x: [0, 2, -2, 0],
+                        rotate: [0, 5, -5, 0],
+                        transition: { 
+                          duration: 3, 
+                          repeat: Infinity, 
+                          ease: "easeInOut" 
+                        }
+                      }}
+                    >
+                      <IconComponent className={cn(
+                        "w-5 h-5",
+                        isCurrent && "animate-pulse"
+                      )} />
+                    </motion.div>
                   )}
                 </Wrapper>
 
