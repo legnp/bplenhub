@@ -2,7 +2,8 @@
 
 import React from "react";
 import { SubStepConfig } from "@/types/journey";
-import { Loader2, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar, ClipboardCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StepRendererProps {
   substep: SubStepConfig;
