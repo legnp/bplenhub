@@ -737,7 +737,7 @@ export function PublicBookingFlow() {
                     </p>
                   </div>
 
-                  <div className="flex-1 min-h-[300px] max-h-[400px] overflow-y-auto pr-4 space-y-2 custom-scrollbar">
+                  <div className="flex-1 min-h-[180px] max-h-[240px] overflow-y-auto pr-4 space-y-2 custom-scrollbar">
                     {isLoadingSlots ? (
                       <div className="h-full flex flex-col items-center justify-center gap-3 opacity-20 py-20">
                         <Loader2 className="w-8 h-8 animate-spin text-[var(--text-primary)]" />
