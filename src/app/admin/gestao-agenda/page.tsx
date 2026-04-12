@@ -50,16 +50,13 @@ export default function GestaoAgendaPage() {
     <div className="space-y-8 max-w-[1600px] mx-auto">
       {/* Header do Laboratório */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <h1 className="text-4xl font-black tracking-tighter text-[var(--text-primary)] text-left flex items-center gap-3">
-             <div className="p-3 bg-[var(--accent-start)] rounded-2xl shadow-xl shadow-[var(--accent-start)]/20 text-white">
-                <LayoutGrid size={24} className="stroke-[3]" />
-             </div>
-             <div>
-                PROGRAMAÇÃO <span className="text-[var(--accent-start)] italic">HUB</span>
-                <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mt-1 block">Gestão de programação e agenda BPlen HUB</p>
-             </div>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            PROGRAMAÇÃO <span className="text-[var(--accent-start)] italic ml-1">Hub</span>
           </h1>
+          <p className="text-[var(--text-muted)] text-[11px] font-medium opacity-70">
+            Gestão de programação e agenda BPlen HUB
+          </p>
         </div>
 
         {/* Tab Navigation (Premium Sidebar/Header combo look) */}

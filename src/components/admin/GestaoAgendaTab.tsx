@@ -34,7 +34,7 @@ export default function GestaoAgendaTab({ events, isLoading, refreshCounter, set
             </div>
             <div>
                <h2 className="text-xl font-bold text-[var(--text-primary)]">Gestão de Meus Compromissos</h2>
-               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-40">Seus horários e mentorias agendadas</p>
+               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-40">Gestão e revisão da sua agenda BPlen</p>
             </div>
          </div>
          <UserBookings refreshCounter={refreshCounter} />
