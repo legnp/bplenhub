@@ -546,7 +546,7 @@ function BookingRow({
    BookingDetailModal — Modal completo com todos os dados
    ═══════════════════════════════════════════════════════════════ */
 
-function BookingDetailModal({
+export function BookingDetailModal({
   booking,
   isOpen,
   onClose,

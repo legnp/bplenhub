@@ -21,7 +21,6 @@ import {
   Sparkles, 
   Heart, 
   Compass, 
-  Layout, 
   Target, 
   Brain, 
   FileDown, 
@@ -29,7 +28,9 @@ import {
   FileText,
   CheckCircle2,
   ExternalLink,
-  ClipboardList
+  ClipboardList,
+  CalendarDays,
+  Eye
 } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
@@ -39,6 +40,8 @@ import { useJourney } from "@/hooks/useJourney";
 import { JourneyNav } from "@/components/journey/JourneyNav";
 import { StageOverviewCard } from "@/components/journey/StageOverviewCard";
 import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
+import { BookingDetailModal } from "@/components/ui/UserBookings";
+import { submitEvaluationAction } from "@/actions/calendar";
 import Link from "next/link";
 
 /**
@@ -60,6 +63,26 @@ export default function MemberDashboardPage() {
   // Journey Integration
   const { progress, loading: loadingJourney, getStepStatus } = useJourney(user?.uid || "guest");
   const [activeStageId, setActiveStageId] = useState<string>("onboarding");
+
+  // Dashboard Agenda Modal (Reuse)
+  const [selectedBooking_Dashboard, setSelectedBooking_Dashboard] = useState<UserBooking | null>(null);
+  const [isEvaluating_Dashboard, setIsEvaluating_Dashboard] = useState<string | null>(null);
+
+  const handleEvaluate_Dashboard = async (id: string, r: number, f: string) => {
+    if (!matricula || !user) return;
+    setIsEvaluating_Dashboard(id);
+    try {
+       await submitEvaluationAction(matricula, id, r, f, user.uid);
+       // Sincronizar localmente se necessário ou recarregar
+       const bookings = await getUserBookingsAction(matricula);
+       const completed = bookings.filter(b => b.eventLifecycleStatus === 'completed' || isBefore(parseISO(b.eventDetail?.start || ""), new Date()));
+       setHistoryBookings(completed);
+    } catch (error) {
+       console.error("Erro ao avaliar no dashboard:", error);
+    } finally {
+       setIsEvaluating_Dashboard(null);
+    }
+  };
 
   useEffect(() => {
     if (progress?.lastActiveStepId) {
@@ -314,13 +337,13 @@ export default function MemberDashboardPage() {
 
                    {/* Informative Minimized History */}
                    <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
-                      <div className="flex items-center justify-between">
-                         <div className="flex flex-col">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Atividade Recente</h3>
-                            <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Mentorias & Sessões</p>
+                      <div className="flex items-center gap-4">
+                         <div className="p-3 bg-[var(--accent-start)]/10 rounded-2xl border border-[var(--accent-start)]/20 text-[var(--accent-start)]">
+                            <CalendarDays size={20} />
                          </div>
-                         <div className="p-2 bg-[var(--accent-primary)]/5 rounded-xl border border-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
-                            <Clock size={16} />
+                         <div className="flex flex-col text-left">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Sua agenda BPlen</h3>
+                            <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">1 to 1 & Sessões</p>
                          </div>
                       </div>
 
@@ -345,6 +368,7 @@ export default function MemberDashboardPage() {
                                     || historyBookings[0]
                                  } 
                                  onDownload={handleDownload} 
+                                 onViewDetails={(b) => setSelectedBooking_Dashboard(b)}
                                  compact
                               />
                               
@@ -376,6 +400,25 @@ export default function MemberDashboardPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Detail Modal Reutilizado */}
+      {selectedBooking_Dashboard && (
+        <BookingDetailModal 
+          booking={selectedBooking_Dashboard}
+          isOpen={!!selectedBooking_Dashboard}
+          onClose={() => setSelectedBooking_Dashboard(null)}
+          onEvaluate={handleEvaluate_Dashboard}
+          isSubmitting={isEvaluating_Dashboard === selectedBooking_Dashboard.id}
+          onRefresh={async () => {
+             if (matricula) {
+                const bookings = await getUserBookingsAction(matricula);
+                const completed = bookings.filter(b => b.eventLifecycleStatus === 'completed' || isBefore(parseISO(b.eventDetail?.start || ""), new Date()));
+                setHistoryBookings(completed);
+             }
+          }}
+        />
+      )}
+
       <HomeFooter />
     </div>
   );
@@ -463,78 +506,82 @@ function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart 
     </section>
   );
 }
-
-/**
- * OutcomeCard: Compact view of mentorship results
- */
-function OutcomeCard({ booking, onDownload, compact }: { booking: UserBooking, onDownload: (fileId: string) => void, compact?: boolean }) {
+function OutcomeCard({ 
+  booking, 
+  onDownload, 
+  onViewDetails,
+  compact 
+}: { 
+  booking: UserBooking, 
+  onDownload: (fileId: string) => void, 
+  onViewDetails: (booking: UserBooking) => void,
+  compact?: boolean 
+}) {
   const event = booking.eventDetail;
   if (!event) return null;
 
   const eventDate = parseISO(event.start);
+  const isPast = isBefore(eventDate, new Date());
   const isPresente = booking.attendanceStatus === "present";
+  const isAusente = booking.attendanceStatus === "absent";
+
+  const statusLabel = booking.eventLifecycleStatus 
+    ? (booking.eventLifecycleStatus === 'completed' ? 'Concluída' : booking.eventLifecycleStatus === 'cancelled' ? 'Cancelada' : booking.eventLifecycleStatus === 'postponed' ? 'Adiada' : 'Agendada')
+    : (isPast ? "Realizada" : "Agendada");
+
+  const statusColor = booking.eventLifecycleStatus === 'completed' 
+    ? "bg-green-500/10 text-green-600" 
+    : booking.eventLifecycleStatus === 'cancelled'
+    ? "bg-red-500/10 text-red-500"
+    : booking.eventLifecycleStatus === 'postponed'
+    ? "bg-amber-500/10 text-amber-600"
+    : isPast 
+    ? "bg-[var(--accent-soft)] text-[var(--text-muted)]" 
+    : "bg-blue-500/10 text-blue-500";
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`bg-[var(--input-bg)]/40 border border-[var(--border-primary)] rounded-[2.5rem] ${compact ? 'p-5' : 'p-6'} space-y-4 hover:border-[var(--accent-start)]/30 transition-all group shadow-sm`}
+      className="group flex flex-col md:flex-row gap-4 items-center px-6 py-5 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-[2rem] hover:border-[var(--accent-start)]/30 transition-all hover:translate-y-[-2px] shadow-sm relative overflow-hidden"
     >
-       <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-             <div className="p-2.5 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-colors">
-                <ClipboardList size={18} />
-             </div>
-             <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">{event.summary}</h4>
-                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight opacity-40">
-                  {format(eventDate, "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                </p>
-             </div>
+       {/* Date Block */}
+       <div className="flex items-center gap-3 shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] flex flex-col items-center justify-center text-white shadow-lg shadow-[var(--accent-start)]/20 border border-white/10">
+             <span className="text-[7px] font-black uppercase leading-none">{format(eventDate, "MMM", { locale: ptBR })}</span>
+             <span className="text-xs font-black leading-tight">{format(eventDate, "dd")}</span>
           </div>
-          <span className={`px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-widest ${isPresente ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}>
-             {isPresente ? "Presença ✓" : "Ausência ✕"}
-          </span>
+          <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-60">{format(eventDate, "HH:mm")}h</span>
        </div>
 
-       {isPresente && (booking.participantFeedback || booking.participantTasks) && (
-          <div className="space-y-3">
-             {booking.participantFeedback && (
-                <p className="text-[10px] text-[var(--text-primary)] font-medium leading-relaxed italic border-l-2 border-[var(--accent-start)]/20 pl-4 py-1">
-                   &quot;{booking.participantFeedback}&quot;
-                </p>
+       {/* Info Content */}
+       <div className="flex-1 min-w-0 text-left">
+          <h4 className="text-xs font-black text-[var(--text-primary)] truncate transition-colors group-hover:text-[var(--accent-start)]">
+             {event.summary}
+          </h4>
+          <div className="flex items-center gap-3 mt-1">
+             {event.theme && (
+                <span className="text-[9px] font-bold text-[var(--accent-start)]/60 truncate"># {event.theme}</span>
              )}
-             
-             <div className="flex flex-wrap gap-2">
-                {booking.meetingMinutesFile?.fileId && (
-                   <button 
-                     onClick={() => onDownload(booking.meetingMinutesFile!.fileId)}
-                     className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:border-[var(--accent-start)] transition-all"
-                   >
-                      <FileText size={12} className="text-[var(--accent-start)]" />
-                      Ata da Reunião
-                   </button>
-                )}
-                {booking.participantDocs && booking.participantDocs.length > 0 && booking.participantDocs.map((doc, idx) => (
-                   <button 
-                     key={idx}
-                     onClick={() => onDownload(doc.fileId)}
-                     className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:border-[var(--accent-start)] transition-all"
-                   >
-                      <ExternalLink size={12} className="text-[var(--text-muted)]" />
-                   </button>
-                ))}
-             </div>
+             <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-40">/ {event.mentor || "BPlen"}</span>
           </div>
-       )}
+       </div>
 
-       {!isPresente && (
-          <div className="py-2 px-4 bg-red-500/5 rounded-2xl border border-red-500/10">
-             <p className="text-[9px] font-bold text-red-600/60 leading-relaxed italic">
-                Sua ausência foi registrada nesta sessão. Por favor, entre em contato com seu mentor em caso de dúvidas.
-             </p>
-          </div>
-       )}
+       {/* Status & Action */}
+       <div className="flex items-center gap-4 shrink-0">
+          <span className={`px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-widest ${statusColor}`}>
+             {statusLabel}
+          </span>
+          <button 
+             onClick={() => onViewDetails(booking)}
+             className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--accent-start)] hover:border-[var(--accent-start)]/30 transition-all shadow-sm"
+          >
+             <Eye size={16} />
+          </button>
+       </div>
+
+       {/* Decorative Background */}
+       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent-start)]/0 to-[var(--accent-start)]/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
     </motion.div>
   );
 }
