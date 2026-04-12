@@ -136,16 +136,20 @@ export async function fetchCalendarEvents(dateReference: Date): Promise<GoogleCa
     const items = response.data.items || [];
 
     return items.map((item: calendar_v3.Schema$Event) => {
-      const description = item.description || "";
-      const capacityMatch = description.match(/Vagas:\s*(\d+)/i);
-      const mentorMatch = description.match(/Orientador:\s*([^<\n\r]+)/i);
-      const themeMatch = description.match(/Tema:\s*([^<\n\r]+)/i);
+      const rawDescription = item.description || "";
+      // Normalizar HTML: converter tags em quebra de linha antes de fazer parsing
+      const plainDescription = rawDescription.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "\n");
+      
+      const capacityMatch = plainDescription.match(/Vagas:\s*(\d+)/i);
+      const mentorMatch = plainDescription.match(/Orientador:\s*([^\n;]+)/i);
+      const themeMatch = plainDescription.match(/Tema:\s*([^\n;]+)/i);
 
-      // Limpar descrição para exibição
-      const cleanDescription = description
+      // Limpar descrição para exibição (remove campos estruturados)
+      const cleanDescription = plainDescription
         .replace(/Vagas:\s*\d+/gi, "")
-        .replace(/Orientador:\s*[^<\n\r]*/gi, "")
-        .replace(/Tema:\s*[^<\n\r]*/gi, "")
+        .replace(/Orientador:\s*[^\n;]*/gi, "")
+        .replace(/Tema:\s*[^\n;]*/gi, "")
+        .replace(/\n{2,}/g, "\n")
         .trim();
 
       return {
@@ -212,15 +216,19 @@ export async function syncCalendarToFirestore(idToken?: string) {
     for (const item of googleItems) {
       if (!item.id) continue;
 
-      const description = item.description || "";
-      const capacityMatch = description.match(/Vagas:\s*(\d+)/i);
-      const mentorMatch = description.match(/Orientador:\s*([^<\n\r]+)/i);
-      const themeMatch = description.match(/Tema:\s*([^<\n\r]+)/i);
+      const rawDescription = item.description || "";
+      // Normalizar HTML: converter tags em quebra de linha antes de fazer parsing
+      const plainDescription = rawDescription.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "\n");
+      
+      const capacityMatch = plainDescription.match(/Vagas:\s*(\d+)/i);
+      const mentorMatch = plainDescription.match(/Orientador:\s*([^\n;]+)/i);
+      const themeMatch = plainDescription.match(/Tema:\s*([^\n;]+)/i);
 
-      const cleanDescription = description
+      const cleanDescription = plainDescription
         .replace(/Vagas:\s*\d+/gi, "")
-        .replace(/Orientador:\s*[^<\n\r]*/gi, "")
-        .replace(/Tema:\s*[^<\n\r]*/gi, "")
+        .replace(/Orientador:\s*[^\n;]*/gi, "")
+        .replace(/Tema:\s*[^\n;]*/gi, "")
+        .replace(/\n{2,}/g, "\n")
         .trim();
 
       const eventRef = db.collection("Calendar_Events").doc(item.id);
