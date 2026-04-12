@@ -1270,8 +1270,32 @@ export async function updateGlobalProgramacaoRegistryAction() {
 }
 
 /**
- * REATOR DE DASHBOARD 🛰️ (Versão Datas_Center)
- * Agora lê instantaneamente do Datas_Center em vez de processar subcoleções.
+ * REATOR DE DASHBOARD 🛰️ (Versão Datas_Center - Membro)
+ * Permite que membros autenticados leiam o resumo da programação.
+ */
+export async function getProgramacaoForMemberAction(): Promise<any[]> {
+  try {
+    await requireAuth();
+    const db = getAdminDb();
+    
+    const registrySnap = await db.collection("Datas_Center").doc("Programacao_Registry").get();
+    
+    if (!registrySnap.exists) {
+      // Tenta atualizar se estiver vazio (apenas permitido se o gatilho for admin, mas aqui retornamos vazio para evitar loops)
+      return [];
+    }
+
+    const data = registrySnap.data();
+    return data?.events || [];
+
+  } catch (error) {
+    console.error("Erro ao ler programação para membro:", error);
+    return [];
+  }
+}
+
+/**
+ * REATOR DE DASHBOARD 🛰️ (Versão Datas_Center - Admin)
  */
 export async function getProgramacaoSummaryAction(idToken?: string): Promise<any[]> {
   try {
@@ -1281,7 +1305,6 @@ export async function getProgramacaoSummaryAction(idToken?: string): Promise<any
     const registrySnap = await db.collection("Datas_Center").doc("Programacao_Registry").get();
     
     if (!registrySnap.exists) {
-      // Se ainda não existir, tenta atualizar uma primeira vez para não retornar vazio
       await updateGlobalProgramacaoRegistryAction();
       const retrySnap = await db.collection("Datas_Center").doc("Programacao_Registry").get();
       return retrySnap.data()?.events || [];

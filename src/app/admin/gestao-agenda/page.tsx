@@ -15,7 +15,7 @@ import { isBefore, parseISO } from "date-fns";
 
 // Sub-módulos (Abas)
 import ProgramacaoResumo from "@/components/admin/ProgramacaoResumo";
-import GestaoAgendaTab from "@/components/admin/GestaoAgendaTab";
+import AgendaManagementView from "@/components/shared/AgendaManagementView";
 
 type TabId = "resumo" | "agenda";
 
@@ -90,7 +90,7 @@ export default function GestaoAgendaPage() {
 
         {activeTab === "agenda" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <GestaoAgendaTab 
+             <AgendaManagementView 
                 events={events} 
                 isLoading={isLoading} 
                 refreshCounter={refreshCounter} 

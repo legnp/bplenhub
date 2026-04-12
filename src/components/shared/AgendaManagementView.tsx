@@ -6,20 +6,29 @@ import UserBookings from "@/components/ui/UserBookings";
 import { CalendarCheck } from "lucide-react";
 import { GoogleCalendarEvent } from "@/actions/calendar";
 
-interface GestaoAgendaTabProps {
+interface AgendaManagementViewProps {
   events: GoogleCalendarEvent[];
   isLoading: boolean;
   refreshCounter: number;
   setRefreshCounter: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export default function GestaoAgendaTab({ events, isLoading, refreshCounter, setRefreshCounter }: GestaoAgendaTabProps) {
+/**
+ * Shared Agenda Management View — BPlen HUB 🧬
+ * Reused between Admin and Hub (Membro) to ensure visual and logic consistency.
+ */
+export default function AgendaManagementView({ 
+  events, 
+  isLoading, 
+  refreshCounter, 
+  setRefreshCounter 
+}: AgendaManagementViewProps) {
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
       {/* Calendário Principal */}
       <div className="bg-[var(--input-bg)] rounded-[2.5rem] p-4 border border-[var(--border-primary)] shadow-inner">
         <Calendar 
-          events={events} 
+          events={events as any} 
           isLoading={isLoading} 
           onMonthChange={(date) => console.log("Mês alterado:", date)}
           onBookingSuccess={() => setRefreshCounter(p => p + 1)}
