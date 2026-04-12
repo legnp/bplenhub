@@ -102,6 +102,7 @@ export default function UsersManagementPage() {
   useEffect(() => {
     if (selectedUser && activeTab === "services") {
       const load = async () => {
+        if (!selectedUser.uid) return;
         setIsLoadingQuotas(true);
         const wallet = await getMemberQuotasAction(selectedUser.uid);
         if (wallet && wallet.quotas) {
@@ -181,7 +182,7 @@ export default function UsersManagementPage() {
          if (services[key]) finalQuotas[key] = val;
       });
       
-      if (Object.keys(finalQuotas).length > 0) {
+      if (Object.keys(finalQuotas).length > 0 && selectedUser.uid) {
         await updateMemberQuotasAction(selectedUser.uid, finalQuotas);
       }
       
