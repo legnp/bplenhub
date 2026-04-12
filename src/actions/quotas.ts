@@ -9,15 +9,29 @@ const QUOTAS_COLLECTION = "Member_Quotas";
 /**
  * BPlen HUB — Quota Engine ✨
  * Gestão de saldo e consumo de créditos de serviços.
+ * Migrado para Hierarquia V3: User/{matricula}/User_Permissions/quotas
  */
+
+/**
+ * Helper: Resolve a matrícula de um UID via _AuthMap
+ */
+async function getMatriculaByUid(uid: string): Promise<string | null> {
+  const db = getAdminDb();
+  const mapSnap = await db.collection("_AuthMap").doc(uid).get();
+  return mapSnap.exists ? mapSnap.data()?.matricula : null;
+}
 
 /**
  * Busca a carteira de cotas de um membro
  */
 export async function getMemberQuotasAction(uid: string): Promise<MemberQuotaWallet | null> {
   try {
+    const matricula = await getMatriculaByUid(uid);
+    if (!matricula) throw new Error("Matrícula não vinculada ao UID.");
+
     const db = getAdminDb();
-    const doc = await db.collection(QUOTAS_COLLECTION).doc(uid).get();
+    const docPath = `User/${matricula}/User_Permissions/quotas`;
+    const doc = await db.doc(docPath).get();
 
     if (!doc.exists) return null;
     return doc.data() as MemberQuotaWallet;
@@ -32,8 +46,12 @@ export async function getMemberQuotasAction(uid: string): Promise<MemberQuotaWal
  */
 export async function updateMemberQuotasAction(uid: string, newQuotas: Record<string, number>) {
   try {
+    const matricula = await getMatriculaByUid(uid);
+    if (!matricula) throw new Error("Matrícula não vinculada ao UID.");
+
     const db = getAdminDb();
-    const walletRef = db.collection(QUOTAS_COLLECTION).doc(uid);
+    const docPath = `User/${matricula}/User_Permissions/quotas`;
+    const walletRef = db.doc(docPath);
     
     await db.runTransaction(async (transaction) => {
       const doc = await transaction.get(walletRef);
@@ -46,8 +64,11 @@ export async function updateMemberQuotasAction(uid: string, newQuotas: Record<st
 
       // Merge de Cotas
       for (const [type, amount] of Object.entries(newQuotas)) {
-        const current = currentQuotas[type] || { total: 0, used: 0, lastUpdated: now };
-        currentQuotas[type] = {
+        // Normalização de chave 1-to-1
+        const normalizedType = type === "mentoria_1to1" ? "1-to-1" : type;
+        
+        const current = currentQuotas[normalizedType] || { total: 0, used: 0, lastUpdated: now };
+        currentQuotas[normalizedType] = {
           total: current.total + amount,
           used: current.used,
           lastUpdated: now
@@ -73,25 +94,40 @@ export async function updateMemberQuotasAction(uid: string, newQuotas: Record<st
  */
 export async function consumeQuotaAction(uid: string, eventTypeId: string) {
   try {
+    const matricula = await getMatriculaByUid(uid);
+    if (!matricula) throw new Error("Matrícula não vinculada ao UID.");
+
     const db = getAdminDb();
-    const walletRef = db.collection(QUOTAS_COLLECTION).doc(uid);
+    const docPath = `User/${matricula}/User_Permissions/quotas`;
+    const walletRef = db.doc(docPath);
 
     await db.runTransaction(async (transaction) => {
       const doc = await transaction.get(walletRef);
       if (!doc.exists) throw new Error("Membro não possui carteira de cotas.");
 
       const wallet = doc.data() as MemberQuotaWallet;
-      const quota = wallet.quotas[eventTypeId];
+      let quotas = wallet.quotas || {};
+      
+      // Normalização: mentoria_1to1 -> 1-to-1
+      let targetKey = eventTypeId;
+      if (targetKey === "mentoria_1to1") targetKey = "1-to-1";
+      
+      if (quotas["mentoria_1to1"] && !quotas["1-to-1"]) {
+         quotas["1-to-1"] = quotas["mentoria_1to1"];
+         delete quotas["mentoria_1to1"];
+      }
+
+      const quota = quotas[targetKey];
 
       if (!quota || quota.used >= quota.total) {
-        throw new Error(`Saldo insuficiente para o serviço: ${eventTypeId}`);
+        throw new Error(`Saldo insuficiente para o serviço: ${targetKey}`);
       }
 
       const updatedQuotas = {
-        ...wallet.quotas,
-        [eventTypeId]: {
+        ...quotas,
+        [targetKey]: {
           ...quota,
-          used: quota.used + 1,
+          used: (quota.used || 0) + 1,
           lastUpdated: new Date().toISOString()
         }
       };

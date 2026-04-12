@@ -336,6 +336,55 @@ export async function bookEventAction(
         throw new Error("Infelizmente as vagas para este horário esgotaram.");
       }
 
+      // [QUOTA SYSTEM INTEGRATION 🧬]
+      // Se for um evento 1-to-1, validamos e consumimos um crédito da carteira do membro.
+      if (category === "1to1") {
+        // Garantir que temos a matrícula para o caminho hierárquico
+        let targetMatricula = matricula;
+        if (!targetMatricula) {
+          const mapSnap = await transaction.get(db.collection("_AuthMap").doc(userId));
+          targetMatricula = mapSnap.exists ? mapSnap.data()?.matricula : null;
+        }
+
+        if (!targetMatricula) {
+           throw new Error("Matrícula não vinculada ao UID. Não é possível validar créditos.");
+        }
+
+        const quotaRef = db.doc(`User/${targetMatricula}/User_Permissions/quotas`);
+        const quotaSnap = await transaction.get(quotaRef);
+        
+        if (!quotaSnap.exists) {
+          throw new Error("Saldo de créditos não encontrado localmente. Verifique seu contrato.");
+        }
+
+        const wallet = quotaSnap.data();
+        let quotas = wallet?.quotas || {};
+        
+        // Normalização: Se houver 'mentoria_1to1', migramos para '1-to-1' conforme solicitado.
+        const quotaKey = "1-to-1";
+        const oldKey = "mentoria_1to1";
+        
+        if (quotas[oldKey] && !quotas[quotaKey]) {
+          quotas[quotaKey] = quotas[oldKey];
+          delete quotas[oldKey];
+        }
+
+        const oneToOneQuota = quotas[quotaKey];
+
+        if (!oneToOneQuota || oneToOneQuota.total <= oneToOneQuota.used) {
+          throw new Error("Você não possui créditos de 1-to-1 disponíveis. Saldo: 0.");
+        }
+
+        // Incrementar uso (Safe Update inside Transaction 🛡️)
+        quotas[quotaKey] = {
+          ...oneToOneQuota,
+          used: (oneToOneQuota.used || 0) + 1,
+          lastUpdated: new Date().toISOString()
+        };
+
+        transaction.set(quotaRef, { quotas, updatedAt: new Date().toISOString() }, { merge: true });
+      }
+
       // EXECUÇÃO:
       // 1. Criar registro de participação detalhado no evento
       const attendeeRef = eventRef.collection("attendees").doc(userId);
