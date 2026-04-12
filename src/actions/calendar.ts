@@ -1017,6 +1017,69 @@ export async function getEventAttendees(eventId: string): Promise<AttendeeData[]
 }
 
 /**
+ * Busca detalhes das avaliações NPS de um evento (para modal admin).
+ * Retorna cada avaliação individual com nome, nota e feedback.
+ */
+export async function getEventNpsDetailsAction(
+  eventId: string,
+  idToken?: string
+): Promise<{ 
+  success: boolean;
+  npsAvg: number;
+  reviewsCount: number;
+  reviews: Array<{ nickname: string; matricula: string; rating: number; feedback: string; evaluatedAt: string | null }>;
+}> {
+  try {
+    if (idToken) await requireAdmin(idToken);
+    const db = getAdminDb();
+    
+    // 1. Buscar inscritos do evento
+    const eventRef = db.collection("Calendar_Events").doc(eventId);
+    const attendeesSnap = await eventRef.collection("attendees").get();
+    
+    const reviews: Array<{ nickname: string; matricula: string; rating: number; feedback: string; evaluatedAt: string | null }> = [];
+    
+    // 2. Para cada inscrito, buscar avaliação no User_Bookings
+    await Promise.all(attendeesSnap.docs.map(async (att) => {
+      const attData = att.data();
+      const attMatricula = attData.matricula;
+      if (!attMatricula) return;
+      
+      const bSnap = await db.collection("User").doc(attMatricula)
+        .collection("User_Bookings")
+        .where("eventId", "==", eventId)
+        .limit(1)
+        .get();
+      
+      bSnap.forEach(b => {
+        const bData = b.data();
+        if (bData.rating && bData.rating > 0) {
+          reviews.push({
+            nickname: attData.nickname || attMatricula,
+            matricula: attMatricula,
+            rating: bData.rating,
+            feedback: bData.feedback || "",
+            evaluatedAt: bData.evaluatedAt?.toDate?.()?.toISOString() || null
+          });
+        }
+      });
+    }));
+    
+    // 3. Calcular média
+    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+    const npsAvg = reviews.length > 0 ? parseFloat((totalRating / reviews.length).toFixed(1)) : 0;
+    
+    // Ordenar por nota (maior primeiro)
+    reviews.sort((a, b) => b.rating - a.rating);
+    
+    return { success: true, npsAvg, reviewsCount: reviews.length, reviews };
+  } catch (error) {
+    console.error("Erro ao buscar detalhes NPS:", error);
+    return { success: false, npsAvg: 0, reviewsCount: 0, reviews: [] };
+  }
+}
+
+/**
  * Parte 1: Fechamento Geral do Evento
  */
 export async function closeEventAction(

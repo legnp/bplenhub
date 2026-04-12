@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   getProgramacaoSummaryAction, 
+  getEventNpsDetailsAction,
   GoogleCalendarEvent,
   EventLifecycleStatus 
 } from "@/actions/calendar";
@@ -23,12 +24,16 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Filter
+  Filter,
+  Star,
+  Eye,
+  MessageCircle
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuthContext } from "@/context/AuthContext";
 import PostEventWizard from "./PostEventWizard";
+import GlassModal from "@/components/ui/GlassModal";
 
 interface EventSummary {
   id: string;
@@ -71,6 +76,28 @@ export default function ProgramacaoResumo() {
 
   // Dropdown Menu State
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  // NPS Detail Modal State
+  const [npsModalEvent, setNpsModalEvent] = useState<EventSummary | null>(null);
+  const [npsData, setNpsData] = useState<{ npsAvg: number; reviewsCount: number; reviews: Array<{ nickname: string; matricula: string; rating: number; feedback: string; evaluatedAt: string | null }> } | null>(null);
+  const [isLoadingNps, setIsLoadingNps] = useState(false);
+
+  const handleOpenNpsModal = async (ev: EventSummary) => {
+    setNpsModalEvent(ev);
+    setIsLoadingNps(true);
+    setNpsData(null);
+    try {
+      const idToken = await user?.getIdToken();
+      const res = await getEventNpsDetailsAction(ev.id, idToken);
+      if (res.success) {
+        setNpsData({ npsAvg: res.npsAvg, reviewsCount: res.reviewsCount, reviews: res.reviews });
+      }
+    } catch (err) {
+      console.error("Erro ao carregar NPS:", err);
+    } finally {
+      setIsLoadingNps(false);
+    }
+  };
 
   // Search, Filter & Sort State
   const [searchQuery, setSearchQuery] = useState("");
@@ -374,10 +401,19 @@ export default function ProgramacaoResumo() {
               {/* NPS */}
               <div className="text-center">
                 {ev.metrics.npsAvg > 0 ? (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/5 text-green-500 rounded-lg">
-                    <TrendingUp className="w-3 h-3" />
-                    <span className="text-xs font-black">{ev.metrics.npsAvg}</span>
-                    <span className="text-[8px] opacity-40 font-bold">({ev.metrics.reviewsCount})</span>
+                  <div className="inline-flex items-center gap-1.5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/5 text-green-500 rounded-lg">
+                      <TrendingUp className="w-3 h-3" />
+                      <span className="text-xs font-black">{ev.metrics.npsAvg}</span>
+                      <span className="text-[8px] opacity-40 font-bold">({ev.metrics.reviewsCount})</span>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleOpenNpsModal(ev); }}
+                      className="p-1.5 rounded-lg bg-green-500/5 hover:bg-green-500/15 text-green-500 transition-all hover:scale-110"
+                      title="Ver detalhes NPS"
+                    >
+                      <Eye className="w-3 h-3" />
+                    </button>
                   </div>
                 ) : (
                   <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-30">S/ Aval.</span>
@@ -490,6 +526,107 @@ export default function ProgramacaoResumo() {
           onSuccess={() => setRefreshCounter(p => p + 1)}
         />
       )}
+
+      {/* NPS Detail Modal */}
+      <GlassModal
+        isOpen={!!npsModalEvent}
+        onClose={() => { setNpsModalEvent(null); setNpsData(null); }}
+        title="Avaliações NPS"
+        subtitle={npsModalEvent?.summary}
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-6 max-h-[65vh] overflow-y-auto custom-scrollbar pr-1">
+          {isLoadingNps ? (
+            <div className="py-16 flex flex-col items-center justify-center gap-3 opacity-40">
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-start)]" />
+              <span className="text-[9px] font-black uppercase tracking-widest">Carregando avaliações...</span>
+            </div>
+          ) : npsData ? (
+            <>
+              {/* Summary Header */}
+              <div className="flex items-center justify-between p-5 bg-green-500/5 rounded-2xl border border-green-500/15">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center">
+                    <span className="text-2xl font-black text-green-600">{npsData.npsAvg}</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">Nota Média</p>
+                    <p className="text-[9px] font-bold text-[var(--text-muted)] opacity-50">{npsData.reviewsCount} avaliação{npsData.reviewsCount !== 1 ? "ões" : "ão"}</p>
+                  </div>
+                </div>
+                <div className="flex gap-0.5">
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} className={`w-4 h-4 ${s <= Math.round(npsData.npsAvg) ? "fill-[#FFB800] text-[#FFB800]" : "text-black/[0.06]"}`} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Star Distribution */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Distribuição</p>
+                {[5,4,3,2,1].map(star => {
+                  const count = npsData.reviews.filter(r => r.rating === star).length;
+                  const pct = npsData.reviewsCount > 0 ? (count / npsData.reviewsCount) * 100 : 0;
+                  return (
+                    <div key={star} className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-12 shrink-0">
+                        <Star className="w-3 h-3 fill-[#FFB800] text-[#FFB800]" />
+                        <span className="text-[10px] font-black text-[var(--text-primary)]">{star}</span>
+                      </div>
+                      <div className="flex-1 h-2 bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--border-primary)]/30">
+                        <div className="h-full bg-[#FFB800] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-[9px] font-black text-[var(--text-muted)] opacity-50 w-8 text-right">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Individual Reviews */}
+              {npsData.reviews.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <MessageCircle className="w-3 h-3" /> Feedbacks Individuais
+                  </p>
+                  <div className="space-y-2">
+                    {npsData.reviews.map((review, idx) => (
+                      <div key={idx} className="p-4 bg-[var(--bg-primary)]/50 rounded-2xl border border-[var(--border-primary)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[var(--accent-start)]/10 flex items-center justify-center text-[var(--accent-start)] text-[9px] font-black">
+                              {review.nickname?.[0] || "?"}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-[var(--text-primary)]">{review.nickname}</p>
+                              <p className="text-[7px] font-bold text-[var(--text-muted)] opacity-40 uppercase tracking-widest">{review.matricula}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-0.5">
+                            {[1,2,3,4,5].map(s => (
+                              <Star key={s} className={`w-3 h-3 ${s <= review.rating ? "fill-[#FFB800] text-[#FFB800]" : "text-black/[0.06]"}`} />
+                            ))}
+                          </div>
+                        </div>
+                        {review.feedback && (
+                          <p className="text-[10px] text-[var(--text-primary)] font-medium leading-relaxed italic pl-9">
+                            "{review.feedback}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {npsData.reviews.filter(r => r.feedback).length === 0 && npsData.reviewsCount > 0 && (
+                <p className="text-center text-[9px] font-bold text-[var(--text-muted)] opacity-30 py-4">Nenhum feedback escrito registrado</p>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-[9px] font-bold text-[var(--text-muted)] opacity-30 py-8">Erro ao carregar dados</p>
+          )}
+        </div>
+      </GlassModal>
     </div>
   );
 }

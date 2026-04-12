@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   format, 
   parseISO, 
@@ -21,7 +21,13 @@ import {
   ChevronRight,
   ExternalLink,
   XCircle,
-  Eye
+  Eye,
+  Search,
+  X,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { getUserBookingsAction, submitEvaluationAction, cancelBookingAction } from "@/actions/calendar";
 import { useAuthContext } from "@/context/AuthContext";
@@ -33,12 +39,24 @@ import GlassModal from "@/components/ui/GlassModal";
    Cada booking é uma row compacta. Detalhes completos no modal.
    ═══════════════════════════════════════════════════════════════ */
 
+type BookingSortField = "date" | "name" | "status" | "presence";
+type BookingSortDir = "asc" | "desc";
+type StatusFilterKey = "todos" | "agendada" | "realizada" | "concluida" | "cancelada";
+type PresenceFilterKey = "todos" | "presente" | "ausente" | "pendente";
+
 export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} }: { refreshCounter?: number; onRefresh?: () => void }) {
   const { matricula, user } = useAuthContext();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluating, setIsEvaluating] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<UserBooking | null>(null);
+
+  // Search, Filter & Sort State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterKey>("todos");
+  const [presenceFilter, setPresenceFilter] = useState<PresenceFilterKey>("todos");
+  const [sortField, setSortField] = useState<BookingSortField>("date");
+  const [sortDir, setSortDir] = useState<BookingSortDir>("desc");
 
   const fetchBookings = useCallback(async () => {
     if (!matricula) return;
@@ -65,7 +83,6 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
       if (res.success) {
         alert("Avaliação enviada com sucesso!");
         setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, rating, feedback, evaluatedAt: new Date().toISOString() } : b));
-        // Update selected booking if open
         setSelectedBooking(prev => prev?.id === bookingId ? { ...prev, rating, feedback, evaluatedAt: new Date().toISOString() } : prev);
       } else {
         alert("Falha ao enviar avaliação.");
@@ -76,6 +93,123 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
       setIsEvaluating(null);
     }
   };
+
+  const handleSortToggle = (field: BookingSortField) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir(field === "date" ? "desc" : "asc");
+    }
+  };
+
+  // Helper to resolve booking status label
+  const getBookingStatus = (b: UserBooking): string => {
+    if (!b.eventDetail) return "agendada";
+    const isPast = isBefore(parseISO(b.eventDetail.start), new Date());
+    if (b.eventLifecycleStatus === "completed") return "concluida";
+    if (b.eventLifecycleStatus === "cancelled") return "cancelada";
+    if (b.eventLifecycleStatus === "postponed") return "adiada";
+    return isPast ? "realizada" : "agendada";
+  };
+
+  const getPresenceKey = (b: UserBooking): string => {
+    if (b.attendanceStatus === "present") return "presente";
+    if (b.attendanceStatus === "absent") return "ausente";
+    return "pendente";
+  };
+
+  // Filtered & Sorted
+  const filteredBookings = useMemo(() => {
+    let result = [...bookings];
+
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(b => {
+        const ev = b.eventDetail;
+        if (!ev) return false;
+        return ev.summary.toLowerCase().includes(q) ||
+          (ev.theme && ev.theme.toLowerCase().includes(q)) ||
+          (ev.mentor && ev.mentor.toLowerCase().includes(q));
+      });
+    }
+
+    // Status filter
+    if (statusFilter !== "todos") {
+      result = result.filter(b => getBookingStatus(b) === statusFilter);
+    }
+
+    // Presence filter
+    if (presenceFilter !== "todos") {
+      result = result.filter(b => getPresenceKey(b) === presenceFilter);
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case "date":
+          cmp = new Date(a.eventDetail?.start || 0).getTime() - new Date(b.eventDetail?.start || 0).getTime();
+          break;
+        case "name":
+          cmp = (a.eventDetail?.summary || "").localeCompare(b.eventDetail?.summary || "", "pt-BR");
+          break;
+        case "status":
+          cmp = getBookingStatus(a).localeCompare(getBookingStatus(b));
+          break;
+        case "presence":
+          cmp = getPresenceKey(a).localeCompare(getPresenceKey(b));
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return result;
+  }, [bookings, searchQuery, statusFilter, presenceFilter, sortField, sortDir]);
+
+  // Counts for filter badges
+  const statusCounts = useMemo(() => {
+    const c = { todos: bookings.length, agendada: 0, realizada: 0, concluida: 0, cancelada: 0 };
+    bookings.forEach(b => {
+      const s = getBookingStatus(b);
+      if (s in c) (c as any)[s]++;
+    });
+    return c;
+  }, [bookings]);
+
+  const presenceCounts = useMemo(() => {
+    const c = { todos: bookings.length, presente: 0, ausente: 0, pendente: 0 };
+    bookings.forEach(b => {
+      const p = getPresenceKey(b);
+      if (p in c) (c as any)[p]++;
+    });
+    return c;
+  }, [bookings]);
+
+  const SortIcon = ({ field }: { field: BookingSortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="w-2.5 h-2.5 opacity-30" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="w-2.5 h-2.5 text-[var(--accent-start)]" />
+      : <ArrowDown className="w-2.5 h-2.5 text-[var(--accent-start)]" />;
+  };
+
+  const statusFilterOptions: { key: StatusFilterKey; label: string; color: string }[] = [
+    { key: "todos", label: "Todos", color: "bg-[var(--text-primary)]/5 text-[var(--text-primary)]" },
+    { key: "agendada", label: "Agendada", color: "bg-blue-500/10 text-blue-500" },
+    { key: "realizada", label: "Realizada", color: "bg-[var(--accent-soft)] text-[var(--text-muted)]" },
+    { key: "concluida", label: "Concluída", color: "bg-green-500/10 text-green-600" },
+    { key: "cancelada", label: "Cancelada", color: "bg-red-500/10 text-red-500" },
+  ];
+
+  const presenceFilterOptions: { key: PresenceFilterKey; label: string; color: string }[] = [
+    { key: "todos", label: "Todos", color: "bg-[var(--text-primary)]/5 text-[var(--text-primary)]" },
+    { key: "presente", label: "Presente", color: "bg-green-500/10 text-green-600" },
+    { key: "ausente", label: "Ausente", color: "bg-red-500/10 text-red-500" },
+    { key: "pendente", label: "Pendente", color: "bg-amber-500/10 text-amber-600" },
+  ];
+
+  const hasActiveFilters = searchQuery || statusFilter !== "todos" || presenceFilter !== "todos";
 
   if (isLoading) {
     return (
@@ -103,13 +237,112 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
          <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--text-muted)] opacity-10 to-transparent" />
       </div>
 
-      {/* Table Header */}
+      {/* ─── Search, Filter & Sort Toolbar ─── */}
+      <div className="flex flex-col gap-3 p-4 bg-[var(--input-bg)]/20 rounded-[1.5rem] border border-[var(--border-primary)]">
+        {/* Search Bar */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] opacity-40" />
+          <input 
+            type="text"
+            placeholder="Buscar por evento, tema ou orientador..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-10 py-3 bg-[var(--bg-primary)]/60 border border-[var(--border-primary)] rounded-2xl text-xs font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:opacity-40 focus:outline-none focus:border-[var(--accent-start)]/40 focus:ring-2 focus:ring-[var(--accent-start)]/10 transition-all"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-[var(--input-bg-hover)] transition-all opacity-40 hover:opacity-100"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filters Row */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-3 h-3 text-[var(--text-muted)] opacity-40 shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {statusFilterOptions.map((opt) => {
+                  const isActive = statusFilter === opt.key;
+                  const count = statusCounts[opt.key];
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => setStatusFilter(opt.key)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[7px] font-black uppercase tracking-widest transition-all ${
+                        isActive
+                          ? `${opt.color} ring-2 ring-current/20 shadow-sm`
+                          : "bg-[var(--input-bg)]/40 text-[var(--text-muted)] opacity-50 hover:opacity-80"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[6px] font-black ${isActive ? "bg-current/10" : "bg-[var(--border-primary)]/30"}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Presence Filter */}
+            <div className="flex items-center gap-2">
+              <User className="w-3 h-3 text-[var(--text-muted)] opacity-40 shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {presenceFilterOptions.map((opt) => {
+                  const isActive = presenceFilter === opt.key;
+                  const count = presenceCounts[opt.key];
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => setPresenceFilter(opt.key)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[7px] font-black uppercase tracking-widest transition-all ${
+                        isActive
+                          ? `${opt.color} ring-2 ring-current/20 shadow-sm`
+                          : "bg-[var(--input-bg)]/40 text-[var(--text-muted)] opacity-50 hover:opacity-80"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[6px] font-black ${isActive ? "bg-current/10" : "bg-[var(--border-primary)]/30"}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Results Counter */}
+          <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-40 shrink-0">
+            {filteredBookings.length} de {bookings.length} evento{bookings.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+
+      {/* ─── Table Header (Sortable) ─── */}
       <div className="hidden md:grid grid-cols-[0.8fr_2fr_1fr_0.8fr_0.8fr_0.8fr_1.2fr_0.5fr] gap-3 px-6 py-3 bg-[var(--input-bg)]/30 rounded-2xl border border-[var(--border-primary)] text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-        <div>Data / Hora</div>
-        <div>Evento</div>
+        <button onClick={() => handleSortToggle("date")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+          <span>Data / Hora</span>
+          <SortIcon field="date" />
+        </button>
+        <button onClick={() => handleSortToggle("name")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+          <span>Evento</span>
+          <SortIcon field="name" />
+        </button>
         <div>Orientador</div>
-        <div>Status</div>
-        <div>Presença</div>
+        <button onClick={() => handleSortToggle("status")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+          <span>Status</span>
+          <SortIcon field="status" />
+        </button>
+        <button onClick={() => handleSortToggle("presence")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+          <span>Presença</span>
+          <SortIcon field="presence" />
+        </button>
         <div className="text-center">Ata</div>
         <div className="text-center">Avaliação</div>
         <div className="text-right">Info</div>
@@ -117,7 +350,21 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
 
       {/* Rows */}
       <div className="space-y-2">
-        {bookings.map((booking) => (
+        {filteredBookings.length === 0 ? (
+          <div className="py-16 text-center border-2 border-dashed border-[var(--border-primary)] rounded-[2rem] opacity-30">
+            <p className="text-[10px] font-black uppercase tracking-widest">
+              Nenhum evento encontrado com os filtros aplicados
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={() => { setSearchQuery(""); setStatusFilter("todos"); setPresenceFilter("todos"); }}
+                className="mt-3 text-[9px] font-bold text-[var(--accent-start)] hover:underline"
+              >
+                Limpar filtros
+              </button>
+            )}
+          </div>
+        ) : filteredBookings.map((booking) => (
           <BookingRow 
             key={booking.id}
             booking={booking}
