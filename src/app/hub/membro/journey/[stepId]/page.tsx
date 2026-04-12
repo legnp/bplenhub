@@ -46,6 +46,8 @@ export default function StepJourneyPage() {
      return redirect("/hub/membro/dashboard");
   }
 
+  if (!stepConfig) return null;
+
   const currentSubStep = stepConfig.substeps.find(ss => ss.id === currentSubStepId) || stepConfig.substeps[0];
   const stepStatus = getStepStatus(stepId);
 
