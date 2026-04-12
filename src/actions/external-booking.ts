@@ -41,12 +41,13 @@ export async function getPublicSlotsAction(dateStr: string): Promise<PublicSlots
   try {
     const db = getAdminDb();
     const targetDate = parseISO(dateStr);
-    const timeMin = formatISO(startOfDay(targetDate));
+    const timeMinQuery = formatISO(addDays(startOfDay(targetDate), -1)); 
     const timeMax = formatISO(addDays(startOfDay(targetDate), 1));
+    const timeMin = formatISO(startOfDay(targetDate));
 
-    // 1. Consultar eventos 1 to 1 no Firestore (Admin)
+    // 1. Consultar eventos no Firestore (Range expandido para pegar eventos longos)
     const snap = await db.collection("Calendar_Events")
-      .where("start", ">=", timeMin)
+      .where("start", ">=", timeMinQuery)
       .where("start", "<", timeMax)
       .orderBy("start", "asc")
       .get();
@@ -57,9 +58,13 @@ export async function getPublicSlotsAction(dateStr: string): Promise<PublicSlots
     snap.forEach((docSnap) => {
       const data = docSnap.data();
       const summary = (data.summary || "").toLowerCase();
+      const eventStart = data.start;
       
       if (summary.includes("1 to 1")) {
-        slotsData.push({ id: docSnap.id, ...data });
+        // Apenas slots que começam HOJE (evita duplicação ao olhar 24h pra trás)
+        if (eventStart >= timeMin && eventStart < timeMax) {
+          slotsData.push({ id: docSnap.id, ...data });
+        }
       } else {
         blockerEvents.push({ id: docSnap.id, ...data });
       }
@@ -209,11 +214,21 @@ export async function getPublicAvailableDaysAction(): Promise<string[]> {
         const isBasicAvailable = registered < capacity && isAfter(startTime, minAllowedTime);
         if (!isBasicAvailable) return false;
 
-        // 2. Verificação de conflito com bloqueadores do mesmo dia
+        // 2. Verificação de conflito com bloqueadores do mesmo dia (Blindagem 🛡️)
+        const sTime = startTime.getTime();
+        const eTime = endTime.getTime();
+
         const hasConflict = blockers.some(blocker => {
-          const bStart = parseISO(blocker.start);
-          const bEnd = parseISO(blocker.end);
-          return isBefore(startTime, bEnd) && isBefore(bStart, endTime);
+          const parseS = (iso: string, isE = false) => {
+            if (iso.length === 10) {
+              const d = parseISO(iso);
+              return startOfDay(d).getTime() + (isE ? (24 * 60 * 60 * 1000) - 1 : 0);
+            }
+            return parseISO(iso).getTime();
+          };
+          const bS = parseS(blocker.start);
+          const bE = parseS(blocker.end, true);
+          return sTime < bE && bS < eTime;
         });
 
         return !hasConflict;

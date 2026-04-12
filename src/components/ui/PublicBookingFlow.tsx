@@ -711,6 +711,21 @@ export function PublicBookingFlow() {
                       </div>
                     </motion.div>
                   )}
+
+                  {!isProposalMode && (
+                    <div className="p-4 bg-[var(--accent-soft)] rounded-2xl border border-[var(--border-primary)] text-left mt-6">
+                      <p className="text-[10px] text-[var(--text-muted)] opacity-60 font-medium mb-1">Não encontrou uma boa agenda?</p>
+                      <button
+                        onClick={() => {
+                          setIsProposalMode(true);
+                          setSelectedSlot(null);
+                        }}
+                        className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest hover:underline"
+                      >
+                        Faça uma proposta de agenda
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* --- SLOTS LIST --- */}
@@ -740,14 +755,25 @@ export function PublicBookingFlow() {
                             const dateStr = format(selectedDate, "yyyy-MM-dd");
                             const isSelectedOption = proposalOptions.some(o => o.date === dateStr && o.time === time);
                             
-                            // Check conflict with blockers
-                            const propStart = parseISO(`${dateStr}T${time}:00`);
-                            const propEnd = addMinutes(propStart, 45); // Reunião de 45 min
+                            // Check conflict with blockers using absolute timestamps (Blindagem 🛡️)
+                            const propStartTime = parseISO(`${dateStr}T${time}:00`).getTime();
+                            const propEndTime = propStartTime + (45 * 60 * 1000); // 45 min fixo
                             
                             const hasConflict = currentDayBlockers.some(b => {
-                              const bStart = parseISO(b.start);
-                              const bEnd = parseISO(b.end);
-                              return isBefore(propStart, bEnd) && isBefore(bStart, propEnd);
+                              const parseSafe = (iso: string, isEnd = false) => {
+                                // Tratar Eventos de Dia Inteiro (YYYY-MM-DD - 10 chars)
+                                if (iso.length === 10) {
+                                  const d = parseISO(iso);
+                                  return startOfDay(d).getTime() + (isEnd ? (24 * 60 * 60 * 1000) - 1 : 0);
+                                }
+                                return parseISO(iso).getTime();
+                              };
+
+                              const bStart = parseSafe(b.start);
+                              const bEnd = parseSafe(b.end, true);
+
+                              // Overlap Absoluto: (InicioA < FimB) && (InicioB < FimA)
+                              return propStartTime < bEnd && bStart < propEndTime;
                             });
 
                             return (
@@ -789,20 +815,6 @@ export function PublicBookingFlow() {
                     )}
                   </div>
 
-                  {!isProposalMode && (
-                    <div className="p-3 bg-[var(--accent-soft)] rounded-2xl border border-[var(--border-primary)] text-center">
-                      <p className="text-[10px] text-[var(--text-muted)] opacity-60 font-medium mb-2">Não encontrou uma boa agenda?</p>
-                      <button
-                        onClick={() => {
-                          setIsProposalMode(true);
-                          setSelectedSlot(null);
-                        }}
-                        className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-widest hover:underline"
-                      >
-                        Faça uma proposta de agenda
-                      </button>
-                    </div>
-                  )}
 
                   {error && (
                     <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-[10px] font-black">
@@ -831,10 +843,10 @@ export function PublicBookingFlow() {
                     <button
                       onClick={() => setStep("lead")}
                       disabled={!isProposalMode ? !selectedSlot : proposalOptions.length === 0}
-                      className="w-full h-14 bg-white text-black rounded-[24px] font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-1/2 h-10 self-center bg-white text-black rounded-[18px] font-black text-[9px] uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      CONTINUAR PARA DADOS
-                      <ChevronRight className="w-4 h-4" />
+                      CONTINUAR
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>

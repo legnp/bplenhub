@@ -74,16 +74,6 @@ export default async function SegmentedServicesPage({ params }: PageProps) {
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#ff0080] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 
-      {/* Navigation Breadcrumb */}
-      <div className="pt-[60px] px-6 max-w-7xl mx-auto">
-         <Link 
-           href="/servicos"
-           className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors group"
-         >
-            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            Votar para Seleção de Público
-         </Link>
-      </div>
 
       {/* Hero Section */}
       <section className="pt-12 pb-[60px] px-6">
