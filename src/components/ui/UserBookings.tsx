@@ -635,6 +635,28 @@ function BookingDetailModal({
           </span>
         </div>
 
+        {/* ─── Demanda 1-to-1 ─── */}
+        {booking.oneToOneData && (
+          <div className="space-y-3">
+            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 flex items-center gap-2">
+              <User size={10} className="text-[var(--accent-start)]" /> 
+              Demanda do 1 to 1
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 bg-[var(--accent-start)]/5 rounded-2xl border border-[var(--accent-start)]/10">
+                <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-1">Tipo de Serviço</p>
+                <p className="text-[11px] font-black text-[var(--accent-start)]">{booking.oneToOneData.type || "—"}</p>
+              </div>
+              <div className="p-4 bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)]">
+                <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50 mb-1">Expectativas</p>
+                <p className="text-[11px] text-[var(--text-primary)] font-medium leading-relaxed whitespace-pre-line">
+                  {booking.oneToOneData.expectations || "Nenhuma expectativa informada"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ─── Notas do Evento (Public Comment) ─── */}
         {booking.publicGeneralComment && (
           <div className="space-y-2">

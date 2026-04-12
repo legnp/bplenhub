@@ -85,6 +85,9 @@ export interface UserBooking {
   participantFeedback?: string;
   participantTasks?: string;
   participantDocs?: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
+
+  // 1-to-1 Demand Data
+  oneToOneData?: { type: string; expectations: string } | null;
 }
 
 export interface AttendeeData {
@@ -801,7 +804,8 @@ export async function getUserBookingsAction(matricula: string): Promise<UserBook
         meetingMinutesFile: data.meetingMinutesFile || null,
         participantFeedback: data.participantFeedback || "",
         participantTasks: data.participantTasks || "",
-        participantDocs: data.participantDocs || []
+        participantDocs: data.participantDocs || [],
+        oneToOneData: data.oneToOneData || null
       };
     }).sort((a: any, b: any) => {
       const startA = a.eventDetail ? new Date(a.eventDetail.start).getTime() : 0;
