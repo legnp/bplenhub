@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { JourneyNav } from "@/components/journey/JourneyNav";
-import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
-import { StepStatus } from "@/types/journey";
 import { motion, AnimatePresence } from "framer-motion";
 import * as LucideIcons from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/context/AuthContext";
+import { useJourney } from "@/hooks/useJourney";
+import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
 
 /**
  * BPlen HUB — Step Journey Dashboard 🧬
@@ -15,40 +14,32 @@ import { useAuthContext } from "@/context/AuthContext";
  */
 export default function StepJourneyPage() {
   const { user, nickname } = useAuthContext();
+  const { stages, progress, loading, getStepStatus } = useJourney(user?.uid || "guest");
   const [currentStepId, setCurrentStepId] = useState("onboarding");
-  const [loading, setLoading] = useState(true);
-
-  // Simulação de status map (no futuro virá do hook useJourney)
-  const [statusMap, setStatusMap] = useState<Record<string, StepStatus>>({
-    "onboarding": "current",
-    "analise-comportamental": "locked",
-    "planejamento-carreira": "locked",
-    "lideranca-gestao": "locked",
-    "performance": "locked",
-    "mentoria-final": "locked"
-  });
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    if (progress?.lastActiveStepId) {
+      setCurrentStepId(progress.lastActiveStepId);
+    } else if (stages.length > 0) {
+      setCurrentStepId(stages[0].id);
+    }
+  }, [progress, stages]);
 
-  const currentStep = JOURNEY_STAGES.find(s => s.id === currentStepId) || JOURNEY_STAGES[0];
+  const currentStep = stages.find(s => s.id === currentStepId) || stages[0];
   
+  if (loading || !currentStep) {
+    return <AtmosphericLoading />;
+  }
+
   // Renderização segura do ícone
   const IconName = currentStep.icon as keyof typeof LucideIcons;
   const IconComponent = (LucideIcons[IconName] as any) || LucideIcons.Circle;
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-t-[var(--accent-primary)] border-[var(--border-primary)] rounded-full animate-spin" />
-        <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] animate-pulse">
-          Sincronizando Ecossistema...
-        </p>
-      </div>
-    );
-  }
+  // Pre-calculate status map for Navigator
+  const statusMap = stages.reduce((acc, stage) => {
+    acc[stage.id] = getStepStatus(stage.id);
+    return acc;
+  }, {} as any);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -66,7 +57,7 @@ export default function StepJourneyPage() {
             Olá, <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]">{nickname || "Membro"}</span>
           </h1>
           <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-2xl leading-relaxed opacity-80">
-            Bem-vindo à sua trilha de evolução estratégica. Acompanhe abaixo as 6 etapas fundamentais para o seu desenvolvimento na BPlen.
+            Bem-vindo à sua trilha de evolução estratégica. Acompanhe abaixo as etapas fundamentais para o seu desenvolvimento na BPlen.
           </p>
         </motion.div>
       </header>
@@ -74,8 +65,10 @@ export default function StepJourneyPage() {
       {/* Navegação da Jornada (Horizontal Stepper) */}
       <section className="mb-12">
         <JourneyNav 
+          stages={stages}
           currentStepId={currentStepId} 
           stepStatusMap={statusMap}
+          onSelectStep={setCurrentStepId}
         />
       </section>
 
@@ -98,7 +91,7 @@ export default function StepJourneyPage() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-primary)] mb-1">
-                  Etapa {currentStep.order} de 6
+                  Etapa Dinâmica
                 </p>
                 <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">
                   {currentStep.title}
@@ -114,16 +107,22 @@ export default function StepJourneyPage() {
                 </p>
               </div>
 
-              {/* Atividades do Step */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentStep.substeps.map((sub, ridx) => (
-                  <div key={ridx} className="p-4 rounded-xl border border-[var(--border-primary)] bg-white/5 flex items-center gap-4 group/item hover:border-[var(--accent-primary)]/40 transition-all cursor-pointer">
+               {/* Atividades do Step */}
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentStep.substeps.map((sub: any, ridx: number) => (
+                  <div 
+                    key={ridx} 
+                    onClick={() => {
+                       window.location.href = `/hub/membro/journey/${currentStep.id}`;
+                    }}
+                    className="p-4 rounded-xl border border-[var(--border-primary)] bg-white/5 flex items-center gap-4 group/item hover:border-[var(--accent-primary)]/40 transition-all cursor-pointer"
+                  >
                     <div className="w-8 h-8 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--text-secondary)]">
-                       {sub.type === 'content' ? <LucideIcons.PlayCircle className="w-4 h-4" /> : <LucideIcons.FileText className="w-4 h-4" />}
+                       {sub.type === 'survey' ? <LucideIcons.ClipboardCheck className="w-4 h-4" /> : <LucideIcons.FileText className="w-4 h-4" />}
                     </div>
                     <div className="flex-1">
                       <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider">{sub.title}</p>
-                      <p className="text-[9px] text-[var(--text-muted)] line-clamp-1">{sub.description}</p>
+                      <p className="text-[9px] text-[var(--text-muted)] line-clamp-1">Clique para iniciar</p>
                     </div>
                   </div>
                 ))}
@@ -134,7 +133,7 @@ export default function StepJourneyPage() {
                   onClick={() => window.location.href = `/hub/membro/journey/${currentStep.id}`}
                   className="px-8 py-3.5 rounded-2xl bg-[var(--text-primary)] text-[var(--bg-primary)] text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl"
                 >
-                  Continuar Trilha
+                  Ir para Etapa
                 </button>
               </div>
             </div>
@@ -147,7 +146,7 @@ export default function StepJourneyPage() {
                   Performance
                 </h3>
                 <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed opacity-80">
-                  Seu progresso é monitorado em tempo real por nossa IA de desenvolvimento. Complete as metas para atingir o próximo nível da sua carreira.
+                  Progresso monitorado via Firestore. Complete as atividades para avançar na jornada oficial.
                 </p>
              </div>
           </div>
