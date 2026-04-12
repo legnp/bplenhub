@@ -53,7 +53,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 
       {/* Breadcrumb Navigation */}
-      <div className="pt-32 px-6 max-w-7xl mx-auto">
+      <div className="pt-[60px] px-6 max-w-7xl mx-auto">
          <Link 
            href={`/servicos/${audience}`}
            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors group"

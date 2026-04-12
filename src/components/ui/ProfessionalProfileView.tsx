@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { 
   Mail, 
+  Phone,
   QrCode, 
   ChevronDown, 
   Calendar, 
@@ -115,6 +116,18 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
                   <img src="/tiktok.png" alt="TikTok" className="w-5 h-5 object-contain opacity-[var(--social-icon-opacity)] hover:opacity-100 transition-opacity" />
                 </Link>
               )}
+            </div>
+            
+            {/* Informações de Contato Direto */}
+            <div className="flex flex-col items-center gap-1.5 mb-8">
+              <div className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group cursor-default">
+                <Mail size={12} className="text-[var(--accent-start)]/50 group-hover:text-[var(--accent-start)] transition-colors" />
+                <span className="text-[10px] font-medium tracking-wider">{profile.email}</span>
+              </div>
+              <div className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group cursor-default">
+                <Phone size={12} className="text-[var(--accent-start)]/50 group-hover:text-[var(--accent-start)] transition-colors" />
+                <span className="text-[10px] font-medium tracking-wider">{profile.phone}</span>
+              </div>
             </div>
 
             {/* Ações principais do Card */}

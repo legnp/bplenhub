@@ -10,8 +10,8 @@ export const LANDING_TOKENS = {
   
   // Cabeçalho de Seção (Header)
   header: {
-    centered: "text-center mb-16",
-    left: "text-left mb-16 flex flex-col gap-6",
+    centered: "text-center mb-5",
+    left: "text-left mb-5 flex flex-col gap-6",
     kicker: "text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--accent-start)] block mb-4",
     title: "text-3xl md:text-5xl font-bold tracking-tighter leading-[1.1] text-[var(--text-primary)]",
     description: "text-base md:text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl",

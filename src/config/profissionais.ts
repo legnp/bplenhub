@@ -42,8 +42,8 @@ export const PROFISSIONAIS: Record<string, ProfessionalProfile> = {
     role: "HRBP & Fundadora BPlen",
     shortBio: "Há mais de 10 anos ajudando pessoas e negócios a alinharem seus interesses e resultados através do Desenvolvimento Humano aplicado à realidade.",
     photo: "/profissionais/lisandra-lencina.jpg",
-    phone: "+5511945152088",
-    email: "contato@bplen.com",
+    phone: "+55 11 94515 2088",
+    email: "lisandra.lencina@bplen.com",
     social: {
       linkedin: "https://www.linkedin.com/in/lisandralencina/",
       instagram: "https://www.instagram.com/lis_lencina",

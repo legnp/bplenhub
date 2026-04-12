@@ -75,7 +75,7 @@ export default async function SegmentedServicesPage({ params }: PageProps) {
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 
       {/* Navigation Breadcrumb */}
-      <div className="pt-32 px-6 max-w-7xl mx-auto">
+      <div className="pt-[60px] px-6 max-w-7xl mx-auto">
          <Link 
            href="/servicos"
            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors group"
@@ -86,7 +86,7 @@ export default async function SegmentedServicesPage({ params }: PageProps) {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-12 pb-20 px-6">
+      <section className="pt-12 pb-[60px] px-6">
         <div className={LANDING_TOKENS.container}>
           <div className={LANDING_TOKENS.header.centered}>
             <div className="mb-6 p-4 bg-white/5 rounded-2xl w-fit mx-auto border border-white/10 shadow-2xl">

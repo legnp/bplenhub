@@ -62,7 +62,7 @@ export default function ServicesGatekeeperPage() {
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.05] pointer-events-none -z-10" />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-[60px] pb-[60px] px-6">
         <div className={LANDING_TOKENS.container}>
           <div className={LANDING_TOKENS.header.centered}>
             <span className={LANDING_TOKENS.header.kicker}>Ecossistema de Soluções</span>

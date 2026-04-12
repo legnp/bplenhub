@@ -28,9 +28,9 @@ export default async function ContentPage() {
       <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#667eea] rounded-full blur-[180px] opacity-[0.03] pointer-events-none -z-10" />
 
       {/* Hero Section (Light Mode) */}
-      <section className="pt-32 pb-16 px-6">
+      <section className="pt-[60px] pb-[60px] px-6">
         <div className={LANDING_TOKENS.container}>
-          <div className="text-center mb-16 space-y-4">
+          <div className="text-center mb-5 space-y-4">
             <span className="text-[10px] font-black tracking-[0.3em] uppercase text-[#ff0080]">Editorial BPlen</span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-black">
               Conexões de <span className="text-gray-400">Valor</span>
