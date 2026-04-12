@@ -44,6 +44,7 @@ import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
 import { BookingDetailModal } from "@/components/ui/UserBookings";
 import { submitEvaluationAction } from "@/actions/calendar";
 import Link from "next/link";
+import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
 
 /**
  * Member Dashboard — BPlen HUB 🧬
@@ -192,7 +193,7 @@ export default function MemberDashboardPage() {
         
         <AnimatePresence mode="wait">
           {loading ? (
-            <LoadingView />
+            <AtmosphericLoading />
           ) : (
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -438,18 +439,6 @@ export default function MemberDashboardPage() {
   );
 }
 
-function LoadingView() {
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-white/5 rounded-[3rem]"
-    >
-        <div className="w-8 h-8 border-2 border-t-[var(--accent-start)] border-white/10 rounded-full animate-spin mb-4" />
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Sincronizando Diagnósticos...</p>
-    </motion.div>
-  );
-}
 
 /**
  * MiniCard: Compact Assessment View
