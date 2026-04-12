@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/firebase/firebase-admin";
+import { db } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
 import { JourneyStep, SubStepConfig } from "@/types/journey";
 import { surveys } from "@/config/surveys";
