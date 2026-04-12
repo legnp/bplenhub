@@ -12,26 +12,53 @@ const fs = require('fs');
 const envPath = path.join(process.cwd(), '.env.local');
 if (fs.existsSync(envPath)) {
     const envConfig = fs.readFileSync(envPath, 'utf8');
-    envConfig.split('\n').forEach(line => {
-        const [key, ...valueParts] = line.split('=');
-        if (key && valueParts.length > 0) {
-            process.env[key.trim()] = valueParts.join('=').trim().replace(/^"|"$/g, '');
+    envConfig.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        
+        const index = trimmed.indexOf('=');
+        if (index > 0) {
+            const k = trimmed.substring(0, index).trim();
+            let v = trimmed.substring(index + 1).trim();
+            
+            // Remover aspas de ambos os lados se existirem
+            if (v.startsWith('"') && v.endsWith('"')) {
+                v = v.slice(1, -1);
+            } else if (v.startsWith("'") && v.endsWith("'")) {
+                v = v.slice(1, -1);
+            }
+            
+            // Processar sequências de escape (especialmente \n para o PEM)
+            v = v.replace(/\\n/g, '\n');
+            process.env[k] = v;
+            
+            // Suporte para chaves com prefixo NEXT_PUBLIC_ caso as principais faltem
+            if (k.startsWith('NEXT_PUBLIC_') && !process.env[k.replace('NEXT_PUBLIC_', '')]) {
+                process.env[k.replace('NEXT_PUBLIC_', '')] = v;
+            }
         }
     });
 }
 
-// Inicialização segura usando variáveis de ambiente do Next.js/Firebase
+const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
 if (admin.apps.length === 0) {
     try {
+        if (!projectId) throw new Error("FIREBASE_PROJECT_ID Ausente");
+        
         admin.initializeApp({
             credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                projectId,
+                clientEmail,
+                privateKey,
             })
         });
+        console.log("🛡️ Firebase Admin inicializado com sucesso.");
     } catch (e) {
-        // Fallback para ADC (Application Default Credentials)
+        console.warn("⚠️ Falha na inicialização explícita:", e.message);
+        // Tentar inicialização padrão caso o ambiente já tenha ADC
         admin.initializeApp();
     }
 }
