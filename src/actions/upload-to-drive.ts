@@ -145,6 +145,13 @@ export async function uploadPostEventDocAction(formData: FormData) {
 
     console.log(`✅ [PostEvent Upload] Concluído: ${fileName} | Membro: ${matricula} | Evento: ${eventId}`);
 
+    // Salvar eventFolderUrl no Calendar_Events para o menu do Dashboard 🛰️
+    if (isGeneral) {
+      await db.collection("Calendar_Events").doc(eventId).set({
+        eventFolderUrl: `https://drive.google.com/drive/folders/${targetFolderId}`
+      }, { merge: true });
+    }
+
     return { 
       success: true, 
       url: result.webViewLink, 

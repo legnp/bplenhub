@@ -296,10 +296,17 @@ export default function ProgramacaoResumo() {
 
       {/* ─── Table Header (Desktop) — with sortable columns ─── */}
       <div className="hidden md:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_1.5fr_1fr] gap-4 px-8 py-4 bg-[var(--input-bg)]/30 rounded-2xl border border-[var(--border-primary)] text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
-        <button onClick={() => handleSortToggle("name")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
-          <span>Evento / Tema</span>
-          <SortIcon field="name" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => handleSortToggle("date")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+            <span>Data</span>
+            <SortIcon field="date" />
+          </button>
+          <span className="opacity-20">/</span>
+          <button onClick={() => handleSortToggle("name")} className="flex items-center gap-1.5 hover:text-[var(--accent-start)] transition-colors text-left">
+            <span>Evento</span>
+            <SortIcon field="name" />
+          </button>
+        </div>
         <div>Orientador</div>
         <div>Status</div>
         <button onClick={() => handleSortToggle("nps")} className="flex items-center justify-center gap-1.5 hover:text-[var(--accent-start)] transition-colors">

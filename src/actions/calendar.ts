@@ -1035,6 +1035,9 @@ export async function closeEventAction(
       postEventUpdatedBy: data.updatedBy
     }, { merge: true });
 
+    // Atualizar Snapshot Global imediatamente para refletir no menu 🛰️
+    await updateGlobalProgramacaoRegistryAction();
+
     return { success: true };
   } catch (error) {
     console.error("Erro ao fechar evento (Parte 1):", error);
