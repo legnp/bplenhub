@@ -205,7 +205,6 @@ export default function MemberDashboardPage() {
                              stepStatusMap={progress?.steps ? Object.fromEntries(
                                 Object.entries(progress.steps).map(([k, v]) => [k, v.status])
                              ) : {}}
-                             onSelectStep={setActiveStageId}
                           />
                         )}
                      </div>

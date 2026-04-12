@@ -82,18 +82,17 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, onSelectStep 
                     <motion.div
                       className="flex items-center justify-center"
                       whileHover={{ 
-                        y: [0, -5, 0],
-                        x: [0, 2, -2, 0],
+                        y: [0, -8, 0],
                         rotate: [0, 5, -5, 0],
                         transition: { 
-                          duration: 3, 
+                          duration: 2.5, 
                           repeat: Infinity, 
                           ease: "easeInOut" 
                         }
                       }}
                     >
                       <IconComponent className={cn(
-                        "w-5 h-5",
+                        "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
                         isCurrent && "animate-pulse"
                       )} />
                     </motion.div>
