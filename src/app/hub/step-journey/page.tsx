@@ -14,7 +14,7 @@ import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
  */
 export default function StepJourneyPage() {
   const { user, nickname } = useAuthContext();
-  const { stages, progress, loading, getStepStatus } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading, getStepStatus, getStageTelemetry } = useJourney(user?.uid || "guest");
   const [currentStepId, setCurrentStepId] = useState("onboarding");
 
   useEffect(() => {
