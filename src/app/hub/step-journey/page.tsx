@@ -68,6 +68,7 @@ export default function StepJourneyPage() {
           stages={stages}
           currentStepId={currentStepId} 
           stepStatusMap={statusMap}
+          getStageTelemetry={getStageTelemetry}
           onSelectStep={setCurrentStepId}
         />
       </section>

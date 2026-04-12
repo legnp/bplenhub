@@ -31,12 +31,16 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
 
   return (
     <section className="min-h-screen pt-12 pb-24 px-4 sm:px-8 bg-[var(--bg-primary)] animate-in fade-in duration-700">
-      {/* Horizontal Multi-Step Navigator */}
-      <JourneyNav 
-        stages={stages}
-        currentStepId={currentStepId} 
-        stepStatusMap={statusMap} 
-      />
+        <div className="max-w-7xl mx-auto px-6">
+          <JourneyNav 
+             stages={stages}
+             currentStepId={currentStepId} 
+             stepStatusMap={progress?.steps ? Object.fromEntries(
+                Object.entries(progress.steps).map(([k, v]) => [k, v.status])
+             ) : {}}
+             getStageTelemetry={getStageTelemetry}
+          />
+        </div>
 
       <div className="flex-1 w-full max-w-7xl mx-auto">
         {children}
