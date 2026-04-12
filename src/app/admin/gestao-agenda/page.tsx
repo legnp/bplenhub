@@ -57,7 +57,7 @@ export default function GestaoAgendaPage() {
              </div>
              <div>
                 PROGRAMAÇÃO <span className="text-[var(--accent-start)] italic">HUB</span>
-                <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mt-1 block">Controle Center — Operações Administrativas</p>
+                <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mt-1 block">Gestão de programação e agenda BPlen HUB</p>
              </div>
           </h1>
         </div>
@@ -102,20 +102,6 @@ export default function GestaoAgendaPage() {
           </div>
         )}
       </div>
-
-      {/* Info Help */}
-      <div className="p-6 bg-[var(--accent-soft)]/30 border border-[var(--border-primary)] rounded-[2.5rem] flex gap-4 text-[var(--text-muted)] shadow-sm">
-        <div className="w-10 h-10 bg-[var(--accent-start)]/10 rounded-2xl flex items-center justify-center text-[var(--accent-start)] shrink-0">
-           <Info className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-           <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Governança Integrada</p>
-           <p className="text-[11px] font-medium leading-relaxed italic opacity-70">
-              O fluxo de fechamento de eventos foi unificado. Agora, todas as operações de governança e análise de resultados estão concentradas na aba principal "Gestão de Programação".
-           </p>
-        </div>
-      </div>
     </div>
   );
 }
-

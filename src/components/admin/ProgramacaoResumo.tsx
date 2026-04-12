@@ -230,7 +230,7 @@ export default function ProgramacaoResumo() {
     <div className="space-y-4">
       {/* Header Row */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)] ml-2">Snapshot Global de Programação</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)] ml-2">Resumo da programação</p>
         <button 
           onClick={async () => {
              if (confirm("Deseja recalcular todas as métricas históricas? Isso pode levar alguns segundos.")) {
