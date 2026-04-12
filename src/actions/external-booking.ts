@@ -28,11 +28,16 @@ export interface TimeSlot {
   summary: string;
 }
 
+export interface PublicSlotsResponse {
+  slots: TimeSlot[];
+  blockers: { start: string; end: string }[];
+}
+
 /**
  * Busca slots disponíveis para agendamento público (1 to 1).
  * Agora baseia-se nos eventos já sincronizados na coleção Calendar_Events via Admin SDK.
  */
-export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]> {
+export async function getPublicSlotsAction(dateStr: string): Promise<PublicSlotsResponse> {
   try {
     const db = getAdminDb();
     const targetDate = parseISO(dateStr);
@@ -46,35 +51,64 @@ export async function getPublicSlotsAction(dateStr: string): Promise<TimeSlot[]>
       .orderBy("start", "asc")
       .get();
 
+    const slotsData: any[] = [];
+    const blockerEvents: any[] = [];
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data();
+      const summary = (data.summary || "").toLowerCase();
+      
+      if (summary.includes("1 to 1")) {
+        slotsData.push({ id: docSnap.id, ...data });
+      } else {
+        blockerEvents.push({ id: docSnap.id, ...data });
+      }
+    });
+
     const slots: TimeSlot[] = [];
     const now = new Date();
     const minAllowedTime = addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
 
-    snap.forEach((docSnap) => {
-      const data = docSnap.data();
-      const summary = data.summary || "";
-      
-      if (summary.toLowerCase().includes("1 to 1")) {
-        const startTime = parseISO(data.start);
-        const registered = data.registeredCount || 0;
-        const capacity = data.totalCapacity || 1;
+    for (const slot of slotsData) {
+      const startTime = parseISO(slot.start);
+      const endTime = parseISO(slot.end);
+      const registered = slot.registeredCount || 0;
+      const capacity = slot.totalCapacity || 1;
 
-        const isAvailable = registered < capacity && isAfter(startTime, minAllowedTime);
+      // Regra 1: Capacidade e Antecedência Mínima
+      let isAvailable = registered < capacity && isAfter(startTime, minAllowedTime);
 
-        slots.push({
-          id: docSnap.id,
-          start: data.start,
-          end: data.end,
-          summary: data.summary,
-          available: isAvailable
+      // Regra 2: Resolução de Conflitos (Bloqueadores Externos)
+      // Um slot 1 to 1 é invalidado se houver qualquer outro evento no mesmo horário
+      if (isAvailable && blockerEvents.length > 0) {
+        const hasConflict = blockerEvents.some(blocker => {
+          const bStart = parseISO(blocker.start);
+          const bEnd = parseISO(blocker.end);
+          // Sobreposição: (InicioA < FimB) && (InicioB < FimA)
+          return isBefore(startTime, bEnd) && isBefore(bStart, endTime);
         });
-      }
-    });
 
-    return slots;
+        if (hasConflict) {
+          isAvailable = false;
+        }
+      }
+
+      slots.push({
+        id: slot.id,
+        start: slot.start,
+        end: slot.end,
+        summary: slot.summary,
+        available: isAvailable
+      });
+    }
+
+    return {
+      slots,
+      blockers: blockerEvents.map(b => ({ start: b.start, end: b.end }))
+    };
   } catch (error: unknown) {
     console.error("Erro ao buscar slots públicos unificados:", error);
-    return [];
+    return { slots: [], blockers: [] };
   }
 }
 
@@ -143,22 +177,52 @@ export async function getPublicAvailableDaysAction(): Promise<string[]> {
       .orderBy("start", "asc")
       .get();
 
-    const availableDaysSet = new Set<string>();
+    const eventsByDay: Record<string, any[]> = {};
     const minAllowedTime = addDays(now, CALENDAR_CONFIG.PUBLIC_BOOKING_SETTINGS.minDaysInFuture);
 
     snap.forEach((doc) => {
       const data = doc.data();
-      const summary = data.summary || "";
-      if (summary.toLowerCase().includes("1 to 1")) {
-        const startTime = parseISO(data.start);
-        const registered = data.registeredCount || 0;
-        const capacity = data.totalCapacity || 1;
-
-        if (registered < capacity && isAfter(startTime, minAllowedTime)) {
-          availableDaysSet.add(formatISO(startOfDay(startTime), { representation: 'date' }));
-        }
+      const startTime = parseISO(data.start);
+      // Agrupar por data YYYY-MM-DD
+      const dayKey = formatISO(startOfDay(startTime), { representation: 'date' });
+      
+      if (!eventsByDay[dayKey]) {
+        eventsByDay[dayKey] = [];
       }
+      eventsByDay[dayKey].push({ id: doc.id, ...data });
     });
+
+    const availableDaysSet = new Set<string>();
+
+    for (const [dayKey, dayEvents] of Object.entries(eventsByDay)) {
+      const slots = dayEvents.filter(e => (e.summary || "").toLowerCase().includes("1 to 1"));
+      const blockers = dayEvents.filter(e => !(e.summary || "").toLowerCase().includes("1 to 1"));
+
+      // Um dia só é disponível se tiver ao menos um slot 1-to-1 livre e sem conflito
+      const hasRealAvailability = slots.some(slot => {
+        const startTime = parseISO(slot.start);
+        const endTime = parseISO(slot.end);
+        const registered = slot.registeredCount || 0;
+        const capacity = slot.totalCapacity || 1;
+
+        // 1. Verificação básica
+        const isBasicAvailable = registered < capacity && isAfter(startTime, minAllowedTime);
+        if (!isBasicAvailable) return false;
+
+        // 2. Verificação de conflito com bloqueadores do mesmo dia
+        const hasConflict = blockers.some(blocker => {
+          const bStart = parseISO(blocker.start);
+          const bEnd = parseISO(blocker.end);
+          return isBefore(startTime, bEnd) && isBefore(bStart, endTime);
+        });
+
+        return !hasConflict;
+      });
+
+      if (hasRealAvailability) {
+        availableDaysSet.add(dayKey);
+      }
+    }
 
     return Array.from(availableDaysSet);
   } catch (error) {

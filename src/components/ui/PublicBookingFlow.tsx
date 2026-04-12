@@ -21,7 +21,9 @@ import {
   isSaturday,
   isSunday,
   setHours,
-  setMinutes
+  setMinutes,
+  differenceInDays,
+  addMinutes
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -150,9 +152,9 @@ export function PublicBookingFlow() {
 
   const [availableDays, setAvailableDays] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(addDays(new Date(), 1));
+  const [selectedDate, setSelectedDate] = useState(addDays(startOfDay(new Date()), 3));
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [currentDayBlockers, setCurrentDayBlockers] = useState<{ start: string; end: string }[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -180,7 +182,8 @@ export function PublicBookingFlow() {
     setSelectedSlot(null);
     try {
       const res = await getPublicSlotsAction(format(date, "yyyy-MM-dd"));
-      setSlots(res);
+      setSlots(res.slots);
+      setCurrentDayBlockers(res.blockers);
     } catch (err) {
       console.error(err);
       setError("Erro ao carregar horários. Tente novamente.");
@@ -634,7 +637,8 @@ export function PublicBookingFlow() {
                           <button
                             onClick={() => {
                               const dayStart = startOfDay(day);
-                              const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                              const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
+                              const isOutsideRange = diffDays < 3 || diffDays > 33;
 
                               if (isProposalMode) {
                                 // Em modo proposta, apenas dias úteis E dentro do range 3-33
@@ -649,12 +653,13 @@ export function PublicBookingFlow() {
                             }}
                             disabled={(() => {
                               const dayStart = startOfDay(day);
-                              const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                              const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
+                              const isOutsideRange = diffDays < 3 || diffDays > 33;
 
                               if (isProposalMode) {
                                 return isSaturday(day) || isSunday(day) || isOutsideRange;
                               }
-                              return !isAvailable && !isSelected;
+                              return isOutsideRange || (!isAvailable && !isSelected);
                             })()}
                             className={`relative flex flex-col items-center justify-center aspect-square rounded-xl transition-all duration-300 border m-auto w-full max-w-[36px]
                                        ${isSelected
@@ -664,12 +669,13 @@ export function PublicBookingFlow() {
                                   : isProposalMode
                                     ? (() => {
                                       const dayStart = startOfDay(day);
-                                      const isOutsideRange = isBefore(dayStart, minMaxDates.min) || isBefore(minMaxDates.max, dayStart);
+                                      const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
+                                      const isOutsideRange = diffDays < 3 || diffDays > 33;
                                       return (!isSaturday(day) && !isSunday(day) && !isOutsideRange)
                                         ? isCurrentMonth ? "text-[var(--text-primary)] bg-[var(--input-bg)] border-[var(--input-border)] hover:border-[var(--accent-start)]/50" : "text-[var(--text-muted)] opacity-20 border-transparent"
                                         : "opacity-10 cursor-not-allowed cursor-default";
                                     })()
-                                    : isAvailable
+                                    : isAvailable && !isOutsideRange
                                       ? isCurrentMonth ? "text-[var(--text-primary)] bg-[var(--input-bg)] border-[var(--input-border)] hover:border-[var(--accent-start)]/50" : "text-[var(--text-muted)] opacity-20 border-transparent"
                                       : "text-[var(--text-muted)] opacity-10 border-transparent cursor-default"
                               }`}
@@ -740,16 +746,30 @@ export function PublicBookingFlow() {
                           proposalSlots.map((time) => {
                             const dateStr = format(selectedDate, "yyyy-MM-dd");
                             const isSelectedOption = proposalOptions.some(o => o.date === dateStr && o.time === time);
+                            
+                            // Check conflict with blockers
+                            const propStart = parseISO(`${dateStr}T${time}:00`);
+                            const propEnd = addMinutes(propStart, 45); // Reunião de 45 min
+                            
+                            const hasConflict = currentDayBlockers.some(b => {
+                              const bStart = parseISO(b.start);
+                              const bEnd = parseISO(b.end);
+                              return isBefore(propStart, bEnd) && isBefore(bStart, propEnd);
+                            });
+
                             return (
                               <button
                                 key={time}
+                                disabled={hasConflict}
                                 onClick={() => toggleProposalOption(time)}
                                 className={`py-2 rounded-xl text-xs font-black transition-all border flex flex-col items-center justify-center
+                                           ${hasConflict ? "opacity-10 cursor-not-allowed grayscale" : "cursor-pointer"}
                                            ${isSelectedOption
                                     ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white shadow-lg"
-                                    : "bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30"}`}
+                                    : hasConflict ? "bg-[var(--input-bg)]/50 border-transparent" : "bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30"}`}
                               >
                                 {time}
+                                {hasConflict && <span className="text-[7px] mt-0.5 opacity-50">OCUPADO</span>}
                               </button>
                             );
                           })
