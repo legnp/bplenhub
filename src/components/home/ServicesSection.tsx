@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { User, Building2, Handshake, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { LANDING_TOKENS } from "@/constants/landing-tokens";
 
 const services = [
@@ -12,6 +13,7 @@ const services = [
     description: "Consultoria e gestão de carreira com métodos práticos, através de trilhas de desenvolvimento e posicionamento para profissionais que querem elevar sua performance e relevância.",
     icon: User,
     color: "#ff0080",
+    href: "/servicos/pessoas"
   },
   {
     id: "business",
@@ -20,6 +22,7 @@ const services = [
     description: "Consultoria e serviços de HRBP nos pilares de Employee Experience, People Analytics e Clima e Cultura para impulsionar a performance organizacional.",
     icon: Building2,
     color: "#c026d3",
+    href: "/servicos/empresas"
   },
   {
     id: "partners",
@@ -28,6 +31,7 @@ const services = [
     description: "Parcerias estratégicas através de projetos e ativações em conjunto para ampliar escala e impulsionar o empreendedorismo.",
     icon: Handshake,
     color: "#7928ca",
+    href: "/servicos/parceiros"
   }
 ];
 
@@ -108,14 +112,17 @@ export function ServicesSection() {
                 </div>
 
                 {/* Simple Link/Arrow */}
-                <div className="mt-10 flex items-center gap-2 text-white/40 group-hover:text-white transition-all duration-500 group-hover:gap-4">
-                  <span className={LANDING_TOKENS.card.kicker + " opacity-0 group-hover:opacity-100 transition-all duration-500 mb-0"}>
+                <Link 
+                  href={service.href}
+                  className="mt-10 flex items-center gap-2 text-white/40 group-hover:text-white transition-all duration-500 group-hover:gap-4 w-fit"
+                >
+                  <span className={LANDING_TOKENS.card.kicker + " opacity-0 group-hover:opacity-100 transition-all duration-500 mb-0 pointer-events-none"}>
                     Saiba mais
                   </span>
                   <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[var(--accent-start)] transition-colors">
                     <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                   </div>
-                </div>
+                </Link>
 
                 {/* Border Bottom Light */}
                 <div 

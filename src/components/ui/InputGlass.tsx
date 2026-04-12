@@ -11,7 +11,7 @@ interface InputGlassProps extends React.InputHTMLAttributes<HTMLInputElement> {
  * InputGlass (Átomo UI 💎)
  * Campo de texto translúcido com design system Apple IOS Pro.
  */
-export const InputGlass = ({ label, className = "", ...props }: InputGlassProps) => {
+export const InputGlass = ({ label, required, className = "", ...props }: InputGlassProps) => {
   return (
     <div className="w-full flex flex-col gap-1.5">
       {label && (
