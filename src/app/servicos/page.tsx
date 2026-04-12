@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 const audiences = [
   {
     id: "pessoas",
-    title: "Pessoas",
+    title: "Para Pessoas",
     subtitle: "Desenvolvimento Individual",
     description: "Metodologias ágeis de carreira, liderança e autoconhecimento para você chegar ao próximo nível.",
     icon: <User className="w-10 h-10 text-[#ff0080]" />,
@@ -31,7 +31,7 @@ const audiences = [
   },
   {
     id: "empresas",
-    title: "Empresas",
+    title: "Para Empresas",
     subtitle: "HRBP as a Service",
     description: "Transformamos o seu RH em um parceiro estratégico para escalar performance, cultura e resultados.",
     icon: <Users className="w-10 h-10 text-[#667eea]" />,
@@ -40,8 +40,8 @@ const audiences = [
   },
   {
     id: "parceiros",
-    title: "Parceiros",
-    subtitle: "Co-criação de Valor",
+    title: "Para Parceiros",
+    subtitle: "Sinergia de alto valor",
     description: "Projetos especiais, palestras e parcerias para transformar o mercado de desenvolvimento juntos.",
     icon: <Handshake className="w-10 h-10 text-[#ff0080]" />,
     color: "from-[#ff0080]/10 to-transparent",
@@ -70,7 +70,7 @@ export default function ServicesGatekeeperPage() {
               Como podemos <span className="text-gray-500">te apoiar hoje?</span>
             </h1>
             <p className={LANDING_TOKENS.header.descriptionCentered}>
-              Selecione o seu perfil para visualizar as soluções customizadas que preparamos para o seu momento.
+              Selecione o seu perfil para visualizar as soluções customizadas que preparamos para a sua jornada.
             </p>
           </div>
         </div>

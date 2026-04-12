@@ -29,7 +29,7 @@ export function HeroSection() {
           className="flex justify-center"
         >
           <button 
-            onClick={() => document.getElementById('services-section')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => window.dispatchEvent(new Event("open-service-modal"))}
             className="group flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-[1.02]"
             aria-label="Clique aqui para descomplicar o desenvolvimento humano no trabalho"
           >

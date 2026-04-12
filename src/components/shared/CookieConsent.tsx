@@ -70,10 +70,10 @@ export default function CookieConsent() {
 
               <div className="space-y-3">
                 <h3 className="text-xl font-black text-[var(--text-primary)] tracking-tight">
-                  Sua Privacidade é <span className="text-[var(--accent-primary)]">Soberana</span>.
+                  Sua privacidade é nossa <span className="text-[var(--accent-primary)]">prioridade</span>.
                 </h3>
                 <p className="text-[11px] leading-relaxed text-[var(--text-secondary)] font-medium opacity-80">
-                  Utilizamos cookies essenciais para garantir que o **BPlen HUB** funcione com segurança e inteligência. 
+                  Utilizamos cookies essenciais para garantir que o BPlen HUB funcione com segurança e inteligência. 
                   Ao aceitar, você nos ajuda a entender como o ecossistema está evoluindo através de métricas anônimas.
                 </p>
               </div>

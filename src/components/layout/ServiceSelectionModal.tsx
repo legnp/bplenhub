@@ -31,8 +31,8 @@ const audiences = [
   },
   {
     id: "parceiros",
-    title: "Parceiros",
-    subtitle: "Ecossistema de Valor",
+    title: "Para Parceiros",
+    subtitle: "Sinergia de alto valor",
     description: "Projetos especiais e co-criação de alto impacto.",
     icon: <Handshake className="w-6 h-6 text-[#ff0080]" />,
     href: "/servicos/parceiros",
@@ -55,7 +55,7 @@ export function ServiceSelectionModal({ isOpen, onClose }: ServiceSelectionModal
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-xl transition-all"
+            className="absolute inset-0 bg-black/20 backdrop-blur-3xl transition-all"
           />
 
           {/* Modal Content */}
@@ -68,7 +68,7 @@ export function ServiceSelectionModal({ isOpen, onClose }: ServiceSelectionModal
             {/* Header */}
             <div className="p-10 pb-6 flex items-center justify-between border-b border-white/5">
                <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff0080]">Selecione seu momento</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ff0080]">Selecione sua jornada</span>
                   <h2 className="text-3xl font-black tracking-tighter text-white">Como podemos <span className="text-gray-500">te apoiar?</span></h2>
                </div>
                <button 
@@ -109,7 +109,7 @@ export function ServiceSelectionModal({ isOpen, onClose }: ServiceSelectionModal
             {/* Footer Footer */}
             <div className="p-8 bg-white/[0.02] border-t border-white/5 text-center">
                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
-                  Foco em inteligência estratégica e desenvolvimento humano de elite.
+                  Foco em estratégia e desenvolvimento humano prático.
                </p>
             </div>
           </motion.div>

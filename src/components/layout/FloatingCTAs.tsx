@@ -21,6 +21,13 @@ export function FloatingCTAs() {
   const { user, isLoggingIn, signInWithGoogle } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = React.useState(false);
+
+  // Escutar evento global para abrir o modal de serviços
+  React.useEffect(() => {
+    const handleOpenModal = () => setIsServiceModalOpen(true);
+    window.addEventListener("open-service-modal", handleOpenModal);
+    return () => window.removeEventListener("open-service-modal", handleOpenModal);
+  }, []);
   
   const isHomePage = pathname === "/";
 
