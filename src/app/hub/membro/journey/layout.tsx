@@ -17,7 +17,7 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
   const currentStepId = pathname.split('/').pop() || "onboarding";
   
 // Progress tracker
-  const { stages, progress, loading: journeyLoading, getStepStatus } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading: journeyLoading, getStepStatus, getStageTelemetry } = useJourney(user?.uid || "guest");
 
   if (authLoading || journeyLoading) {
     return <AtmosphericLoading />;

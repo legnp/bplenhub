@@ -54,7 +54,7 @@ export default function MemberDashboardPage() {
   const [loadingBookings, setLoadingBookings] = useState(true);
 
   // Journey Integration
-  const { stages, progress, loading: loadingJourney } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading: loadingJourney, getStageTelemetry } = useJourney(user?.uid || "guest");
   const [activeStageId, setActiveStageId] = useState<string>("onboarding");
 
   // Dashboard Agenda Modal (Reuse)
