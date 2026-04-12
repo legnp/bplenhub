@@ -74,30 +74,14 @@ export function HubHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-[100] w-full px-6 py-4 flex items-center justify-between backdrop-blur-xl border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/80">
+    <header className="sticky top-0 z-[100] w-full px-6 py-4 flex items-center justify-between bg-transparent border-none">
       
-      {/* Esquerda: Navegação & Logo */}
+      {/* Esquerda: Branding */}
       <div className="flex items-center gap-4">
-         <AnimatePresence mode="wait">
-            {isSubPage && (
-              <motion.div
-                key="back-button"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-              >
-                <Link 
-                  href={pathname.startsWith("/admin") ? "/admin" : "/hub"} 
-                  className="p-3 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all hover:bg-[var(--accent-soft)] flex items-center gap-2 group"
-                >
-                  <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Voltar</span>
-                </Link>
-              </motion.div>
-            )}
-         </AnimatePresence>
-
-         <Link href="/hub" className="text-lg font-bold tracking-tighter text-[var(--text-primary)]">
+         <Link 
+            href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro/dashboard"} 
+            className="text-lg font-bold tracking-tighter text-[var(--text-primary)] hover:opacity-80 transition-opacity"
+         >
             BPlen <span className="gradient-accent bg-clip-text text-transparent italic text-lg">HUB</span>
          </Link>
       </div>

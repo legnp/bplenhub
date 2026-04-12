@@ -8,7 +8,6 @@ import {
   getGestaoTempoResult, 
   getAprendizadoResult, 
   getReconhecimentoResult,
-  getPreAnaliseComportamentalResult,
   getDiscResult
 } from "@/actions/get-user-results";
 import { getUserBookingsAction } from "@/actions/calendar";
@@ -16,30 +15,23 @@ import { UserBooking } from "@/types/calendar";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Clock, 
-  MessageCircle, 
-  AlertCircle, 
   Sparkles, 
   Heart, 
   Compass, 
   Target, 
   Brain, 
-  FileDown, 
   Loader2,
-  FileText,
-  CheckCircle2,
   ExternalLink,
-  ClipboardList,
   CalendarDays,
   Eye,
   Briefcase
 } from "lucide-react";
 import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
-import { format, parseISO, isBefore, isAfter } from "date-fns";
+import { parseISO, isBefore, isAfter, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useJourney } from "@/hooks/useJourney";
 import { JourneyNav } from "@/components/journey/JourneyNav";
-import { StageOverviewCard } from "@/components/journey/StageOverviewCard";
 import { BookingDetailModal } from "@/components/ui/UserBookings";
 import { submitEvaluationAction } from "@/actions/calendar";
 import Link from "next/link";
@@ -62,7 +54,7 @@ export default function MemberDashboardPage() {
   const [loadingBookings, setLoadingBookings] = useState(true);
 
   // Journey Integration
-  const { stages, progress, loading: loadingJourney, getStepStatus } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading: loadingJourney } = useJourney(user?.uid || "guest");
   const [activeStageId, setActiveStageId] = useState<string>("onboarding");
 
   // Dashboard Agenda Modal (Reuse)
@@ -74,7 +66,6 @@ export default function MemberDashboardPage() {
     setIsEvaluating_Dashboard(id);
     try {
        await submitEvaluationAction(matricula, id, r, f, user.uid);
-       // Sincronizar localmente se necessário ou recarregar
        const bookings = await getUserBookingsAction(matricula);
        const completed = bookings.filter(b => b.eventLifecycleStatus === 'completed' || isBefore(parseISO(b.eventDetail?.start || ""), new Date()));
        setHistoryBookings(completed);
@@ -98,8 +89,6 @@ export default function MemberDashboardPage() {
     
     async function load() {
       try {
-        console.log("🔍 [MemberDashboard] Iniciando carga resiliente para UID:", user!.uid);
-        
         const results = await Promise.allSettled([
           getGestaoTempoResult(user!.uid, user!.email || ''),
           getAprendizadoResult(user!.uid, user!.email || ''),
@@ -107,36 +96,25 @@ export default function MemberDashboardPage() {
           getDiscResult(user!.uid, user!.email || '')
         ]);
 
-        // Processar resultados individualmente
         results.forEach((res, index) => {
-          const names = ["Gestão do Tempo", "Aprendizado", "Reconhecimento", "DISC"];
-          const name = names[index];
-
           if (res.status === "fulfilled") {
             const data = res.value;
-            console.log(`✅ [ResultadosPage] ${name}: Carregado com sucesso.`, data ? "Docs existem." : "Sem docs.");
-            
             if (index === 0) setGestaoResult(data);
             if (index === 1) setAprendizadoResult(data);
             if (index === 2) setReconhecimentoResult(data);
             if (index === 3) setDiscResult(data);
-          } else {
-            console.error(`❌ [ResultadosPage] ${name}: Falha crítica na Server Action. Motivo:`, res.reason);
           }
         });
-
       } catch (error) {
-        console.error("🚨 [ResultadosPage] Erro inesperado no orquestrador:", error);
+        console.error("🚨 [MemberDashboard] Erro inesperado:", error);
       } finally {
         setLoading(false);
       }
 
-      // Carga do Histórico (Bookings)
       setLoadingBookings(true);
       try {
         if (matricula) {
            const bookings = await getUserBookingsAction(matricula);
-           // Filtrar apenas concluídos e com presença (opcional, pode mostrar todos os passados)
            const completed = bookings.filter(b => b.eventLifecycleStatus === 'completed' || isBefore(parseISO(b.eventDetail?.start || ""), new Date()));
            setHistoryBookings(completed);
         }
@@ -149,7 +127,7 @@ export default function MemberDashboardPage() {
     load();
   }, [user]);
 
-  // Mapeamento dinâmico para os gráficos (conforme estrutura do Firestore)
+  // Mapeamentos de dados
   const triadData = gestaoResult?.scores ? [
     { label: 'Importância', percentage: gestaoResult.scores.importancia?.percentage || 0, color: '#ec4899' },
     { label: 'Urgência', percentage: gestaoResult.scores.urgencia?.percentage || 0, color: '#facc15' },
@@ -194,18 +172,18 @@ export default function MemberDashboardPage() {
         
         <AnimatePresence mode="wait">
           {loading ? (
-            <AtmosphericLoading />
+            <AtmosphericLoading key="loading" />
           ) : (
             <motion.div 
+              key="content"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-12"
             >
-              {/* Journey Header (100% width) */}
-              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all hover:shadow-xl hover:shadow-[var(--accent-primary)]/5">
-                  {/* Decorative Background - Encapsulamento para não cortar sombras do conteúdo */}
+              {/* Journey Header */}
+              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm">
                   <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
-                    <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <div className="absolute top-0 right-0 p-12 opacity-5">
                        <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
                     </div>
                   </div>
@@ -219,7 +197,6 @@ export default function MemberDashboardPage() {
                         <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard do seu desenvolvimento</h2>
                      </div>
 
-                     {/* Journey Navigation (Horizontal Stepper) */}
                      <div className="pt-4">
                         {stages.length > 0 && (
                           <JourneyNav 
@@ -236,108 +213,99 @@ export default function MemberDashboardPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
-                
+                {/* Barra Lateral: Laboratório de Assessments 🧪 */}
                 <aside className="space-y-6">
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--text-muted)] px-6">Perfil & Assessments</h3>
-                  
-                  {/* Assessment DISC (Lógica Híbrida 🧬🚀) */}
-                  <div className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group shadow-sm ${!discResult ? 'opacity-60 grayscale' : 'hover:translate-y-[-4px] hover:shadow-xl hover:shadow-blue-500/5'}`}>
-                     <div className="flex items-center justify-between mb-4 relative z-10">
-                        <div className="flex flex-col">
-                           <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Assessment DISC</span>
-                           <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Perfil Comportamental</h4>
+                  <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-8 shadow-sm relative overflow-hidden group">
+                     {/* Header do Laboratório */}
+                     <div className="flex items-center gap-4 mb-2">
+                        <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-blue-500">
+                           <Brain size={20} />
                         </div>
-                        {discResult?.isReleased === false ? (
-                           <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
-                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                              <span className="text-[7px] font-black uppercase tracking-[0.15em] text-amber-600">
-                                Diagnóstico Ativo
-                              </span>
+                        <div className="flex flex-col text-left">
+                           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Perfil & Assessments</h3>
+                           <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Análise Metódica</p>
+                        </div>
+                     </div>
+
+                     <div className="space-y-6 relative z-10">
+                        {/* Lâmina 01: DISC */}
+                        <div className={`p-8 bg-[var(--input-bg)]/20 border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group/blade ${!discResult ? 'opacity-60 grayscale' : 'hover:bg-[var(--input-bg)]/40 hover:border-blue-500/30'}`}>
+                           <div className="flex items-center justify-between mb-4 relative z-10">
+                              <div className="flex flex-col">
+                                 <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Lâmina 01</span>
+                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Comportamental DISC</h4>
+                              </div>
+                              {discResult?.isReleased === false ? (
+                                 <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                    <span className="text-[7px] font-black uppercase tracking-[0.15em] text-amber-600">Ativo</span>
+                                 </div>
+                              ) : discResult ? (
+                                 <div className="flex items-center gap-2 px-2.5 py-1 bg-green-500/10 border border-green-500/10 rounded-full">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                    <span className="text-[7px] font-black uppercase tracking-[0.15em] text-green-600">Analisado</span>
+                                 </div>
+                              ) : null}
                            </div>
-                        ) : discResult ? (
-                           <div className="flex items-center gap-2 px-2.5 py-1 bg-green-500/10 border border-green-500/10 rounded-full">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                              <span className="text-[7px] font-black uppercase tracking-[0.15em] text-green-600">
-                                Concluído
-                              </span>
-                           </div>
-                        ) : (
-                           <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--bg-primary)] border border-[var(--border-primary)] text-[var(--text-muted)] opacity-50">Manual</span>
+
+                           {discResult ? (
+                              <div className="space-y-6 relative z-10">
+                                 <DiscChart data={discData} mini />
+                              </div>
+                           ) : (
+                              <div className="w-24 h-24 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
+                                 <Brain size={20} className="text-[var(--text-muted)] opacity-20" />
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Lâmina 02: Tempo */}
+                        {gestaoResult && (
+                           <MiniCard 
+                              title="Gestão do Tempo" 
+                              subtitle="Lâmina 02 / Tríade" 
+                              isReleased={gestaoResult.isReleased !== false}
+                              submittedAt={gestaoResult.submittedAt}
+                              icon={<Clock size={14} className="text-[var(--accent-start)]" />}
+                              chart={<TriadDonutChart data={triadData} mini />}
+                              data={triadData} 
+                           />
+                        )}
+
+                        {/* Lâmina 03: Aprendizado */}
+                        {aprendizadoResult && (
+                           <MiniCard 
+                              title="Aprendizado" 
+                              subtitle="Lâmina 03 / VACD" 
+                              isReleased={aprendizadoResult.isReleased !== false}
+                              submittedAt={aprendizadoResult.submittedAt}
+                              icon={<Sparkles size={14} className="text-[var(--accent-start)]" />}
+                              chart={<TriadDonutChart data={vacdData} mini />}
+                              data={vacdData}
+                           />
+                        )}
+
+                        {/* Lâmina 04: Reconhecimento */}
+                        {reconhecimentoResult && (
+                           <MiniCard 
+                              title="Reconhecimento" 
+                              subtitle="Lâmina 04 / Premiações" 
+                              isReleased={reconhecimentoResult.isReleased !== false}
+                              submittedAt={reconhecimentoResult.submittedAt}
+                              icon={<Target size={14} className="text-[var(--accent-start)]" />}
+                              chart={<StackedBarChart data={reconhecimentoData} />}
+                              data={reconhecimentoData}
+                           />
                         )}
                      </div>
 
-                     {discResult ? (
-                        <div className="space-y-6 relative z-10">
-                           <DiscChart data={discData} mini />
-                           
-                           {discResult.file?.fileId && (
-                              <button 
-                                onClick={async () => {
-                                  if (!user) return;
-                                  const token = await user.getIdToken();
-                                  window.open(`/api/docs/${discResult.file.fileId}?token=${token}`, "_blank");
-                                }}
-                                className="w-full py-3.5 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 mt-4"
-                              >
-                                <FileDown size={14} />
-                                Relatório Completo PDF
-                              </button>
-                           )}
-                        </div>
-                     ) : (
-                        <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
-                           <Brain size={24} className="text-[var(--text-muted)] opacity-20" />
-                        </div>
-                     )}
-                     
-                     {/* Decorative Background */}
-                     {discResult && <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />}
+                     <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
                   </div>
-
-                  {/* Gestão do Tempo */}
-                  {gestaoResult && (
-                     <MiniCard 
-                        title="Gestão do Tempo" 
-                        subtitle="Tríade do Tempo" 
-                        isReleased={gestaoResult.isReleased !== false}
-                        submittedAt={gestaoResult.submittedAt}
-                        icon={<Clock size={14} className="text-[var(--accent-start)]" />}
-                        chart={<TriadDonutChart data={triadData} mini />}
-                        data={triadData} 
-                     />
-                  )}
-
-                  {/* Aprendizado (VACD) */}
-                  {aprendizadoResult && (
-                     <MiniCard 
-                        title="Preferências de Aprendizado" 
-                        subtitle="Mapeamento VACD" 
-                        isReleased={aprendizadoResult.isReleased !== false}
-                        submittedAt={aprendizadoResult.submittedAt}
-                        icon={<Sparkles size={14} className="text-[var(--accent-start)]" />}
-                        chart={<TriadDonutChart data={vacdData} mini />}
-                        data={vacdData}
-                     />
-                  )}
-
-                  {/* Linguagens de Reconhecimento */}
-                  {reconhecimentoResult && (
-                     <MiniCard 
-                        title="Linguagens de Reconhecimento" 
-                        subtitle="Análise Premiações" 
-                        isReleased={reconhecimentoResult.isReleased !== false}
-                        submittedAt={reconhecimentoResult.submittedAt}
-                        icon={<Target size={14} className="text-[var(--accent-start)]" />}
-                        chart={<StackedBarChart data={reconhecimentoData} />}
-                        data={reconhecimentoData}
-                     />
-                  )}
                 </aside>
 
-                {/* Main: Journey Outcomes Card & Minimized History */}
+                {/* Coluna Principal: Agenda & Outras Funções */}
                 <div className="space-y-8 flex flex-col">
-                   
-                   {/* Informative Minimized History */}
+                   {/* Card de Agenda */}
                    <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
                       <div className="flex items-center gap-4">
                          <div className="p-3 bg-[var(--accent-start)]/10 rounded-2xl border border-[var(--accent-start)]/20 text-[var(--accent-start)]">
@@ -362,34 +330,35 @@ export default function MemberDashboardPage() {
                               </p>
                            </div>
                         ) : (
-                           // Mostra apenas o evento mais significativo (Ex: Próximo ou Último)
                            <div className="space-y-4">
-                              <OutcomeCard 
-                                 booking={
-                                    historyBookings.find(b => isAfter(parseISO(b.eventDetail?.start || ""), new Date())) 
-                                    || historyBookings[0]
-                                 } 
-                                 onDownload={handleDownload} 
-                                 onViewDetails={(b) => setSelectedBooking_Dashboard(b)}
-                                 compact
-                              />
-                              
-                              <Link 
-                                 href="/hub/membro/gestao_agenda"
-                                 className="w-full py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:scale-[1.01] transition-all shadow-lg"
-                              >
-                                 Gestão de Agenda completa
-                                 <ExternalLink size={12} />
-                              </Link>
+                              <div className="space-y-4">
+                               <OutcomeCard 
+                                  booking={
+                                     historyBookings.find(b => isAfter(parseISO(b.eventDetail?.start || ""), new Date())) 
+                                     || historyBookings[0]
+                                  } 
+                                  onDownload={handleDownload} 
+                                  onViewDetails={(b) => setSelectedBooking_Dashboard(b)}
+                                  compact
+                               />
+                               
+                               <Link 
+                                  href="/hub/membro/gestao_agenda"
+                                  className="w-full py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:scale-[1.01] transition-all shadow-lg"
+                               >
+                                  Gestão de Agenda completa
+                                  <ExternalLink size={12} />
+                               </Link>
+                              </div>
                            </div>
                         )}
                       </div>
                    </div>
 
-                   {/* Módulo Gestão de Carreira (Em Desenvolvimento) */}
+                   {/* Módulo Gestão de Carreira */}
                    <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
                       <div className="flex items-center gap-4">
-                         <div className="p-3 bg-[var(--accent-primary)]/5 rounded-2xl border border-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
+                         <div className="p-3 bg-pink-500/5 rounded-2xl border border-pink-500/20 text-pink-500">
                             <Briefcase size={20} />
                          </div>
                          <div className="flex flex-col text-left">
@@ -397,22 +366,18 @@ export default function MemberDashboardPage() {
                             <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Gestão de Carreira</p>
                          </div>
                       </div>
-                      
                       <div className="py-14 bg-[var(--input-bg)]/30 border border-dashed border-[var(--border-primary)] rounded-[2.5rem] flex flex-col items-center justify-center text-center">
                          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] italic">Em desenvolvimento</p>
                       </div>
                    </div>
-
                 </div>
-
               </div>
 
-              {/* Telenetria de Identidade (Debug) */}
-              <div className="pt-12 border-t border-[var(--border-primary)] border-dashed opacity-20 hover:opacity-100 transition-opacity">
-                  <div className="flex flex-col items-center gap-2 text-[8px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] text-center">
+              {/* Telemetria de Identidade */}
+              <div className="pt-12 border-t border-[var(--border-primary)] border-dashed opacity-20 text-center">
+                  <div className="flex flex-col items-center gap-2 text-[8px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
                      <p>🧬 Sincronismo de Identidade Ativo</p>
                      <p>UID: {user?.uid}</p>
-                     <p>E-mail: {user?.email}</p>
                   </div>
               </div>
             </motion.div>
@@ -420,7 +385,6 @@ export default function MemberDashboardPage() {
         </AnimatePresence>
       </div>
 
-      {/* Detail Modal Reutilizado */}
       {selectedBooking_Dashboard && (
         <BookingDetailModal 
           booking={selectedBooking_Dashboard}
@@ -443,15 +407,11 @@ export default function MemberDashboardPage() {
   );
 }
 
-
-/**
- * MiniCard: Compact Assessment View
- */
 function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart }: any) {
   const formattedDate = submittedAt ? new Date(submittedAt.seconds ? submittedAt.seconds * 1000 : submittedAt).toLocaleDateString("pt-BR") : null;
 
   return (
-    <section className={`p-8 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group/card shadow-sm ${!isReleased ? 'opacity-70 grayscale-[0.5]' : 'hover:translate-y-[-4px] hover:shadow-xl hover:shadow-[var(--accent-start)]/5'}`}>
+    <section className={`p-8 bg-[var(--input-bg)]/20 border border-[var(--border-primary)] rounded-[2.5rem] space-y-4 transition-all relative overflow-hidden group/card ${!isReleased ? 'opacity-70 grayscale-[0.5]' : 'hover:bg-[var(--input-bg)]/40 hover:border-blue-500/20'}`}>
       <div className="flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] flex items-center justify-center shadow-inner group-hover/card:bg-[var(--accent-soft)] transition-colors">
@@ -462,62 +422,33 @@ function MiniCard({ title, subtitle, data, icon, isReleased, submittedAt, chart 
             <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight opacity-60 group-hover/card:opacity-100 transition-opacity">{subtitle}</p>
           </div>
         </div>
-        
-        {/* Status Badge */}
-        {!isReleased && (
-          <div className="flex items-center gap-2 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full">
-            <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-[7px] font-black uppercase tracking-[0.15em] text-amber-600">
-              Diagnosticando
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Chart Area with Blur Effect if Pending */}
-      <div className={`transition-all duration-700 ${!isReleased ? 'blur-md grayscale opacity-30 select-none' : 'opacity-100 group-hover/card:scale-[0.98]'}`}>
-        {(data && data.length > 0) ? (
-          chart
-        ) : (
+      <div className={`transition-all duration-700 ${!isReleased ? 'blur-md grayscale opacity-30 select-none' : 'opacity-100'}`}>
+        {(data && data.length > 0) ? chart : (
           <div className="w-32 h-32 mx-auto rounded-full border border-dashed border-[var(--border-primary)] flex items-center justify-center bg-[var(--bg-primary)]/30">
              <Heart size={16} className="text-[var(--accent-start)] opacity-20" />
           </div>
         )}
       </div>
 
-      {/* Legend for Mini Chart */}
       {isReleased && data.length > 0 && (
-         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-4 transition-all duration-500 opacity-70 group-hover/card:opacity-100">
+         <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 px-4 opacity-70 group-hover/card:opacity-100 transition-opacity">
             {data.map((item: any) => (
                <div key={item.label} className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-[7.5px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                     {item.label}
-                  </span>
+                  <span className="text-[7.5px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">{item.label}</span>
                </div>
             ))}
          </div>
       )}
-
-      {/* Discreet Submission Date */}
-      {formattedDate && (
-        <div className="pt-2 border-t border-[var(--border-primary)] border-dashed opacity-30 group-hover/card:opacity-60 transition-opacity text-center">
-           <p className="text-[8px] font-medium uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center justify-center gap-1.5">
-              Mapeado em {formattedDate}
-           </p>
-        </div>
-      )}
-
-      {/* Decorative Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
     </section>
   );
 }
+
 function OutcomeCard({ 
   booking, 
-  onDownload, 
-  onViewDetails,
-  compact 
+  onViewDetails
 }: { 
   booking: UserBooking, 
   onDownload: (fileId: string) => void, 
@@ -529,66 +460,36 @@ function OutcomeCard({
 
   const eventDate = parseISO(event.start);
   const isPast = isBefore(eventDate, new Date());
-  const isPresente = booking.attendanceStatus === "present";
-  const isAusente = booking.attendanceStatus === "absent";
 
   const statusLabel = booking.eventLifecycleStatus 
     ? (booking.eventLifecycleStatus === 'completed' ? 'Concluída' : booking.eventLifecycleStatus === 'cancelled' ? 'Cancelada' : booking.eventLifecycleStatus === 'postponed' ? 'Adiada' : 'Agendada')
     : (isPast ? "Realizada" : "Agendada");
 
-  const statusColor = booking.eventLifecycleStatus === 'completed' 
-    ? "bg-green-500/10 text-green-600" 
-    : booking.eventLifecycleStatus === 'cancelled'
-    ? "bg-red-500/10 text-red-500"
-    : booking.eventLifecycleStatus === 'postponed'
-    ? "bg-amber-500/10 text-amber-600"
-    : isPast 
-    ? "bg-[var(--accent-soft)] text-[var(--text-muted)]" 
-    : "bg-blue-500/10 text-blue-500";
+  const statusColor = booking.eventLifecycleStatus === 'completed' ? "bg-green-500/10 text-green-600" : "bg-blue-500/10 text-blue-500";
 
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="group flex flex-col md:flex-row gap-4 items-center px-6 py-5 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-[2rem] hover:border-[var(--accent-start)]/30 transition-all hover:translate-y-[-2px] shadow-sm relative overflow-hidden"
+      className="group flex flex-col md:flex-row gap-4 items-center px-6 py-5 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-[2rem] hover:border-[var(--accent-start)]/30 transition-all shadow-sm relative overflow-hidden"
     >
-       {/* Date Block */}
        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] flex flex-col items-center justify-center text-white shadow-lg shadow-[var(--accent-start)]/20 border border-white/10">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] flex flex-col items-center justify-center text-white shadow-lg">
              <span className="text-[7px] font-black uppercase leading-none">{format(eventDate, "MMM", { locale: ptBR })}</span>
              <span className="text-xs font-black leading-tight">{format(eventDate, "dd")}</span>
           </div>
           <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-60">{format(eventDate, "HH:mm")}h</span>
        </div>
-
-       {/* Info Content */}
        <div className="flex-1 min-w-0 text-left">
-          <h4 className="text-xs font-black text-[var(--text-primary)] truncate transition-colors group-hover:text-[var(--accent-start)]">
-             {event.summary}
-          </h4>
-          <div className="flex items-center gap-3 mt-1">
-             {event.theme && (
-                <span className="text-[9px] font-bold text-[var(--accent-start)]/60 truncate"># {event.theme}</span>
-             )}
-             <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-40">/ {event.mentor || "BPlen"}</span>
-          </div>
+          <h4 className="text-xs font-black text-[var(--text-primary)] truncate group-hover:text-[var(--accent-start)] transition-colors">{event.summary}</h4>
+          <span className="text-[9px] font-bold text-[var(--text-muted)] opacity-40">/ {event.mentor || "BPlen"}</span>
        </div>
-
-       {/* Status & Action */}
        <div className="flex items-center gap-4 shrink-0">
-          <span className={`px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-widest ${statusColor}`}>
-             {statusLabel}
-          </span>
-          <button 
-             onClick={() => onViewDetails(booking)}
-             className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--accent-start)] hover:border-[var(--accent-start)]/30 transition-all shadow-sm"
-          >
+          <span className={`px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-widest ${statusColor}`}>{statusLabel}</span>
+          <button onClick={() => onViewDetails(booking)} className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--accent-start)] transition-all">
              <Eye size={16} />
           </button>
        </div>
-
-       {/* Decorative Background */}
-       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent-start)]/0 to-[var(--accent-start)]/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
     </motion.div>
   );
 }
