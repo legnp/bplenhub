@@ -209,9 +209,9 @@ export default function MemberDashboardPage() {
                      <div className="space-y-4">
                         <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
                            <Target size={18} className="animate-pulse" />
-                           <span className="text-[10px] font-black uppercase tracking-[0.4em]">Visão Estratégica</span>
+                           <span className="text-[10px] font-black uppercase tracking-[0.4em]">Jornada de Membro BPlen</span>
                         </div>
-                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard de Evolução</h2>
+                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard do seu desenvolvimento</h2>
                      </div>
 
                      {/* Journey Navigation (Horizontal Stepper) */}
