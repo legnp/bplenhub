@@ -47,7 +47,15 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
               : { href: `/hub/membro/journey/${stage.id}` };
 
             return (
-              <div key={stage.id} className="flex flex-col items-center group">
+              <div key={stage.id} className="flex flex-col items-center group relative">
+                {/* Número da Etapa (Acima) */}
+                <span className={cn(
+                  "mb-3 text-[10px] font-black transition-all duration-300 tracking-tighter",
+                  isCurrent ? "text-[var(--accent-primary)] scale-110" : "text-[var(--text-muted)] opacity-30 group-hover:opacity-60"
+                )}>
+                  {(index + 1).toString().padStart(2, '0')}
+                </span>
+
                 {/* Botão do Step (Interativo ou Link) */}
                 <Wrapper
                   {...(wrapperProps as any)}
@@ -70,24 +78,15 @@ export function JourneyNav({ currentStepId, stepStatusMap, onSelectStep }: Journ
                       isCurrent && "animate-pulse"
                     )} />
                   )}
-
-                  {/* Tooltip Lateral/Superior */}
-                  <div className={cn(
-                    "absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-300 pointer-events-none text-[9px] font-black uppercase tracking-widest",
-                    "bg-[var(--bg-secondary)] border border-[var(--border-primary)] shadow-xl z-50",
-                    isCurrent ? "opacity-100 -translate-y-2 scale-100" : "opacity-0 translate-y-2 scale-90"
-                  )}>
-                    {stage.title}
-                  </div>
                 </Wrapper>
 
-                {/* Info Text Inferior (Opcional - Escondido Mobile) */}
+                {/* Nome da Etapa Inferior */}
                 <div className="mt-4 text-center max-w-[120px] hidden lg:block">
                   <p className={cn(
-                    "text-[8px] uppercase tracking-[0.2em] font-black transition-colors",
-                    isCurrent ? "text-[var(--accent-primary)]" : "text-[var(--text-tertiary)]"
+                    "text-[8px] uppercase tracking-[0.2em] font-black transition-colors leading-tight",
+                    isCurrent ? "text-[var(--accent-primary)]" : "text-[var(--text-tertiary)] opacity-60 group-hover:opacity-100"
                   )}>
-                    Etapa {index + 1}
+                    {stage.title}
                   </p>
                 </div>
               </div>
