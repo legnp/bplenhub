@@ -48,6 +48,89 @@ import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 
 type Step = "lead" | "triagem" | "calendar" | "success";
 
+// --- HELPERS PARA VALIDAÇÃO ---
+const getLevenshteinDistance = (a: string, b: string) => {
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+};
+
+const COUNTRY_CODES = [
+  // Top 3 Prioritários
+  { code: "+55", label: "🇧🇷 BR +55", iso: "BR" },
+  { code: "+1", label: "🇺🇸 US +1", iso: "US" },
+  { code: "+351", label: "🇵🇹 PT +351", iso: "PT" },
+  
+  // Américas (Sul, Central, Norte e Caribe)
+  { code: "+54", label: "🇦🇷 AR +54", iso: "AR" },
+  { code: "+56", label: "🇨🇱 CL +56", iso: "CL" },
+  { code: "+57", label: "🇨🇴 CO +57", iso: "CO" },
+  { code: "+52", label: "🇲🇽 MX +52", iso: "MX" },
+  { code: "+598", label: "🇺🇾 UY +598", iso: "UY" },
+  { code: "+591", label: "🇧🇴 BO +591", iso: "BO" },
+  { code: "+593", label: "🇪🇨 EC +593", iso: "EC" },
+  { code: "+51", label: "🇵🇪 PE +51", iso: "PE" },
+  { code: "+595", label: "🇵🇾 PY +595", iso: "PY" },
+  { code: "+58", label: "🇻🇪 VE +58", iso: "VE" },
+  { code: "+507", label: "🇵🇦 PA +507", iso: "PA" },
+  { code: "+506", label: "🇨🇷 CR +506", iso: "CR" },
+  { code: "+502", label: "🇬🇹 GT +502", iso: "GT" },
+  { code: "+503", label: "🇸🇻 SV +503", iso: "SV" },
+  { code: "+504", label: "🇭🇳 HN +504", iso: "HN" },
+  { code: "+505", label: "🇳🇮 NI +505", iso: "NI" },
+  { code: "+501", label: "🇧🇿 BZ +501", iso: "BZ" },
+  { code: "+53", label: "🇨🇺 CU +53", iso: "CU" },
+  { code: "+509", label: "🇭🇹 HT +509", iso: "HT" },
+
+  // Europa
+  { code: "+34", label: "🇪🇸 ES +34", iso: "ES" },
+  { code: "+44", label: "🇬🇧 GB +44", iso: "GB" },
+  { code: "+33", label: "🇫🇷 FR +33", iso: "FR" },
+  { code: "+49", label: "🇩🇪 DE +49", iso: "DE" },
+  { code: "+39", label: "🇮🇹 IT +39", iso: "IT" },
+  { code: "+41", label: "🇨🇭 CH +41", iso: "CH" },
+  { code: "+353", label: "🇮🇪 IE +353", iso: "IE" },
+  { code: "+31", label: "🇳🇱 NL +31", iso: "NL" },
+  { code: "+32", label: "🇧🇪 BE +32", iso: "BE" },
+  { code: "+43", label: "🇦🇹 AT +43", iso: "AT" },
+  { code: "+48", label: "🇵🇱 PL +48", iso: "PL" },
+  { code: "+46", label: "🇸🇪 SE +46", iso: "SE" },
+  { code: "+47", label: "🇳🇴 NO +47", iso: "NO" },
+  { code: "+45", label: "🇩🇰 DK +45", iso: "DK" },
+
+  // Ásia e Oceania
+  { code: "+81", label: "🇯🇵 JP +81", iso: "JP" },
+  { code: "+86", label: "🇨🇳 CN +86", iso: "CN" },
+  { code: "+82", label: "🇰🇷 KR +82", iso: "KR" },
+  { code: "+91", label: "🇮🇳 IN +91", iso: "IN" },
+  { code: "+65", label: "🇸🇬 SG +65", iso: "SG" },
+  { code: "+61", label: "🇦🇺 AU +61", iso: "AU" },
+  { code: "+64", label: "🇳🇿 NZ +64", iso: "NZ" },
+
+  // Oriente Médio
+  { code: "+971", label: "🇦🇪 AE +971", iso: "AE" },
+  { code: "+966", label: "🇸🇦 SA +966", iso: "SA" },
+  { code: "+972", label: "🇮🇱 IL +972", iso: "IL" },
+  { code: "+974", label: "🇶🇦 QA +974", iso: "QA" },
+
+  // África (Lusófonos e Principais)
+  { code: "+244", label: "🇦🇴 AO +244", iso: "AO" },
+  { code: "+258", label: "🇲🇿 MZ +258", iso: "MZ" },
+  { code: "+238", label: "🇨🇻 CV +238", iso: "CV" },
+  { code: "+27", label: "🇿🇦 ZA +27", iso: "ZA" }
+];
+
 export function PublicBookingFlow() {
   const [step, setStep] = useState<Step>("calendar");
   const [isProposalMode, setIsProposalMode] = useState(false);
@@ -262,6 +345,7 @@ export function PublicBookingFlow() {
                   placeholder="Como devemos te chamar?"
                   value={formData.name}
                   className="text-sm"
+                  required
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
 
@@ -272,28 +356,54 @@ export function PublicBookingFlow() {
                     type="email"
                     value={formData.email}
                     className="text-sm"
+                    required
                     onChange={(e) => {
-                      const val = e.target.value;
+                      const val = e.target.value.toLowerCase(); // Normalizar para minúsculas
                       setFormData({ ...formData, email: val });
 
                       // 1. Validação de Formato (Geral)
                       const isInvalid = val.length > 3 && !isValidEmail(val);
 
-                      // 2. Scanner de erros de digitação (Domínios Populares)
+                      // 2. Scanner de Inteligente de Erros (Domínios Populares)
                       const domains = [
-                        'gmail.com', 'hotmail.com', 'hotmail.com.br', 'outlook.com', 'outlook.com.br', 
+                        'gmail.com', 'hotmail.com', 'hotmail.com.br', 'outlook.com', 'outlook.com.br',
                         'yahoo.com', 'yahoo.com.br', 'icloud.com', 'bplen.com',
                         'bol.com.br', 'uol.com.br', 'terra.com.br', 'me.com', 'protonmail.com', 'zoho.com',
                         'aol.com', 'live.com', 'msn.com', 'globo.com', 'ig.com.br'
                       ];
-                      const [, domain] = val.split('@');
+                      
+                      const parts = val.split('@');
+                      if (parts.length !== 2) {
+                        setEmailError(isInvalid ? "Por favor, insira um e-mail válido" : null);
+                        return;
+                      }
+
+                      const domain = parts[1];
+
+                      // Se o domínio já for um dos conhecidos, não sugere nada e limpa erro
+                      if (domains.includes(domain)) {
+                        setEmailError(null);
+                        return;
+                      }
 
                       if (isInvalid) {
                         setEmailError("Por favor, insira um e-mail válido");
                       } else if (domain && domain.length > 2) {
-                        const suggestion = domains.find(d => d.startsWith(domain) && d !== domain);
-                        if (suggestion) {
-                          setEmailError(`Ops! Você quis dizer @${suggestion}?`);
+                        // Busca o domínio mais próximo (Fuzzy Match)
+                        let bestMatch = null;
+                        let minDistance = 3; // Tolerância máxima de erro (edita até 2 caracteres)
+
+                        for (const d of domains) {
+                          const distance = getLevenshteinDistance(domain, d);
+                          if (distance < minDistance) {
+                            minDistance = distance;
+                            bestMatch = d;
+                          }
+                        }
+
+                        // Se encontrou algo muito próximo, sugere
+                        if (bestMatch && bestMatch !== domain) {
+                          setEmailError(`Ops! Você quis dizer @${bestMatch}?`);
                         } else {
                           setEmailError(null);
                         }
@@ -311,24 +421,22 @@ export function PublicBookingFlow() {
                 </div>
 
                 <div className="space-y-1.5 text-left relative">
-                  <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">WhatsApp / Telefone</label>
+                  <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">
+                    WhatsApp / Telefone <span className="text-red-500 ml-0.5">*</span>
+                  </label>
 
                   <div className="flex gap-2">
                     {/* Seletor de País (DDI) */}
                     <select
-                      className="w-28 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none cursor-pointer"
+                      className="w-32 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-2xl text-[11px] text-[var(--text-primary)] p-3 focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] appearance-none cursor-pointer"
                       value={formData.phoneDDI}
                       onChange={(e) => setFormData({ ...formData, phoneDDI: e.target.value, phoneDDD: "" })}
                     >
-                      <option value="+55" className="bg-[var(--bg-primary)]">🇧🇷 +55</option>
-                      <option value="+1" className="bg-[var(--bg-primary)]">🇺🇸 +1</option>
-                      <option value="+351" className="bg-[var(--bg-primary)]">🇵🇹 +351</option>
-                      <option value="+34" className="bg-[var(--bg-primary)]">🇪🇸 +34</option>
-                      <option value="+44" className="bg-[var(--bg-primary)]">🇬🇧 +44</option>
-                      <option value="+33" className="bg-[var(--bg-primary)]">🇫🇷 +33</option>
-                      <option value="+49" className="bg-[var(--bg-primary)]">🇩🇪 +49</option>
-                      <option value="+244" className="bg-[var(--bg-primary)]">🇦🇴 +244</option>
-                      <option value="+54" className="bg-[var(--bg-primary)]">🇦🇷 +54</option>
+                      {COUNTRY_CODES.map((country) => (
+                        <option key={`${country.iso}-${country.code}`} value={country.code} className="bg-[var(--bg-primary)]">
+                          {country.label}
+                        </option>
+                      ))}
                     </select>
 
                     {/* DDD Condicional */}
@@ -402,7 +510,7 @@ export function PublicBookingFlow() {
               <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] text-[var(--text-muted)] opacity-50 font-black uppercase tracking-[0.2em] ml-1">
-                    Qual o objetivo da reunião?
+                    Qual o objetivo da reunião? <span className="text-red-500 ml-0.5">*</span>
                   </label>
                   <textarea
                     className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] backdrop-blur-md rounded-2xl p-4 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-start)] transition-all min-h-[120px]"
@@ -436,9 +544,6 @@ export function PublicBookingFlow() {
               </div>
 
               <div className="flex justify-between items-center pt-4">
-                <p className="text-[9px] text-[var(--text-muted)] opacity-30 uppercase font-black tracking-widest italic">
-                  Sua resposta nos ajuda a preparar o melhor material 🧪
-                </p>
                 <div className="flex flex-col items-end gap-2">
                   {error && (
                     <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1">
@@ -451,7 +556,7 @@ export function PublicBookingFlow() {
                     className="h-12 px-8 bg-[var(--accent-start)] text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {isSubmitting && <Loader2 className="w-3 h-3 animate-spin" />}
-                    {isSubmitting ? "PROCESSANDO..." : "FINALIZAR AGENDAMENTO"}
+                    {isSubmitting ? "PROCESSANDO..." : "CONCLUIR AGENDAMENTO"}
                   </button>
                 </div>
               </div>

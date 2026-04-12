@@ -4,6 +4,7 @@ import React from "react";
 
 interface InputGlassProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  required?: boolean;
 }
 
 /**
@@ -15,7 +16,7 @@ export const InputGlass = ({ label, className = "", ...props }: InputGlassProps)
     <div className="w-full flex flex-col gap-1.5">
       {label && (
         <label className="text-[10px] text-[var(--text-muted)] ml-1 font-medium uppercase tracking-wider">
-          {label}
+          {label} {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
       )}
       <input

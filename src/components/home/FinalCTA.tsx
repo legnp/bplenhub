@@ -32,7 +32,7 @@ export function FinalCTA() {
               </span>
             </h2>
             <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-               Agende uma conversa para descobrirmos como podemos descomplicar o desenvolvimento humano juntos!
+               Agende uma conversa, sem custo, sem compromisso, apenas com o foco de descobrirmos como podemos descomplicar o desenvolvimento humano juntos!
             </p>
           </div>
 
