@@ -627,6 +627,9 @@ export function PublicBookingFlow() {
                       const dayISO = format(day, "yyyy-MM-dd");
                       const isAvailable = availableDays.includes(dayISO);
                       const weekNumber = getISOWeek(day);
+                      const dayStart = startOfDay(day);
+                      const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
+                      const isOutsideRange = diffDays < 3 || diffDays > 33;
 
                       return (
                         <React.Fragment key={day.toString()}>
@@ -637,10 +640,6 @@ export function PublicBookingFlow() {
                           )}
                           <button
                             onClick={() => {
-                              const dayStart = startOfDay(day);
-                              const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
-                              const isOutsideRange = diffDays < 3 || diffDays > 33;
-
                               if (isProposalMode) {
                                 // Em modo proposta, apenas dias úteis E dentro do range 3-33
                                 if (!isSaturday(day) && !isSunday(day) && !isOutsideRange) {
@@ -653,10 +652,6 @@ export function PublicBookingFlow() {
                               }
                             }}
                             disabled={(() => {
-                              const dayStart = startOfDay(day);
-                              const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
-                              const isOutsideRange = diffDays < 3 || diffDays > 33;
-
                               if (isProposalMode) {
                                 return isSaturday(day) || isSunday(day) || isOutsideRange;
                               }
@@ -669,9 +664,6 @@ export function PublicBookingFlow() {
                                   ? "bg-[var(--accent-start)]/10 border-white/5 text-[var(--accent-start)] font-bold"
                                   : isProposalMode
                                     ? (() => {
-                                      const dayStart = startOfDay(day);
-                                      const diffDays = differenceInDays(dayStart, startOfDay(new Date()));
-                                      const isOutsideRange = diffDays < 3 || diffDays > 33;
                                       return (!isSaturday(day) && !isSunday(day) && !isOutsideRange)
                                         ? isCurrentMonth ? "text-[var(--text-primary)] bg-[var(--input-bg)] border-[var(--input-border)] hover:border-[var(--accent-start)]/50" : "text-[var(--text-muted)] opacity-20 border-transparent"
                                         : "opacity-10 cursor-not-allowed cursor-default";
