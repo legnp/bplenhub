@@ -67,7 +67,7 @@ export function HubHomeView() {
     <div className="w-full flex flex-col min-h-screen relative font-sans">
       
       {/* 🔮 CONTEÚDO PRINCIPAL DO HUB */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 md:py-20 space-y-32">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-6 pt-[10px] pb-12 md:pt-[10px] md:pb-20 space-y-32">
         
         {/* 1. SEÇÃO JORNADA (VITRINE DE SERVIÇOS) */}
         <section className="space-y-12">

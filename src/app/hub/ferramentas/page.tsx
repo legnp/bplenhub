@@ -30,7 +30,7 @@ export function ToolIcon({ icon, className }: { icon: string; className?: string
 
 export default function HubToolsPage() {
   return (
-    <div className="p-8 space-y-12 animate-fade-in-up">
+    <div className="pt-[10px] px-8 pb-8 space-y-12 animate-fade-in-up">
       
       {/* Header Seção */}
       <div className="space-y-4 max-w-2xl">

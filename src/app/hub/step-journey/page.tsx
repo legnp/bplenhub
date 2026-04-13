@@ -42,7 +42,7 @@ export default function StepJourneyPage() {
   }, {} as any);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="max-w-7xl mx-auto px-6 pt-[10px] pb-12">
       {/* Header da Jornada */}
       <header className="mb-12 text-center md:text-left">
         <motion.div

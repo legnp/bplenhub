@@ -30,7 +30,7 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
   }, {} as any);
 
   return (
-    <section className="min-h-screen pt-12 pb-24 px-4 sm:px-8 bg-[var(--bg-primary)] animate-in fade-in duration-700">
+    <section className="min-h-screen pt-[10px] pb-24 px-4 sm:px-8 bg-[var(--bg-primary)] animate-in fade-in duration-700">
         <div className="max-w-7xl mx-auto px-6">
           <JourneyNav 
              stages={stages}

@@ -43,7 +43,7 @@ export function MemberAreaView({ products }: MemberAreaViewProps) {
   const unlockedCount = products.filter(p => p.isUnlocked).length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-12 space-y-12 animate-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 pt-[10px] pb-12 space-y-12 animate-fade-in">
       
       {/* 🧭 Header do Dashboard */}
       <div className="space-y-2">

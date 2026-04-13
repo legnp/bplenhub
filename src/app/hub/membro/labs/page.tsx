@@ -76,7 +76,7 @@ export default function GuidedLabsPage() {
         onComplete={() => setIsTourOpen(false)} 
       />
 
-      <div className="max-w-[1400px] mx-auto p-6 md:p-12 space-y-12 flex-1 w-full opacity-100">
+      <div className="max-w-[1400px] mx-auto pt-[10px] px-6 pb-6 md:pt-[10px] md:px-12 md:pb-12 space-y-12 flex-1 w-full opacity-100">
         
         <header className="flex justify-between items-center mb-12">
            <div className="flex items-center gap-3 bg-pink-500/10 px-4 py-2 rounded-full border border-pink-500/20">
