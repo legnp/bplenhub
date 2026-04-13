@@ -6,13 +6,19 @@ import { Compass, Target } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 import { useJourney } from "@/hooks/useJourney";
 import { JourneyNav } from "@/components/journey/JourneyNav";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+
+interface MemberJourneyHeroProps {
+  showAction?: boolean;
+}
 
 /**
  * MemberJourneyHero — BPlen HUB 🧬
  * Componente unificado para exibição da Jornada (Regra: 1 para Muitos).
  * Utilizado na Home do HUB e na Área de Membro.
  */
-export function MemberJourneyHero() {
+export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps) {
   const { user } = useAuthContext();
   
   // Journey Integration
@@ -39,14 +45,28 @@ export function MemberJourneyHero() {
       </div>
 
       <div className="relative z-10 space-y-8">
-         <div className="space-y-4">
-            <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
-               <Target size={18} className="animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-[0.4em]">Jornada de Membro BPlen</span>
+         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-4">
+               <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
+                  <Target size={18} className="animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">Jornada de Membro BPlen</span>
+               </div>
+               <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight italic">
+                 Jornada do seu <span className="text-[var(--accent-start)] not-italic">desenvolvimento</span>
+               </h2>
             </div>
-            <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight italic">
-              Jornada do seu <span className="text-[var(--accent-start)] not-italic">desenvolvimento</span>
-            </h2>
+
+            {showAction && (
+               <Link 
+                 href="/hub/membro"
+                 className="group/btn flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-[var(--accent-start)]/10 hover:border-[var(--accent-start)]/30 transition-all duration-500 shadow-sm"
+               >
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-start)] transition-colors">
+                     Ir para área de membro
+                  </span>
+                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover/btn:text-[var(--accent-start)] group-hover/btn:translate-x-1 transition-all" />
+               </Link>
+            )}
          </div>
 
          <div className="pt-4">

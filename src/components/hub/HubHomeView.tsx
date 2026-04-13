@@ -72,7 +72,7 @@ export function HubHomeView() {
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 pt-[10px] pb-12 md:pt-[10px] md:pb-20 space-y-32">
         
         {/* 1. SEÇÃO JORNADA (Regra: 1 para Muitos) 🧬🚀 */}
-        <MemberJourneyHero />
+        <MemberJourneyHero showAction={true} />
 
         {/* 2. ULTIMOS CONTEÚDOS E FERRAMENTAS (GRID MISTO) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 !mt-[45px]">
