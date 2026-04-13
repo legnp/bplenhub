@@ -13,9 +13,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BPlen HUB — Desenvolvimento Humano",
+  title: {
+    default: "BPlen — Desenvolvimento Humano",
+    template: "BPlen | %s",
+  },
   description:
     "Ecossistema para criar, divulgar, vender, conduzir e entregar serviços de Desenvolvimento Humano.",
+  icons: {
+    icon: "/logo_bplen/favicon.svg",
+  },
 };
 
 export default function RootLayout({

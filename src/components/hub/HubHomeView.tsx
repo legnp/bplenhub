@@ -28,6 +28,7 @@ import { MOCK_SERVICES, MOCK_TOOLS } from "@/config/hub-data";
 import { useTheme } from "@/context/ThemeContext";
 import { getSocialPosts } from "@/actions/social";
 import { SocialPost } from "@/types/social";
+import { BPlenLogo } from "@/components/shared/BPlenLogo";
 
 /**
  * HUB HOME VIEW — O Coração da Experiência Privada 🧬
@@ -276,9 +277,7 @@ export function HubHomeView() {
       <footer className="w-full py-16 px-6 bg-[var(--bg-primary)] border-t border-[var(--border-primary)]">
          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="space-y-4 text-center md:text-left">
-               <div className="text-xl font-bold tracking-tighter text-[var(--text-primary)]">
-                  BPlen <span className="gradient-accent bg-clip-text text-transparent italic">HUB</span>
-               </div>
+               <BPlenLogo variant="hub" size={24} />
                <p className="max-w-xs text-[10px] text-[var(--text-secondary)] font-bold uppercase tracking-widest leading-loose">
                   Sua plataforma de evolução profissional e estratégica corporativa.
                </p>
@@ -302,7 +301,7 @@ export function HubHomeView() {
             </div>
          </div>
          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-[var(--border-primary)] flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-60">
-            <span>© 2025 BPlen Consultoria. Todos os direitos reservados.</span>
+            <span>© {new Date().getFullYear()} BPlen Consultoria. Todos os direitos reservados.</span>
             <div className="flex gap-8">
                <span>Privacidade</span>
                <span>Governança</span>

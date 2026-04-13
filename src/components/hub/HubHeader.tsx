@@ -16,6 +16,7 @@ import {
 import { useTheme, BPlenTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { BPlenLogo } from "@/components/shared/BPlenLogo";
 
 /**
  * HubHeader (Ecossistema Privado)
@@ -80,9 +81,8 @@ export function HubHeader() {
       <div className="flex items-center gap-4">
          <Link 
             href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro/dashboard"} 
-            className="text-lg font-bold tracking-tighter text-[var(--text-primary)] hover:opacity-80 transition-opacity"
          >
-            BPlen <span className="gradient-accent bg-clip-text text-transparent italic text-lg">HUB</span>
+            <BPlenLogo variant="hub" size={28} />
          </Link>
       </div>
 

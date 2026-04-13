@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { BPlenLogo } from "@/components/shared/BPlenLogo";
 
 /**
  * HomeFooter (Rodapé da Landing Page)
@@ -16,8 +17,10 @@ export function HomeFooter() {
     <footer className="w-full border-t border-white/5 bg-black/30 backdrop-blur-xl pt-[10px] pb-6 px-6 mt-[10px]">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
         
-        {/* Bloco de Texto Principal e Legal (CNPJ) */}
         <div className="max-w-2xl text-[11px] leading-relaxed text-gray-500">
+          <div className="mb-4">
+            <BPlenLogo variant="main" size={24} className="opacity-80 hover:opacity-100 transition-opacity" />
+          </div>
           <p className="mb-2">
             <strong className="text-gray-400 font-medium">BPlen</strong> é uma Consultoria de Negócios com Foco em Desenvolvimento Humano que utiliza método, dados e abordagens humanas holísticas para descomplicar o desenvolvimento humano no trabalho.
           </p>

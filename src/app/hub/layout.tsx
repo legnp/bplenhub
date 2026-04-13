@@ -2,6 +2,14 @@ import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { HubShell } from "@/components/hub/HubShell";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    default: "Dashboard",
+    template: "BPlen HUB | %s",
+  },
+};
 
 /**
  * HUB LAYOUT — O Gate de Autenticação Server-Side 🛡️

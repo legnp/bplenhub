@@ -127,7 +127,7 @@ export function FloatingCTAs() {
                    <Link
                       href="/hub"
                       onClick={toggleMenu}
-                      className="w-full block py-[18px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20"
+                      className="w-full block py-[18px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white rounded-2xl font-black text-center tracking-[0.2em] text-[10px] shadow-xl shadow-[var(--accent-start)]/20 uppercase"
                    >
                      ACESSAR BPLEN HUB
                    </Link>
@@ -170,7 +170,7 @@ export function FloatingCTAs() {
 
             {/* Rodapé do Menu */}
             <div className="mt-auto pt-8 border-t border-white/5 flex justify-between items-center text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
-              <span>© 2025 BPlen Consultoria</span>
+              <span>© {new Date().getFullYear()} BPlen Consultoria</span>
               <span>Propulsor Humano</span>
             </div>
           </motion.div>

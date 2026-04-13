@@ -18,6 +18,7 @@ import {
   Ticket
 } from "lucide-react";
 import { HubHeader } from "@/components/hub/HubHeader";
+import { BPlenLogo } from "@/components/shared/BPlenLogo";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuthContext();
@@ -43,17 +44,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       {/* Ghost Sidebar Dashboard (Pure Typography) */}
       <aside className="w-68 fixed h-full bg-[var(--input-bg)] backdrop-blur-3xl border-r border-[var(--border-primary)] shadow-2xl p-7 flex flex-col z-20">
-        <div className="mb-12 space-y-2">
-           <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] rounded-xl shadow-lg shadow-[var(--accent-start)]/20">
-                 <ShieldCheck size={20} className="text-white" />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)] group">
-                BPlen <span className="text-[var(--accent-start)] italic">Admin</span>
-              </h2>
-           </div>
-           <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--text-muted)] font-bold opacity-60">Control Center</p>
-        </div>
+            <div className="flex items-center gap-3">
+               <BPlenLogo variant="main" size={32} />
+               <div className="flex flex-col">
+                 <h2 className="text-xl font-bold tracking-tight text-[var(--text-primary)] group uppercase leading-none">
+                   Admin
+                 </h2>
+                 <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--text-muted)] font-bold opacity-60">Control Center</p>
+               </div>
+            </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto pr-2 custom-scrollbar">
           <NavLink href="/admin" icon={<LayoutDashboard size={18} />}>DASHBOARD</NavLink>
