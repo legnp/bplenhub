@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Menu, X, Phone, Globe, LogIn, Loader2 } from "lucide-react";
+import { BPlenLogo } from "../shared/BPlenLogo";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 
@@ -92,9 +93,10 @@ export function FloatingCTAs() {
           >
             <div className="flex-1 flex flex-col justify-center gap-12 mt-10">
               {/* Branding no Menu */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] px-1">Menu BPlen</span>
-                <div className="h-px w-8 bg-[var(--accent-start)]" />
+              <div className="flex items-center gap-3">
+                <BPlenLogo variant="main" size={24} />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] px-1">Menu</span>
+                <div className="h-px flex-1 bg-[var(--accent-start)] opacity-20" />
               </div>
 
               {/* Links de Navegação */}
@@ -219,7 +221,7 @@ export function FloatingCTAs() {
           href="/conteudo"
           className="w-[126px] md:w-[153px] h-8 md:h-9 px-3 md:px-4 bg-[var(--input-bg)] border border-[var(--border-primary)] backdrop-blur-md rounded-xl text-[10px] md:text-xs font-normal tracking-wide text-[var(--text-muted)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/20 hover:text-[var(--text-primary)] transition-all flex items-center justify-center shadow-lg cursor-pointer"
         >
-          Explore Conteúdos
+          Explorar Conteúdos
         </Link>
         {user ? (
            <Link 

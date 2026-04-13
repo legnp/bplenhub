@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { BPlenLogo } from "./BPlenLogo";
 
 const COLORS = [
   "rgba(255, 0, 128", // Pink BPlen
@@ -174,9 +175,7 @@ export default function AtmosphericLoading() {
              className="absolute inset-0 bg-gradient-to-tr from-[#ff0080] to-[#7928ca] rounded-full blur-3xl"
            />
            <div className="relative z-10 flex flex-col items-center">
-              <span className="text-xl font-bold tracking-tighter text-[var(--text-primary)]">
-                 BPlen <span className="gradient-accent bg-clip-text text-transparent italic text-xl">HUB</span>
-              </span>
+              <BPlenLogo variant="hub" size={40} className="scale-125" />
            </div>
         </div>
 

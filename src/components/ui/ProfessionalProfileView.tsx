@@ -22,6 +22,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { LANDING_TOKENS } from "@/constants/landing-tokens";
 import { ProfessionalProfile } from "@/config/profissionais";
 import { generateVCard } from "@/lib/vcard";
+import { BPlenLogo } from "../shared/BPlenLogo";
 
 interface ProfileViewProps {
   profile: ProfessionalProfile;
@@ -181,8 +182,8 @@ export function ProfessionalProfileView({ profile }: ProfileViewProps) {
           </div>
 
           {/* Logo BPlen Sutil abaixo do card */}
-          <div className="flex justify-center mt-8 opacity-20">
-            <span className="text-[10px] font-black tracking-[0.3em] uppercase text-[var(--text-primary)]">BPlen HUB</span>
+          <div className="flex justify-center mt-8 opacity-20 filter grayscale">
+            <BPlenLogo variant="hub" size={20} />
           </div>
 
         </motion.div>

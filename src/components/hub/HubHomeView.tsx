@@ -74,7 +74,7 @@ export function HubHomeView() {
         <section className="space-y-12">
            <div className="space-y-4 max-w-2xl">
               <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">
-                 <Rocket size={14} /> Sua Evolução BPlen
+                 <Rocket size={14} /> Sua Evolução
               </span>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight text-left">
                  Como está sua <span className="text-[var(--text-secondary)] italic">Jornada BPlen?</span>
