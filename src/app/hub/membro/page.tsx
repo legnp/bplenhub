@@ -1,9 +1,7 @@
-import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { fetchUserPermissionsStatus } from "@/actions/auth-permissions";
-import { MemberAreaView } from "@/components/hub/MemberAreaView";
-import { getMyActiveServicesAction } from "@/actions/delivery";
+import MemberDashboardView from "@/components/hub/MemberDashboardView";
 
 /**
  * BPlen HUB — Área de Membro (Soberania do Servidor 🛡️)
@@ -27,10 +25,6 @@ export default async function MemberAreaPage() {
     redirect("/hub");
   }
 
-  // 3. Buscar Todos os Serviços e Status de Acesso 📡
-  const result = await getMyActiveServicesAction(idToken);
-  const products = result.success ? (result.data || []) : [];
-
-  // 4. Renderização Autorizada — Somente após validação legítima no servidor.
-  return <MemberAreaView products={products} />;
+  // 3. Renderização Autorizada — Dashboard unificado no lugar da antiga lista de serviços.
+  return <MemberDashboardView />;
 }

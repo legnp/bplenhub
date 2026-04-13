@@ -80,7 +80,7 @@ export function HubHeader() {
       {/* Esquerda: Branding */}
       <div className="flex items-center gap-4">
          <Link 
-            href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro/dashboard"} 
+            href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro"} 
          >
             <BPlenLogo variant="hub" size={48} />
          </Link>

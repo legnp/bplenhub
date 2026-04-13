@@ -38,10 +38,10 @@ import Link from "next/link";
 import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
 
 /**
- * Member Dashboard — BPlen HUB 🧬
- * Estrutura central de resultados, assessments e evolução do membro.
+ * MemberDashboardView — BPlen HUB 🧬
+ * Componente unificado para a nova Área de Membro Raiz.
  */
-export default function MemberDashboardPage() {
+export default function MemberDashboardView() {
   const { user, matricula } = useAuthContext();
   const [gestaoResult, setGestaoResult] = useState<any>(null);
   const [aprendizadoResult, setAprendizadoResult] = useState<any>(null);

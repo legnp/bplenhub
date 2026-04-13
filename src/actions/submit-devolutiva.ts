@@ -100,7 +100,7 @@ export async function submitDevolutivaDisc(
     }
 
     revalidatePath("/admin/users");
-    revalidatePath("/hub/membro/dashboard");
+    revalidatePath("/hub/membro");
     
     return { success: true };
 
