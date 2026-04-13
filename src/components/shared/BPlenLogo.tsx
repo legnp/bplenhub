@@ -27,11 +27,8 @@ export function BPlenLogo({ variant = "hub", className, size = 32 }: BPlenLogoPr
       
       {/* Identificador HUB se necessário */}
       {variant === "hub" && (
-        <span className="text-[var(--text-primary)] font-bold tracking-tighter flex items-center">
-          <span className="hidden sm:inline-block ml-1">BPlen</span>
-          <span className="gradient-accent bg-clip-text text-transparent italic ml-1.5 translate-y-[1px]">
-            HUB
-          </span>
+        <span className="gradient-accent bg-clip-text text-transparent italic font-black tracking-tighter ml-1.5 translate-y-[1px]">
+          HUB
         </span>
       )}
     </div>

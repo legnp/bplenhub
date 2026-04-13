@@ -15,7 +15,7 @@ import {
 import { FORMS_REGISTRY } from "@/config/forms";
 
 export const metadata: Metadata = {
-  title: "Gestão de Formulários | Admin BPlen",
+  title: "Gestão de Formulários",
   description: "Administração de fluxos operacionais e coleta de dados (Forms_Global).",
 };
 

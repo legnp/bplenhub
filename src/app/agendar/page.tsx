@@ -6,7 +6,7 @@ import { FloatingCTAs } from "@/components/layout/FloatingCTAs";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
 
 export const metadata = {
-  title: "Agendar Conversa | BPlen HUB",
+  title: "Agendar Conversa",
   description: "Reserve uma reunião estratégica de 30 minutos com a equipe BPlen.",
 };
 

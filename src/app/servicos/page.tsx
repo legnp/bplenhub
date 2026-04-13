@@ -15,7 +15,7 @@ import { SocialSidebar } from "@/components/layout/SocialSidebar";
 import { LANDING_TOKENS } from "@/constants/landing-tokens";
 
 export const metadata: Metadata = {
-  title: "Categorias de Serviços | BPlen HUB",
+  title: "Categorias de Serviços",
   description: "Selecione seu perfil para conferir nossas soluções em Desenvolvimento Humano.",
 };
 

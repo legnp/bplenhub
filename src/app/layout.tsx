@@ -14,7 +14,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "BPlen — Desenvolvimento Humano",
+    default: "BPlen | Desenvolvimento Humano",
     template: "BPlen | %s",
   },
   description:

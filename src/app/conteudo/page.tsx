@@ -13,7 +13,7 @@ import { ParticleNexus } from "@/components/home/ParticleNexus";
 import { LANDING_TOKENS } from "@/constants/landing-tokens";
 
 export const metadata: Metadata = {
-  title: "Conteúdos | BPlen HUB",
+  title: "Conteúdos",
   description: "Explore os últimos artigos, vídeos e reflexões da BPlen sobre Desenvolvimento Humano.",
 };
 

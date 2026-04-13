@@ -15,7 +15,7 @@ import {
 import { getAdminSurveysAnalytics } from "@/actions/admin-surveys";
 
 export const metadata: Metadata = {
-  title: "Gestão de Pesquisas | Admin BPlen",
+  title: "Gestão de Pesquisas",
   description: "Administração de pesquisas interativas e enquetes do HUB.",
 };
 

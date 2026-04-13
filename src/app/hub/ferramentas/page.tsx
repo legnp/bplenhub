@@ -14,7 +14,7 @@ import Link from "next/link";
 import { MOCK_TOOLS } from "@/config/hub-data";
 
 export const metadata: Metadata = {
-  title: "Ferramentas & Análises | BPlen HUB",
+  title: "Ferramentas & Análises",
   description: "Acesse utilitários e mapeamentos comportamentais exclusivos.",
 };
 
