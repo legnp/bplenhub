@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 
 interface StepContainerProps {
   children: React.ReactNode;
@@ -13,8 +14,11 @@ interface StepContainerProps {
 /**
  * BPlen HUB — StepContainer 🧬🛡️
  * The premium glassmorphic wrapper for the current journey step.
+ * Description section is collapsible (closed by default).
  */
 export function StepContainer({ children, title, description, badge }: StepContainerProps) {
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.98, translateY: 10 }}
@@ -38,9 +42,36 @@ export function StepContainer({ children, title, description, badge }: StepConta
               </span>
             )}
           </div>
-          <p className="text-xs font-bold text-[var(--text-muted)] opacity-60 max-w-2xl leading-relaxed uppercase tracking-wider">
-            {description}
-          </p>
+
+          {/* Collapsible Details */}
+          <button
+            onClick={() => setIsDetailsOpen(prev => !prev)}
+            className="flex items-center gap-2 mt-1 group cursor-pointer w-fit"
+          >
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-colors">
+              Detalhes da Etapa
+            </span>
+            <ChevronDown 
+              size={12} 
+              className={`text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-all duration-300 ${isDetailsOpen ? "rotate-180" : ""}`} 
+            />
+          </button>
+
+          <AnimatePresence>
+            {isDetailsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <p className="text-xs font-bold text-[var(--text-muted)] opacity-60 max-w-2xl leading-relaxed uppercase tracking-wider pt-2">
+                  {description}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -56,3 +87,4 @@ export function StepContainer({ children, title, description, badge }: StepConta
     </motion.div>
   );
 }
+
