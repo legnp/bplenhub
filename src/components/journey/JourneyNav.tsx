@@ -203,7 +203,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                 </AnimatePresence>
 
                 {/* FAROL (BEACON) 🚥 */}
-                <div className="mb-4 relative h-3 flex items-center justify-center">
+                <div className="mb-1.5 relative h-3 flex items-center justify-center">
                    <div className={cn(
                      "w-2.5 h-2.5 rounded-full transition-all duration-700 border border-white/10",
                      beaconColor,
@@ -214,13 +214,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                    )}
                 </div>
 
-                {/* NÚMERO DA ETAPA (TOKEN TEXT MUTED/PRIMARY) */}
-                <span className={cn(
-                  "mb-3 text-[10px] font-black transition-all duration-300 tracking-tight uppercase",
-                  isCurrent ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-60"
-                )}>
-                  {(index + 1).toString().padStart(2, '0')}
-                </span>
+
 
                 {/* BOTÃO DO STEP (ÍCONE VIBRANTE) 🚀✨ */}
                 <Wrapper
@@ -273,7 +267,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                     "text-[9px] uppercase tracking-[0.25em] font-black transition-colors leading-tight max-w-[110px]",
                     isCurrent ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-50"
                   )}>
-                    {stage.title}
+                    {(index + 1).toString().padStart(2, '0')} | {stage.title}
                   </p>
                 </div>
               </div>
