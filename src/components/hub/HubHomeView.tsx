@@ -104,8 +104,8 @@ export function HubHomeView() {
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
                              ${service.status === 'acquired' ? 'bg-[var(--accent-start)] border-[var(--accent-start)] shadow-[0_0_20px_rgba(255,44,141,0.4)]' : 
                                 service.status === 'available' ? 'bg-[var(--input-bg)] border-[var(--input-border)] group-hover:border-[var(--accent-start)]/50' : 'bg-transparent border-[var(--border-primary)]'}`}>
-                             {service.status === 'acquired' ? <CheckCircle2 size={24} className="text-white" /> : 
-                              service.status === 'available' ? <Sparkles size={18} className="text-[var(--text-secondary)]" /> : <Lock size={18} className="text-[var(--text-muted)]" />}
+                             {service.status === 'acquired' ? <CheckCircle2 size={21} className="text-white" /> : 
+                              service.status === 'available' ? <Sparkles size={16} className="text-[var(--text-secondary)]" /> : <Lock size={16} className="text-[var(--text-muted)]" />}
                           </div>
                        </div>
 

@@ -245,7 +245,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                     }}
                   >
                     <IconComponent 
-                      className="w-7 h-7 transition-all duration-500" 
+                      className="w-[25px] h-[25px] transition-all duration-500" 
                       style={{ 
                         color: theme.color,
                         filter: isCurrent 

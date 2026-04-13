@@ -33,7 +33,7 @@ export function StageOverviewCard({ stage, className }: StageOverviewCardProps) 
       
       <div className="flex items-center gap-6 mb-8">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center text-white shadow-lg shrink-0">
-          <IconComponent className="w-7 h-7" />
+          <IconComponent className="w-[25px] h-[25px]" />
         </div>
         <div>
           <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--accent-primary)] mb-1">

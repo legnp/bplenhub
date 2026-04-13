@@ -25,12 +25,6 @@ export function BPlenLogo({ variant = "hub", className, size = 32 }: BPlenLogoPr
         className="object-contain"
       />
       
-      {/* Identificador HUB se necessário */}
-      {variant === "hub" && (
-        <span className="gradient-accent bg-clip-text text-transparent italic font-black tracking-tighter ml-1.5 translate-y-[1px]">
-          HUB
-        </span>
-      )}
     </div>
   );
 }
