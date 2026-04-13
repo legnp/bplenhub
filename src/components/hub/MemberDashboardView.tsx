@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { StackedBarChart } from "@/components/hub/StackedBarChart";
 import { DiscChart } from "@/components/hub/DiscChart";
+import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
 import { 
   getGestaoTempoResult, 
   getAprendizadoResult, 
@@ -30,8 +31,6 @@ import { HomeFooter } from "@/components/home/HomeFooter";
 import { useAuthContext } from "@/context/AuthContext";
 import { parseISO, isBefore, isAfter, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useJourney } from "@/hooks/useJourney";
-import { JourneyNav } from "@/components/journey/JourneyNav";
 import { BookingDetailModal } from "@/components/ui/UserBookings";
 import { submitEvaluationAction } from "@/actions/calendar";
 import Link from "next/link";
@@ -53,10 +52,6 @@ export default function MemberDashboardView() {
   const [historyBookings, setHistoryBookings] = useState<UserBooking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
 
-  // Journey Integration
-  const { stages, progress, loading: loadingJourney, getStageTelemetry } = useJourney(user?.uid || "guest");
-  const [activeStageId, setActiveStageId] = useState<string>("onboarding");
-
   // Dashboard Agenda Modal (Reuse)
   const [selectedBooking_Dashboard, setSelectedBooking_Dashboard] = useState<UserBooking | null>(null);
   const [isEvaluating_Dashboard, setIsEvaluating_Dashboard] = useState<string | null>(null);
@@ -76,13 +71,7 @@ export default function MemberDashboardView() {
     }
   };
 
-  useEffect(() => {
-    if (progress?.lastActiveStepId) {
-       setActiveStageId(progress.lastActiveStepId);
-    } else if (stages.length > 0) {
-       setActiveStageId(stages[0].id);
-    }
-  }, [progress, stages]);
+
 
   useEffect(() => {
     if (!user) return;
@@ -180,37 +169,8 @@ export default function MemberDashboardView() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-12"
             >
-              {/* Journey Header */}
-              <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm">
-                  <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
-                    <div className="absolute top-0 right-0 p-12 opacity-5">
-                       <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 space-y-8">
-                     <div className="space-y-4">
-                        <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
-                           <Target size={18} className="animate-pulse" />
-                           <span className="text-[10px] font-black uppercase tracking-[0.4em]">Jornada de Membro BPlen</span>
-                        </div>
-                        <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Dashboard do seu desenvolvimento</h2>
-                     </div>
-
-                     <div className="pt-4">
-                        {stages.length > 0 && (
-                          <JourneyNav 
-                             stages={stages}
-                             currentStepId={activeStageId} 
-                             stepStatusMap={progress?.steps ? Object.fromEntries(
-                                Object.entries(progress.steps).map(([k, v]) => [k, v.status])
-                             ) : {}}
-                             getStageTelemetry={getStageTelemetry}
-                          />
-                        )}
-                     </div>
-                  </div>
-              </section>
+              {/* Journey Hero (Regra: 1 para Muitos) */}
+              <MemberJourneyHero />
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
                 {/* Barra Lateral: Laboratório de Assessments 🧪 */}

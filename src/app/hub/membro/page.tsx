@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { fetchUserPermissionsStatus } from "@/actions/auth-permissions";
 import MemberDashboardView from "@/components/hub/MemberDashboardView";
+
+export const metadata: Metadata = {
+  title: "Jornada de Membro",
+  description: "Acompanhe sua evolução, resultados e próximos passos na sua jornada de desenvolvimento BPlen.",
+};
 
 /**
  * BPlen HUB — Área de Membro (Soberania do Servidor 🛡️)

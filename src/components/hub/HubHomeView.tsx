@@ -29,6 +29,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { getSocialPosts } from "@/actions/social";
 import { SocialPost } from "@/types/social";
 import { BPlenLogo } from "@/components/shared/BPlenLogo";
+import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
 
 /**
  * HUB HOME VIEW — O Coração da Experiência Privada 🧬
@@ -70,79 +71,8 @@ export function HubHomeView() {
       {/* 🔮 CONTEÚDO PRINCIPAL DO HUB */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 pt-[10px] pb-12 md:pt-[10px] md:pb-20 space-y-32">
         
-        {/* 1. SEÇÃO JORNADA (VITRINE DE SERVIÇOS) */}
-        <section className="space-y-12">
-           <div className="space-y-4 max-w-2xl">
-              <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">
-                 <Rocket size={14} /> Sua Evolução
-              </span>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] leading-tight text-left">
-                 Como está sua <span className="text-[var(--text-secondary)] italic">Jornada BPlen?</span>
-              </h2>
-              <p className="text-[var(--text-secondary)] text-sm md:text-base leading-relaxed text-left">
-                 O hub organiza sua evolução com clareza. Veja como você já avançou 
-                 e descubra os próximos passos ideais para o seu sucesso.
-              </p>
-           </div>
-
-           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {/* Timeline de Serviços */}
-              <div className="lg:col-span-12 relative flex flex-col md:flex-row gap-8 py-12">
-                 {/* Linha de Progresso Sutil (Desktop) */}
-                 <div className="absolute top-[4.5rem] left-0 w-full h-px bg-[var(--border-primary)] hidden md:block" />
-                 
-                 {MOCK_SERVICES.map((service, idx) => (
-                    <motion.div 
-                      key={service.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="relative z-10 flex-1 group"
-                    >
-                       {/* Circle Indicator */}
-                       <div className="flex flex-col items-center mb-8">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                             ${service.status === 'acquired' ? 'bg-[var(--accent-start)] border-[var(--accent-start)] shadow-[0_0_20px_rgba(255,44,141,0.4)]' : 
-                                service.status === 'available' ? 'bg-[var(--input-bg)] border-[var(--input-border)] group-hover:border-[var(--accent-start)]/50' : 'bg-transparent border-[var(--border-primary)]'}`}>
-                             {service.status === 'acquired' ? <CheckCircle2 size={21} className="text-white" /> : 
-                              service.status === 'available' ? <Sparkles size={16} className="text-[var(--text-secondary)]" /> : <Lock size={16} className="text-[var(--text-muted)]" />}
-                          </div>
-                       </div>
-
-                       {/* Service Card Card */}
-                       <div className={`p-8 rounded-[2.5rem] border backdrop-blur-2xl transition-all duration-500 h-full flex flex-col
-                        ${service.status === 'acquired' ? 'bg-[var(--input-bg)] border-[var(--input-border)]' : 
-                          service.status === 'available' ? 'bg-[var(--input-bg)] border-[var(--input-border)] hover:bg-[var(--accent-soft)]' : 'bg-transparent border-[var(--border-primary)] opacity-40 grayscale pointer-events-none'}`}>
-                          
-                          <div className="mb-6 flex justify-between items-start">
-                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)]">Etapa {service.step}</span>
-                             {service.status === 'acquired' && <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">Ativo</span>}
-                          </div>
-
-                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3 leading-tight group-hover:text-[var(--accent-start)] transition-colors text-left">
-                             {service.title}
-                          </h3>
-                          <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-8 flex-grow text-left">
-                             {service.description}
-                          </p>
-
-                          {service.status !== 'locked' ? (
-                             <Link href={service.ctaUrl || "#"} className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[var(--accent-start)] group-hover:gap-4 transition-all">
-                                {service.status === 'acquired' ? 'Acessar Área Member' : 'Ver Detalhes'}
-                                <ChevronRight size={14} />
-                             </Link>
-                          ) : (
-                             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
-                                Próxima Etapa
-                                <Lock size={14} />
-                             </div>
-                          )}
-                       </div>
-                    </motion.div>
-                 ))}
-              </div>
-           </div>
-        </section>
+        {/* 1. SEÇÃO JORNADA (Regra: 1 para Muitos) 🧬🚀 */}
+        <MemberJourneyHero />
 
         {/* 2. ULTIMOS CONTEÚDOS E FERRAMENTAS (GRID MISTO) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">

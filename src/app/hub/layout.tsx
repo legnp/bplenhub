@@ -6,7 +6,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dashboard",
+    default: "Home",
     template: "BPlen HUB | %s",
   },
 };
