@@ -94,12 +94,24 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
           }
         });
 
+        // 🔮 Mapeamento de Ícones Inteligente (Baseado em Ordem/Slug)
+        const getIconName = (order: number, slug?: string) => {
+          if (slug === 'onboarding') return "Rocket";
+          if (slug?.includes('analise-comportamental')) return "Fingerprint";
+          if (order === 2) return "Compass";
+          if (order === 4) return "Map";
+          if (order === 5) return "TrendingUp";
+          if (order === 6) return "MessageSquareHeart";
+          if (order === 7) return "Award";
+          return "Target";
+        };
+
         return {
           id: main.slug || main.id,
           order: order,
           title: main.title,
           subtitle: main.sheet?.description?.slice(0, 60) + "..." || "",
-          icon: "Target", // Mapping can be expanded
+          icon: getIconName(order, main.slug), 
           description: main.sheet?.description || "",
           substeps: allSubsteps
         };

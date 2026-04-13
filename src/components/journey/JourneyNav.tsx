@@ -114,8 +114,26 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             };
 
             const isCurrent = stage.id === currentStepId;
-            const theme = STAGE_THEMES[stage.id] || { icon: LucideIcons.Circle, color: "#94A3B8", gradient: "from-slate-400 to-slate-500" };
-            const IconComponent = theme.icon;
+            
+            // 🔍 Resolução Inteligente de Tema (ID -> Ordem -> Fallback)
+            const THEME_ORDER_MAP: Record<number, string> = {
+              1: "onboarding",
+              2: "preparacao-de-carreira",
+              3: "analise-comportamental",
+              4: "plano-de-carreira",
+              5: "desenvolvimento-de-carreira",
+              6: "coaching-e-mentoria",
+              7: "offboarding"
+            };
+
+            const theme = STAGE_THEMES[stage.id] 
+              || STAGE_THEMES[THEME_ORDER_MAP[stage.order]]
+              || { icon: LucideIcons.Circle, color: "#94A3B8", gradient: "from-slate-400 to-slate-500" };
+            
+            // 🧬 Resolução Dinâmica de Ícone (String -> Componente)
+            const IconComponent = (stage.icon && (LucideIcons as any)[stage.icon]) 
+              ? (LucideIcons as any)[stage.icon] 
+              : theme.icon;
 
             // Lógica de Cores do Farol (Beacons) Rigorosa — BPlen Mapping 🚥
             let beaconColor = "bg-slate-400/40"; // Default: ⚪ Cinza
