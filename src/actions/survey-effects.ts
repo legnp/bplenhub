@@ -202,6 +202,108 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     }
 
     console.log(`✨ [Effects] Fluxo de Onboarding finalizado: ${matricula}`);
+
+    // 3. Criação do User_JourneyMap (Ciclo de Vida Completo 🧬)
+    try {
+      console.log(`🗺️ [Effects:JourneyMap] Criando mapa de jornada para: ${matricula}`);
+      const journeyMapRef = db.doc(`User/${matricula}/User_JourneyMap/progress`);
+
+      await journeyMapRef.set({
+        currentPhase: "venda",
+        currentStep: "onboarding",
+        overallProgress: 0,
+
+        // Fase 1: Atração (dados já capturados na Welcome Survey)
+        phases: {
+          atracao: {
+            status: "completed",
+            capturedData: {
+              userType: userType,
+              origin: String(responses.origin || "N/A"),
+              reason: String(responses.demand || "N/A"),
+              interests: Array.isArray(responses.topics) ? responses.topics : [],
+              nickname: nickname,
+            },
+            completedAt: admin.firestore.FieldValue.serverTimestamp()
+          },
+
+          // Fase 2: Qualificação (visitante hub — Onda 2)
+          qualificacao: {
+            status: "locked",
+            steps: {
+              preparacao_candidaturas: { status: "locked", checkpoints: {}, progress: 0 },
+              mapa_carreira: { status: "locked", checkpoints: {}, progress: 0 },
+              autoanalise_basica: { status: "locked", checkpoints: {}, progress: 0 },
+              banco_talentos: { status: "locked", checkpoints: {}, progress: 0 },
+              workshops_eventos: { status: "locked", checkpoints: {}, progress: 0 },
+            }
+          },
+
+          // Fase 3: Venda (membro BPlen — 7 etapas)
+          venda: {
+            status: "in_progress",
+            steps: {
+              onboarding: {
+                status: "in_progress",
+                checkpoints: {
+                  introducao: { completed: false },
+                  checkin: { completed: false },
+                  sessao_onboarding: { completed: false },
+                },
+                progress: 0
+              },
+              "preparacao-de-carreira": {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+              "analise-comportamental": {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+              "plano-de-carreira": {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+              "desenvolvimento-de-carreira": {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+              "coaching-e-mentoria": {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+              offboarding: {
+                status: "locked",
+                checkpoints: {},
+                progress: 0
+              },
+            }
+          },
+
+          // Fase 4: Pós-Venda (alumni — Onda 2)
+          pos_venda: {
+            status: "locked",
+            steps: {
+              alumni: { status: "locked", checkpoints: {}, progress: 0 },
+              embaixador: { status: "locked", checkpoints: {}, progress: 0 },
+            }
+          }
+        },
+
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log(`✅ [Effects:JourneyMap] Mapa de jornada criado com sucesso: ${matricula}`);
+    } catch (journeyErr) {
+      console.error(`❌ [Effects:JourneyMap] Erro ao criar mapa de jornada:`, journeyErr);
+    }
+
   }
 
   // EFEITOS: Check-in BPlen 📊
