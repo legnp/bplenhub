@@ -75,7 +75,7 @@ export function HubHomeView() {
         <MemberJourneyHero />
 
         {/* 2. ULTIMOS CONTEÚDOS E FERRAMENTAS (GRID MISTO) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 !mt-[45px]">
            
            {/* Feed de Conteúdo Dinâmico ✨ */}
            <section className="space-y-8">
