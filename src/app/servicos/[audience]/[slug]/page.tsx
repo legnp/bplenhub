@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   return {
-    title: `${product?.title || "Carregando..."} | BPlen HUB`,
+    title: product?.title || "Carregando...",
     description: product?.sheet.description.slice(0, 160) || "Detalhes do serviço estratégico.",
   };
 }

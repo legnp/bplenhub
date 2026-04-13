@@ -82,7 +82,7 @@ export function HubHeader() {
          <Link 
             href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro/dashboard"} 
          >
-            <BPlenLogo variant="hub" size={28} />
+            <BPlenLogo variant="hub" size={48} />
          </Link>
       </div>
 

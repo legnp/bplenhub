@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { audience } = await params;
   const config = audienceMap[audience];
   return {
-    title: `${config?.title || "Serviços"} | BPlen HUB`,
+    title: config?.title || "Serviços",
     description: config?.kicker || "Tríade de soluções em Desenvolvimento Humano.",
   };
 }

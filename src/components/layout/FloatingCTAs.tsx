@@ -94,7 +94,7 @@ export function FloatingCTAs() {
             <div className="flex-1 flex flex-col justify-center gap-12 mt-10">
               {/* Branding no Menu */}
               <div className="flex items-center gap-3">
-                <BPlenLogo variant="main" size={24} />
+                <BPlenLogo variant="main" size={40} />
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent-start)] px-1">Menu</span>
                 <div className="h-px flex-1 bg-[var(--accent-start)] opacity-20" />
               </div>

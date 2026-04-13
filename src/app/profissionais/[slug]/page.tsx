@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!profile) return { title: "Profissional não encontrado" };
 
   return {
-    title: `${profile.name} | Perfil Profissional BPlen`,
+    title: `${profile.name} | Perfil Profissional`,
     description: profile.shortBio,
     openGraph: {
-      title: `${profile.name} - Hub de Desenvolvimento Humano`,
+      title: `${profile.name} | Perfil Profissional`,
       description: profile.shortBio,
       images: [profile.photo],
     },
