@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Compass, Target } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
@@ -33,11 +33,19 @@ export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps
        setActiveStageId(stages[0].id);
     }
   }, [progress, stages]);
+  
+  // Otimização: Memoizar o mapa de status para evitar re-cálculos caros no render 🚀
+  const stepStatusMap = useMemo(() => {
+    if (!progress?.steps) return {};
+    return Object.fromEntries(
+      Object.entries(progress.steps).map(([k, v]) => [k, v.status])
+    );
+  }, [progress?.steps]);
 
   if (loading && !stages.length) return null; // Ou um skeleton sutil
 
   return (
-    <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg">
+    <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg transform-gpu">
       <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
         <div className="absolute top-0 right-0 p-12 opacity-5">
            <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
@@ -74,9 +82,7 @@ export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps
               <JourneyNav 
                  stages={stages}
                  currentStepId={activeStageId} 
-                 stepStatusMap={progress?.steps ? Object.fromEntries(
-                    Object.entries(progress.steps).map(([k, v]) => [k, v.status])
-                 ) : {}}
+                 stepStatusMap={stepStatusMap}
                  getStageTelemetry={getStageTelemetry}
               />
             )}

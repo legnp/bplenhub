@@ -45,6 +45,6 @@ export interface AdminUser {
   // 📝 Metadados Operacionais
   metadata?: {
     disc_link?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }

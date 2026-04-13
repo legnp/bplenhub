@@ -8,6 +8,7 @@ interface CurrencyValue {
   value: string;
   currency: string;
   declined?: boolean;
+  [key: string]: unknown;
 }
 
 interface CurrencyGroupProps {

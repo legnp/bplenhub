@@ -8,6 +8,7 @@ import { Star } from "lucide-react";
 interface LikertValue {
   score: string;
   feedback?: string;
+  [key: string]: unknown;
 }
 
 interface LikertScaleProps {

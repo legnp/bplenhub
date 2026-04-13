@@ -15,6 +15,7 @@ interface CascadedValue {
   secondary: string;
   primaryOther?: string;
   secondaryOther?: string;
+  [key: string]: unknown;
 }
 
 interface CascadedSelectProps {

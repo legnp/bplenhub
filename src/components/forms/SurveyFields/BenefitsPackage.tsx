@@ -12,17 +12,17 @@ interface BenefitData {
   value?: string;
   currency?: string;
   company?: string;
-  details?: string; // Para "Mais detalhes da expectativa"
-  companyContributes?: boolean; // Para Previdência Privada
-  contributionCap?: string; // Para Previdência Privada
-  comments?: string; // Para Previdência Privada
-  // Novos campos para Performance (Bônus, PLR, Comissão)
+  details?: string; 
+  companyContributes?: boolean; 
+  contributionCap?: string; 
+  comments?: string; 
   calculationBase?: "percentage" | "salary_multiplier";
   salaryMultiplier?: string;
   percentageValue?: string;
   isGoalBased?: boolean;
   recurrence?: string;
   extraInfo?: string;
+  [key: string]: unknown;
 }
 
 interface BenefitsPackageProps {

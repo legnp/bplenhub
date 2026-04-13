@@ -21,7 +21,7 @@
   /* Glassmorphism Refinado v3.1 (Apple IOS Pro) */
   --glass-bg: rgba(255, 255, 255, 0.4);
   --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-  --glass-blur: 12px;
+  --glass-blur: 8px;
   --glass-shadow: 0 4px 16px 0 rgba(31,38,135,0.05);
 
   /* Tokens de Input e Bordas */

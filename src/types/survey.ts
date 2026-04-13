@@ -86,7 +86,7 @@ export interface SurveyConfig {
   templateData?: Record<string, string>; // Dados para interpolação nas perguntas
 }
 
-export type SurveyValue = string | string[] | number | boolean | null | Record<string, any>;
+export type SurveyValue = string | string[] | number | boolean | null | Record<string, unknown>;
 
 export interface SurveyResponse {
   surveyId: string;

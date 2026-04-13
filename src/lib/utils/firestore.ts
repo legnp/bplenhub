@@ -8,39 +8,38 @@
  * Converte recursivamente um objeto contendo Timestamps em um objeto com strings ISO.
  * Protege a fronteira de Serialização entre Server e Client Components.
  */
-export function safeSerialize<T = any>(data: any): T {
-  if (!data) return data;
+export function safeSerialize<T>(data: unknown): T {
+  if (data === null || data === undefined) return data as unknown as T;
 
-  // Se for um Timestamp do Firestore Admin
-  if (data && typeof data === 'object' && '_seconds' in data && '_nanoseconds' in data) {
+  // Se for um Timestamp do Firestore Admin (Duck-typing)
+  if (typeof data === 'object' && '_seconds' in data && '_nanoseconds' in data) {
     try {
-      // Usamos a duck-typing para detectar o Timestamp e converter
-      // O método toDate() é injetado pelo Admin SDK no objeto retornado
-      if (typeof (data as any).toDate === 'function') {
-        return (data as any).toDate().toISOString() as any;
+      const d = data as { toDate?: () => Date; _seconds: number };
+      if (typeof d.toDate === 'function') {
+        return d.toDate().toISOString() as unknown as T;
       }
-      // Fallback manual se o toDate não estiver disponível (raro no Admin)
-      return new Date(data._seconds * 1000).toISOString() as any;
+      return new Date(d._seconds * 1000).toISOString() as unknown as T;
     } catch (e) {
-      return null as any;
+      return null as unknown as T;
     }
   }
 
   // Se for Array, processa cada item
   if (Array.isArray(data)) {
-    return data.map(item => safeSerialize(item)) as any;
+    return data.map(item => safeSerialize(item)) as unknown as T;
   }
 
   // Se for Objeto, processa cada chave recursivamente
   if (typeof data === 'object' && data !== null) {
-    const result: any = {};
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        result[key] = safeSerialize(data[key]);
+    const result = {} as Record<string, unknown>;
+    const obj = data as Record<string, unknown>;
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = safeSerialize(obj[key]);
       }
     }
-    return result as T;
+    return result as unknown as T;
   }
 
-  return data;
+  return data as unknown as T;
 }
