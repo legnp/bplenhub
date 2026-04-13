@@ -267,7 +267,9 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                     "text-[9px] uppercase tracking-[0.25em] font-black transition-colors leading-tight max-w-[110px]",
                     isCurrent ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-50"
                   )}>
-                    {(index + 1).toString().padStart(2, '0')} | {stage.title}
+                    {(index + 1).toString().padStart(2, '0')}
+                    <br />
+                    {stage.title}
                   </p>
                 </div>
               </div>
