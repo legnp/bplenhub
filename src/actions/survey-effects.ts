@@ -716,6 +716,79 @@ export async function handleSurveySideEffects(surveyId: string, responses: Recor
     }
   }
 
+  // EFEITOS: Desmistificando Candidaturas (Feedback de Conteúdo) 📋
+  if (surveyId === "desmistificando_candidaturas") {
+    console.log(`📡 [Effects] Iniciando processamento Desmistificando Candidaturas: ${matricula}`);
+    
+    try {
+      const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
+      const { serverEnv } = await import("@/env");
+      const { ensureFolder, createSpreadsheet, syncDataToSheet } = await import("@/lib/drive-utils");
+
+      const drive = await getDriveClient();
+      const sheets = await getSheetsClient();
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+
+      const isPJ = matricula.includes("-PJ-");
+      const catFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, catFolderId, matricula);
+      const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
+      
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Desmistificando Candidaturas - ${matricula}`);
+
+      const headers = ["Timestamp", "Matrícula", "Utilidade (Likert)", "Comentários/Feedback"];
+      const rowData = [
+        new Date().toLocaleString("pt-BR"),
+        matricula,
+        String(responses.utilidade || "N/A"),
+        String(responses.comentários || "N/A")
+      ];
+
+      await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
+      console.log(`✅ [Effects] Desmistificando Candidaturas sincronizado com Drive: ${matricula}`);
+    } catch (driveErr) {
+      console.error(`❌ [Effects] Erro na sincronização Drive Desmistificando Candidaturas:`, driveErr);
+    }
+  }
+
+  // EFEITOS: Revisão de Currículo (Mentoria CV) 📄
+  if (surveyId === "revisao_curriculo") {
+    console.log(`📡 [Effects] Iniciando processamento Revisão de Currículo: ${matricula}`);
+    
+    try {
+      const { getDriveClient, getSheetsClient } = await import("@/lib/google-auth");
+      const { serverEnv } = await import("@/env");
+      const { ensureFolder, createSpreadsheet, syncDataToSheet } = await import("@/lib/drive-utils");
+
+      const drive = await getDriveClient();
+      const sheets = await getSheetsClient();
+      const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+
+      const isPJ = matricula.includes("-PJ-");
+      const catFolderId = await ensureFolder(drive, baseFolderId, isPJ ? "2.3.B2B" : "2.2.B2C");
+      const userFolderId = await ensureFolder(drive, catFolderId, matricula);
+      const surveyFolderId = await ensureFolder(drive, userFolderId, "1.Surveys");
+      
+      const { id: spreadsheetId } = await createSpreadsheet(drive, surveyFolderId, `Revisão de Currículo - ${matricula}`);
+
+      const headers = ["Timestamp", "Matrícula", "Possuía Resumo?", "Resumo Original/Criado", "Alinhamento (Escala)", "Resumo Otimizado", "Descrição Formação"];
+      const rowData = [
+        new Date().toLocaleString("pt-BR"),
+        matricula,
+        responses.has_resumo === "sim" ? "Sim" : "Não",
+        String(responses.resumo_atual || responses.resumo_criado || "N/A"),
+        String(responses.alinhamento || "N/A"),
+        String(responses.resumo_otimizado || "N/A"),
+        String(responses.descricao_formacao || "N/A")
+      ];
+
+      await syncDataToSheet(sheets, spreadsheetId, headers, rowData);
+      console.log(`✅ [Effects] Revisão de Currículo sincronizado com Drive: ${matricula}`);
+    } catch (driveErr) {
+      console.error(`❌ [Effects] Erro na sincronização Drive Revisão de Currículo:`, driveErr);
+    }
+  }
+
   } catch (globalErr: any) {
     console.error(`🚨 [Effects:Fatal] Falha Crítica no Processamento da Survey ${surveyId}:`, globalErr);
     // Não damos re-throw aqui para não travar o fluxo principal se os efeitos falharem,
