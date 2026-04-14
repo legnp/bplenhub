@@ -180,7 +180,7 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
     <div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Semi-transparent overlay (very light) */}
       <div 
-        className="absolute inset-0 bg-black/10 backdrop-blur-[1px] pointer-events-auto"
+        className="absolute inset-0 bg-black/10 pointer-events-auto"
         onClick={() => {}} 
       />
 
