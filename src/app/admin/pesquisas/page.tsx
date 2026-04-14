@@ -138,7 +138,7 @@ export default async function AdminSurveysPage() {
                   <td className="p-6 text-right">
                     <div className="flex items-center justify-end gap-3">
                        <a 
-                         href={`/test/surveys/${survey.id}`}
+                         href={`/admin/pesquisas/preview/${survey.id}`}
                          className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-[var(--text-primary)] text-[10px] font-bold rounded-lg hover:border-[var(--accent-start)]/50 transition-all font-mono tracking-widest"
                        >
                          <Eye size={14} className="text-[var(--accent-start)]" /> PREVIEW
