@@ -56,11 +56,14 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 
         // Consolidar substeps de todos os produtos do grupo
         products.forEach(product => {
+          const productSubsteps: SubStepConfig[] = [];
+
+          // 1. Gather all potential functional substeps
           // Surveys
           if (product.capabilities?.surveys) {
             product.capabilities.surveys.forEach(srvId => {
               const srv = (surveys as any)[srvId];
-              allSubsteps.push({
+              productSubsteps.push({
                 id: `ss-srv-${srvId}`,
                 title: srv?.title || `Pesquisa: ${srvId}`,
                 type: "survey",
@@ -72,7 +75,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
           // Forms
           if (product.capabilities?.forms) {
             product.capabilities.forms.forEach(frmId => {
-              allSubsteps.push({
+              productSubsteps.push({
                 id: `ss-frm-${frmId}`,
                 title: `Formulário: ${frmId}`,
                 type: "form",
@@ -83,7 +86,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
           // Meetings
           if (product.capabilities?.allowedEventTypes) {
             product.capabilities.allowedEventTypes.forEach(evtId => {
-              allSubsteps.push({
+              productSubsteps.push({
                 id: `ss-mtg-${evtId}`,
                 title: products.length > 1 ? `Agendar: ${product.title}` : `Agendar Sessão`,
                 type: "meeting",
@@ -92,6 +95,24 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
               });
             });
           }
+
+          // 2. 🧠 Sincronizar nomes com o Workflow de Entrega (Definido no Admin)
+          // Se houver um workflow definido, usamos os títulos por índice.
+          if (product.workflow && product.workflow.length > 0) {
+            productSubsteps.forEach((ss, idx) => {
+              const workflowStep = product.workflow[idx];
+              if (workflowStep) {
+                // Sobrescrevemos o título técnico pelo título definido na jornada estratégica
+                ss.title = workflowStep.title;
+                // Se o workflow tiver descrição, também atualizamos para ser mais humano
+                if (workflowStep.description) {
+                  ss.description = workflowStep.description;
+                }
+              }
+            });
+          }
+
+          allSubsteps.push(...productSubsteps);
         });
 
         // 🔮 Mapeamento de Ícones Inteligente (Baseado em Ordem/Slug)

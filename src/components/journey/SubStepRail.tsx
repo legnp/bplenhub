@@ -19,7 +19,7 @@ export function SubStepRail({ substeps, currentSubStepId, completedSubStepIds, o
   return (
     <div className="flex flex-col gap-6 w-1/4 sm:w-1/5 pr-8 border-r border-[var(--border-primary)] border-dashed">
       <div className="flex flex-col gap-2">
-        <h4 className="text-[10px] font-black uppercase text-[var(--accent-start)] tracking-[0.3em] pl-1">Roteiro</h4>
+        <h4 className="text-[10px] font-black uppercase text-[var(--accent-start)] tracking-[0.3em] pl-1">Checkpoints</h4>
         <div className="h-[2px] w-6 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] rounded-full mb-2 ml-1" />
       </div>
 
@@ -64,7 +64,7 @@ export function SubStepRail({ substeps, currentSubStepId, completedSubStepIds, o
                   "text-[8px] font-black uppercase tracking-[0.2em] transition-all",
                   isActive ? "text-[var(--accent-start)] opacity-100" : "text-[var(--text-tertiary)] opacity-40"
                 )}>
-                  Parte {idx + 1}
+                  Parada {idx + 1}
                 </span>
                 <span className={cn(
                   "text-[11px] font-black leading-tight tracking-tight transition-colors duration-500",
