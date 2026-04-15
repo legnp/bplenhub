@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SubStepConfig } from "@/types/journey";
-import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar as CalendarIcon, ClipboardCheck } from "lucide-react";
+import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar as CalendarIcon, ClipboardCheck, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Calendar from "@/components/ui/Calendar";
 import UserBookings from "@/components/ui/UserBookings";
@@ -10,6 +10,8 @@ import { fetchCalendarEvents } from "@/actions/calendar";
 import { SurveyEngine } from "@/components/forms/SurveyEngine";
 import { getSurveyConfig } from "@/config/surveys";
 import { useAuthContext } from "@/context/AuthContext";
+import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
+import { onboardingTourSteps } from "@/config/tour/onboarding-tour";
 
 interface StepRendererProps {
   substep: SubStepConfig;
@@ -69,14 +71,63 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
   }, [substep.type, substep.referenceId]);
 
   const [isSurveyActive, setIsSurveyActive] = React.useState(false);
+  const [isTourOpen, setIsTourOpen] = React.useState(false);
 
   React.useEffect(() => {
     setIsSurveyActive(false);
+    setIsTourOpen(false);
   }, [substep.id]);
 
   const renderContent = () => {
     switch (substep.type) {
       case "content":
+        const isGuidedTour = substep.referenceId === "welcome_video_01";
+
+        if (isGuidedTour) {
+           return (
+              <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 relative">
+                 <GuidedTourOverlay 
+                    steps={onboardingTourSteps} 
+                    isOpen={isTourOpen} 
+                    onComplete={() => {
+                       setIsTourOpen(false);
+                       onComplete();
+                    }}
+                    userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
+                 />
+
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 bg-pink-500/10 rounded-xl flex items-center justify-center text-pink-500">
+                          <Sparkles size={18} />
+                       </div>
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-500/high">Tour Guiado BPlen</span>
+                    </div>
+                    <h2 className="text-3xl font-black tracking-tight">Boas-vindas ao HUB</h2>
+                    <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">Prepare-se para conhecer o seu novo ecossistema de desenvolvimento de carreira.</p>
+                 </div>
+                 
+                 <div className="p-16 border border-[var(--border-primary)] rounded-[3.5rem] bg-[var(--input-bg)]/20 flex flex-col items-center justify-center text-center gap-8 shadow-inner">
+                    <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-xl bg-pink-600 cursor-pointer hover:scale-105 active:scale-95 transition-all" onClick={() => setIsTourOpen(true)}>
+                       <PlayCircle size={32} />
+                    </div>
+                    <div className="space-y-2">
+                       <p className="text-[12px] font-black uppercase tracking-widest">Aperte o Play para iniciar o Tour</p>
+                       <p className="text-[10px] font-medium text-[var(--text-muted)] max-w-xs mx-auto">
+                          A BPlen preparou um guia narrado para te apresentar todos os recursos do HUB.
+                       </p>
+                    </div>
+                    <button 
+                       onClick={onComplete}
+                       className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors underline"
+                    >
+                       Pular e Marcar como Concluído
+                    </button>
+                 </div>
+              </div>
+           );
+        }
+
         return (
           <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
              <div className="space-y-4">

@@ -1,0 +1,50 @@
+import { TourStep } from "@/components/shared/GuidedTourOverlay";
+
+export const onboardingTourSteps: TourStep[] = [
+  {
+    title: "Boas-vindas a Área de Membro da BPlen HUB.",
+    content: "{User_Nickname}, esse é o novo espaço para você gerenciar o desenvolvimento da sua carreira profissional. Nos próximos segundos, vou te guiar pelos módulos mais importantes para você se ambientar e aproveitar ao máximo cada recurso disponível!",
+    buttonLabel: "Ok, vamos nessa!"
+  },
+  {
+    targetId: "hub-journey-nav",
+    title: "Sua Jornada de Membro",
+    content: "Aqui você acompanha a evolução da sua Jornada como Membro BPlen. Cada ícone representa um Passo a diante, e à medida que você avança, novos conteúdos e ferramentas são desbloqueados automaticamente, enquanto o seu progresso é medido em tempo real.",
+    buttonLabel: "Agora eu sei onde ver a minha jornada. Vamos para o próximo módulo."
+  },
+  {
+    targetId: "hub-carreira",
+    title: "Gestão de Carreira",
+    content: "{User_Nickname}, esse é o coração da SUA trajetória. Aqui você terá a visão geral da evolução da sua Carreira Profissional, através de seus planos individuais, metas, análise de progressão e melhoria, com foco aos seus Objetivos de Carreira.",
+    buttonLabel: "Mal vejo a hora de iniciar a Gestão da Minha carreira"
+  },
+  {
+    targetId: "hub-agenda",
+    title: "Sua Agenda BPlen",
+    content: "Essa é a visualização geral da sua Agenda BPlen. Aqui você terá consolidado o histórico e planejamento da sua agenda conosco como: os 1 to 1, sessões de feedback, desenvolvimento de carreira e mentoria. Após a conclusão de cada agenda, será disponibilizada uma ata e um espaço para você avaliar a sua experiência.",
+    buttonLabel: "Entendi"
+  },
+  {
+    targetId: "hub-assessments",
+    title: "Perfil & Assessments",
+    content: "Nesta área, organizaremos os resultados das suas análises comportamentais. Cada assessment (como DISC e Gestão do Tempo) contribuirá para o melhor planejamento e desenvolvimento do seu perfil profissional.",
+    buttonLabel: "Espero descobrir meu perfil profissional logo! Me leve para o próximo módulo."
+  },
+  {
+    targetId: "hub-trilha",
+    title: "Trilha de Desenvolvimento",
+    content: "Essa é a trilha de checkpoints da sua jornada. Cada etapa possui checkpoints para apoiar o seu Desenvolvimento de Carreira de forma progressiva, respeitando o seu ritmo e conectando teoria à prática.",
+    buttonLabel: "Entendi"
+  },
+  {
+    targetId: "hub-conteudo",
+    title: "Conteúdo & Recursos",
+    content: "Aqui acontece a troca de conhecimento entre a BPlen e você: Materiais, ferramentas, frameworks, vídeos e leituras recomendadas. Tudo projetado especificamente para o seu processo de desenvolvimento.",
+    buttonLabel: "Tenho tudo o que preciso para iniciar a minha jornada BPlen."
+  },
+  {
+    title: "Tour Concluído!",
+    content: "{User_Nickname}, parabéns! Você está pronto para dar mais um passo a diante e seguir para o seu Check-In como Membro Oficial BPlen! Basta clicar no botão abaixo para concluir o tour e prosseguir em sua jornada.",
+    buttonLabel: "Finalizar Tour"
+  }
+];

@@ -4,6 +4,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
 import { JourneyStep, SubStepConfig } from "@/types/journey";
 import { surveys } from "@/config/surveys";
+import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
 
 /**
  * BPlen HUB — Grouped Journey Engine (Server Side) 🧬
@@ -132,6 +133,14 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
           return "Target";
         };
 
+        // 🛡️ Soberania Híbrida: Garante que etapas core (como Onboarding) usem a tipagem rigorosa
+        // do nosso registro estático para evitar que um survey seja renderizado no lugar de um vídeo.
+        let finalSubsteps = allSubsteps;
+        const staticStageMatch = JOURNEY_STAGES.find(s => s.id === main.slug);
+        if (staticStageMatch && staticStageMatch.substeps.length > 0) {
+           finalSubsteps = staticStageMatch.substeps;
+        }
+
         return {
           id: main.slug || main.id,
           order: order,
@@ -139,7 +148,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
           subtitle: main.sheet?.description?.slice(0, 60) + "..." || "",
           icon: getIconName(order, main.slug), 
           description: main.sheet?.description || "",
-          substeps: allSubsteps
+          substeps: finalSubsteps
         };
       })
       .sort((a, b) => a.order - b.order);
