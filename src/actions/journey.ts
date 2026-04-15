@@ -110,6 +110,11 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
                 }
               }
             });
+
+            // Garante que a jornada respeite o tamanho do workflow configurado (Soberania do Admin) 🛡️
+            while (productSubsteps.length > product.workflow.length) {
+              productSubsteps.pop();
+            }
           }
 
           allSubsteps.push(...productSubsteps);

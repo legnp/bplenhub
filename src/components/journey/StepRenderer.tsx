@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import Calendar from "@/components/ui/Calendar";
 import UserBookings from "@/components/ui/UserBookings";
 import { fetchCalendarEvents } from "@/actions/calendar";
+import { SurveyEngine } from "@/components/forms/SurveyEngine";
+import { getSurveyConfig } from "@/config/surveys";
+import { useAuthContext } from "@/context/AuthContext";
 
 interface StepRendererProps {
   substep: SubStepConfig;
@@ -19,6 +22,8 @@ interface StepRendererProps {
  * Orchestrator that renders the appropriate content type for a journey substep.
  */
 export function StepRenderer({ substep, status, onComplete }: StepRendererProps) {
+  const { user } = useAuthContext();
+
   if (status === "locked") {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-16 bg-[var(--input-bg)]/5 rounded-[3.5rem] border border-dashed border-[var(--border-primary)] opacity-40">
@@ -63,6 +68,12 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
     }
   }, [substep.type, substep.referenceId]);
 
+  const [isSurveyActive, setIsSurveyActive] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsSurveyActive(false);
+  }, [substep.id]);
+
   const renderContent = () => {
     switch (substep.type) {
       case "content":
@@ -101,6 +112,23 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
       case "form":
       case "survey":
         const isSurvey = substep.type === "survey";
+        const surveyConfig = getSurveyConfig(substep.referenceId);
+
+        if (isSurveyActive && surveyConfig) {
+           return (
+              <div className="flex-1 animate-in zoom-in duration-500 py-4">
+                 <SurveyEngine 
+                    config={surveyConfig}
+                    userUid={user?.uid || "guest"}
+                    onComplete={() => {
+                       setIsSurveyActive(false);
+                       onComplete();
+                    }}
+                 />
+              </div>
+           );
+        }
+
         return (
           <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
              <div className="space-y-4">
@@ -136,7 +164,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                    </p>
                 </div>
                 <button 
-                   onClick={onComplete}
+                   onClick={() => setIsSurveyActive(true)}
                    className="px-10 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl"
                 >
                    {isSurvey ? "Iniciar Avaliação" : "Preencher Formulário"}
