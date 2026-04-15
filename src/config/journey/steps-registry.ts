@@ -15,18 +15,25 @@ export const JOURNEY_STAGES: JourneyStep[] = [
     icon: "Rocket",
     substeps: [
       { 
-        id: "intro_video", 
-        title: "Boas-vindas", 
+        id: "introducao", 
+        title: "Introdução", 
         type: "content", 
         referenceId: "welcome_video_01",
         description: "Conheça a visão da BPlen" 
       },
       { 
-        id: "profile_setup", 
-        title: "Perfil", 
-        type: "form", 
-        referenceId: "user_onboarding_form",
-        description: "Complete seus dados" 
+        id: "check_in_survey", 
+        title: "Check-in", 
+        type: "survey", 
+        referenceId: "check_in",
+        description: "Completar dados básicos" 
+      },
+      { 
+        id: "sessao_onboarding", 
+        title: "Sessão de Onboarding", 
+        type: "meeting", 
+        referenceId: "onboarding",
+        description: "Agende sua sessão individual de boas-vindas com nossos orientadores." 
       }
     ],
   },

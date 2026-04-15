@@ -44,7 +44,17 @@ type BookingSortDir = "asc" | "desc";
 type StatusFilterKey = "todos" | "agendada" | "realizada" | "concluida" | "cancelada";
 type PresenceFilterKey = "todos" | "presente" | "ausente" | "pendente";
 
-export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} }: { refreshCounter?: number; onRefresh?: () => void }) {
+export default function UserBookings({ 
+  refreshCounter = 0, 
+  onRefresh = () => {},
+  filterSummary,
+  compact = false
+}: { 
+  refreshCounter?: number; 
+  onRefresh?: () => void; 
+  filterSummary?: string;
+  compact?: boolean;
+}) {
   const { matricula, user } = useAuthContext();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,12 +145,15 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
       });
     }
 
+    // Summary filter (Prop-based)
+    if (filterSummary) {
+      result = result.filter(b => b.eventDetail?.summary.toLowerCase().includes(filterSummary.toLowerCase()));
+    }
+
     // Status filter
     if (statusFilter !== "todos") {
       result = result.filter(b => getBookingStatus(b) === statusFilter);
     }
-
-    // Presence filter
     if (presenceFilter !== "todos") {
       result = result.filter(b => getPresenceKey(b) === presenceFilter);
     }
@@ -220,12 +233,52 @@ export default function UserBookings({ refreshCounter = 0, onRefresh = () => {} 
   }
 
   if (bookings.length === 0) {
+    if (compact) return null;
     return (
       <div className="w-full p-12 bg-[var(--input-bg)]/30 backdrop-blur-md rounded-3xl border border-[var(--input-border)] flex flex-col items-center justify-center text-center">
         <div className="p-4 bg-[var(--accent-soft)] rounded-full mb-4">
           <CalendarIcon className="w-6 h-6 text-[var(--text-muted)] opacity-20" />
         </div>
         <p className="text-[10px] font-black text-[var(--text-muted)] opacity-50 uppercase tracking-[0.2em]">Você ainda não possui agendamentos</p>
+      </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-1000">
+         <div className="flex items-center gap-3 mb-2 px-2">
+            <h4 className="text-[10px] font-black text-[var(--accent-start)] uppercase tracking-[0.2em]">Seu Agendamento Confirmado</h4>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--text-muted)] opacity-10 to-transparent" />
+         </div>
+         {filteredBookings.length === 0 ? (
+            <div className="p-8 border border-dashed border-[var(--border-primary)] rounded-[2rem] text-center opacity-40">
+               <p className="text-[9px] font-black uppercase tracking-widest">Aguardando agendamento no calendário acima...</p>
+            </div>
+         ) : (
+            filteredBookings.map((booking) => (
+               <BookingRow 
+                 key={booking.id}
+                 booking={booking}
+                 onEvaluate={handleEvaluate}
+                 isSubmitting={isEvaluating === booking.id}
+                 onRefresh={fetchBookings}
+                 onOpenDetail={() => setSelectedBooking(booking)}
+               />
+            ))
+         )}
+         
+         {/* Detail Modal embutido para o compact ser funcional */}
+         {selectedBooking && statusFilter === "todos" && ( // Hack para não conflitar com o original
+           <BookingDetailModal 
+             booking={selectedBooking}
+             isOpen={!!selectedBooking}
+             onClose={() => setSelectedBooking(null)}
+             onEvaluate={handleEvaluate}
+             isSubmitting={isEvaluating === selectedBooking.id}
+             onRefresh={fetchBookings}
+           />
+         )}
       </div>
     );
   }

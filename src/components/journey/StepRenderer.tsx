@@ -2,8 +2,11 @@
 
 import React from "react";
 import { SubStepConfig } from "@/types/journey";
-import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar, ClipboardCheck } from "lucide-react";
+import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar as CalendarIcon, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Calendar from "@/components/ui/Calendar";
+import UserBookings from "@/components/ui/UserBookings";
+import { fetchCalendarEvents } from "@/actions/calendar";
 
 interface StepRendererProps {
   substep: SubStepConfig;
@@ -29,6 +32,36 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
       </div>
     );
   }
+
+  const [events, setEvents] = React.useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = React.useState(false);
+
+  React.useEffect(() => {
+    if (substep.type === "meeting") {
+      const loadEvents = async () => {
+        setLoadingEvents(true);
+        try {
+          // Busca eventos dos próximos meses para garantir disponibilidade
+          const allEvents = await fetchCalendarEvents(new Date());
+          
+          // Filtro rigoroso se for onboarding
+          if (substep.referenceId === "onboarding") {
+            const filtered = allEvents.filter(ev => 
+               ev.summary.toLowerCase().includes("onboarding")
+            );
+            setEvents(filtered);
+          } else {
+            setEvents(allEvents);
+          }
+        } catch (error) {
+          console.error("Erro ao carregar agenda na jornada:", error);
+        } finally {
+          setLoadingEvents(false);
+        }
+      };
+      loadEvents();
+    }
+  }, [substep.type, substep.referenceId]);
 
   const renderContent = () => {
     switch (substep.type) {
@@ -56,10 +89,10 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
 
              <div className="flex justify-end pt-4">
                 <button 
-                  onClick={onComplete}
-                  className="px-10 py-4 bg-[var(--accent-start)] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[var(--accent-start)]/20"
+                   onClick={onComplete}
+                   className="px-10 py-4 bg-[var(--accent-start)] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[var(--accent-start)]/20"
                 >
-                  Marcar como Concluído
+                   Marcar como Concluído
                 </button>
              </div>
           </div>
@@ -103,10 +136,10 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                    </p>
                 </div>
                 <button 
-                  onClick={onComplete}
-                  className="px-10 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl"
+                   onClick={onComplete}
+                   className="px-10 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl"
                 >
-                  {isSurvey ? "Iniciar Avaliação" : "Preencher Formulário"}
+                   {isSurvey ? "Iniciar Avaliação" : "Preencher Formulário"}
                 </button>
              </div>
           </div>
@@ -118,23 +151,40 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
              <div className="space-y-4">
                 <div className="flex items-center gap-3">
                    <div className="w-8 h-8 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
-                      <Calendar size={18} />
+                      <CalendarIcon size={18} />
                    </div>
-                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Agendamento</span>
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Agendamento de Sessão</span>
                 </div>
                 <h2 className="text-3xl font-black tracking-tight">{substep.title}</h2>
-                <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">Selecione o melhor horário para sua sessão individual com nossos especialistas.</p>
+                <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">
+                   {substep.referenceId === "onboarding" 
+                     ? "Escolha um horário para sua reunião individual de onboarding." 
+                     : "Selecione o melhor horário para sua sessão com nossos especialistas."}
+                </p>
              </div>
              
-             <div className="flex-1 border border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)]/20 overflow-hidden flex flex-col items-center justify-center py-20 px-8">
-                <Calendar size={48} className="text-amber-500/20 mb-6" />
-                <p className="text-[12px] font-black uppercase tracking-widest mb-8">Calendário Integrado</p>
-                <button 
-                   onClick={onComplete}
-                   className="px-10 py-4 bg-amber-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all"
-                >
-                   Escolher Horário
-                </button>
+             <div className="flex-1 min-h-[600px] border border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)]/10 overflow-hidden relative">
+                {loadingEvents ? (
+                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--bg-primary)]/40 backdrop-blur-sm z-50">
+                      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                      <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-amber-500">Sincronizando Agenda...</p>
+                   </div>
+                ) : (
+                   <div className="p-4 sm:p-8 h-full">
+                      <Calendar 
+                         events={events} 
+                         onBookingSuccess={onComplete}
+                      />
+                   </div>
+                )}
+             </div>
+
+             {/* Gestão de Agenda (Compacta) */}
+             <div className="mt-4">
+                <UserBookings 
+                  compact={true} 
+                  filterSummary={substep.referenceId === "onboarding" ? "onboarding" : undefined} 
+                />
              </div>
           </div>
         );
