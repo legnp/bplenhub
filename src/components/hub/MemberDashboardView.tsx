@@ -60,6 +60,14 @@ export default function MemberDashboardView() {
 
   // Guided Tour State
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [revealedSections, setRevealedSections] = useState<string[]>([]);
+  
+  const getSectionStyle = (sectionId: string) => ({
+    filter: isTourOpen && !revealedSections.includes(sectionId) ? "blur(12px)" : "blur(0px)",
+    transition: "filter 0.8s ease-out",
+    pointerEvents: (isTourOpen && !revealedSections.includes(sectionId) ? "none" : "auto") as React.CSSProperties["pointerEvents"],
+    zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1
+  });
 
   useEffect(() => {
      // Check if we just bounced back here to start the tour natively
@@ -188,11 +196,13 @@ export default function MemberDashboardView() {
               className="space-y-12"
             >
               {/* Journey Hero (Regra: 1 para Muitos) */}
-              <MemberJourneyHero />
+              <div id="hub-journey-nav" style={getSectionStyle("hub-journey-nav")}>
+                 <MemberJourneyHero />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
                 {/* Barra Lateral: Laboratório de Assessments 🧪 */}
-                <aside id="hub-assessments" className="space-y-6">
+                <aside id="hub-assessments" style={getSectionStyle("hub-assessments")} className="space-y-6">
                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-8 shadow-sm relative overflow-hidden group">
                      {/* Header do Laboratório */}
                      <div className="flex items-center gap-4 mb-2">
@@ -284,7 +294,7 @@ export default function MemberDashboardView() {
                 {/* Coluna Principal: Agenda & Outras Funções */}
                 <div className="space-y-8 flex flex-col">
                    {/* Card de Agenda */}
-                   <div id="hub-agenda" className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
+                   <div id="hub-agenda" style={getSectionStyle("hub-agenda")} className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
                       <div className="flex items-center gap-4">
                          <div className="p-3 bg-[var(--accent-start)]/10 rounded-2xl border border-[var(--accent-start)]/20 text-[var(--accent-start)]">
                             <CalendarDays size={20} />
@@ -334,7 +344,7 @@ export default function MemberDashboardView() {
                    </div>
 
                    {/* Módulo Gestão de Carreira */}
-                   <div id="hub-carreira" className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
+                   <div id="hub-carreira" style={getSectionStyle("hub-carreira")} className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
                       <div className="flex items-center gap-4">
                          <div className="p-3 bg-pink-500/5 rounded-2xl border border-pink-500/20 text-pink-500">
                             <Briefcase size={20} />
@@ -388,6 +398,7 @@ export default function MemberDashboardView() {
                  ...step,
                  action: () => {
                     setIsTourOpen(false);
+                    setRevealedSections([]);
                     // Retornar para a jornada
                     window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
                  }
@@ -398,8 +409,10 @@ export default function MemberDashboardView() {
         isOpen={isTourOpen} 
         onComplete={() => {
            setIsTourOpen(false);
+           setRevealedSections([]);
            window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
         }}
+        onReveal={(ids) => setRevealedSections(ids)}
         userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
       />
 

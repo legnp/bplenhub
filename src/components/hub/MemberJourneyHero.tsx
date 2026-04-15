@@ -45,7 +45,7 @@ export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps
   if (loading && !stages.length) return null; // Ou um skeleton sutil
 
   return (
-    <section id="hub-journey-nav" className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg transform-gpu">
+    <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg transform-gpu">
       <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
         <div className="absolute top-0 right-0 p-12 opacity-5">
            <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
