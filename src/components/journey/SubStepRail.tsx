@@ -5,6 +5,8 @@ import { SubStepConfig } from "@/types/journey";
 import { cn } from "@/lib/utils";
 
 interface SubStepRailProps {
+  id?: string;
+  style?: React.CSSProperties;
   substeps: SubStepConfig[];
   currentSubStepId: string;
   completedSubStepIds: string[];
@@ -15,9 +17,9 @@ interface SubStepRailProps {
  * BPlen HUB — SubStepRail 🧬🛡️
  * Linear rail for sub-stage progress.
  */
-export function SubStepRail({ substeps, currentSubStepId, completedSubStepIds, onSelectSubStep }: SubStepRailProps) {
+export function SubStepRail({ id, style, substeps, currentSubStepId, completedSubStepIds, onSelectSubStep }: SubStepRailProps) {
   return (
-    <div className="flex flex-col gap-6 w-1/4 sm:w-1/5 pr-8 border-r border-[var(--border-primary)] border-dashed">
+    <div id={id} style={style} className="flex flex-col gap-6 w-1/4 sm:w-[22%] shrink-0 pr-8 border-r border-[var(--border-primary)] border-dashed">
       <div className="flex flex-col gap-2">
         <h4 className="text-[10px] font-black uppercase text-[var(--accent-start)] tracking-[0.3em] pl-1">Checkpoints</h4>
         <div className="h-[2px] w-6 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] rounded-full mb-2 ml-1" />

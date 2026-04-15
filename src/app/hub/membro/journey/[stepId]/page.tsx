@@ -90,14 +90,14 @@ export default function StepJourneyPage() {
       badge={stepStatus === "completed" ? "Finalizado" : "Em Progresso"}
     >
       {/* Sidebar: SubStep Navigation Rail */}
-      <div id="hub-etapa-checkin" style={getSectionStyle("hub-etapa-checkin")}>
-         <SubStepRail 
-           substeps={stepConfig.substeps}
-           currentSubStepId={currentSubStepId}
-           completedSubStepIds={progress?.steps[stepId]?.completedSubSteps || []}
-           onSelectSubStep={setCurrentSubStepId}
-         />
-      </div>
+      <SubStepRail 
+        id="hub-etapa-checkin"
+        style={getSectionStyle("hub-etapa-checkin")}
+        substeps={stepConfig.substeps}
+        currentSubStepId={currentSubStepId}
+        completedSubStepIds={progress?.steps[stepId]?.completedSubSteps || []}
+        onSelectSubStep={setCurrentSubStepId}
+      />
 
       {/* Main Task Area: Step Renderer */}
       <div id="hub-conteudo" style={getSectionStyle("hub-conteudo")} className="flex-1 flex flex-col pt-[5px] pb-4 px-4 sm:pb-8 sm:px-8">
