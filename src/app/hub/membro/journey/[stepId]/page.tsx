@@ -59,11 +59,31 @@ export default function StepJourneyPage() {
   };
 
   useEffect(() => {
+    const header = document.getElementById("hub-global-header");
+    const topNav = document.getElementById("hub-journey-top-nav");
+    
+    [header, topNav].forEach(el => {
+      if (el) {
+        if (isTourOpen) {
+           el.style.filter = "blur(12px)";
+           el.style.transition = "filter 0.8s ease-out";
+           el.style.pointerEvents = "none";
+        } else {
+           el.style.filter = "none";
+           el.style.pointerEvents = "auto";
+        }
+      }
+    });
+  }, [isTourOpen]);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
        const search = window.location.search;
        if (search.includes("startTour=part2")) {
-          const timer = setTimeout(() => setIsTourOpen(true), 1500);
-          window.history.replaceState({}, "", window.location.pathname);
+          const timer = setTimeout(() => {
+             setIsTourOpen(true);
+             window.history.replaceState({}, "", window.location.pathname);
+          }, 1500);
           return () => clearTimeout(timer);
        }
     }

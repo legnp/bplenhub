@@ -238,7 +238,7 @@ export default function MemberDashboardView() {
                         </div>
                         <div className="flex flex-col text-left">
                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">Perfil & Assessments</h3>
-                           <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Análise Metódica</p>
+                           <p className="text-xs font-black text-[var(--text-primary)] tracking-tight mt-1">Análise Comportamental</p>
                         </div>
                      </div>
 

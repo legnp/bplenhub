@@ -33,7 +33,7 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
 
   return (
     <section className="min-h-screen pt-[10px] pb-24 px-4 sm:px-8 bg-[var(--bg-primary)] animate-in fade-in duration-700">
-        <div className="max-w-7xl mx-auto px-6 mb-8">
+        <div id="hub-journey-top-nav" className="max-w-7xl mx-auto px-6 mb-8">
            <Link 
               href="/hub/membro"
               className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-5"
