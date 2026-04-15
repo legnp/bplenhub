@@ -205,9 +205,6 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, onFocus, isOpen
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-muted)]">BPlen Narrator</span>
              </div>
-             <button onClick={onComplete} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-                <X size={18} />
-             </button>
           </div>
 
           {/* Content */}

@@ -10,6 +10,8 @@ import { useJourney } from "@/hooks/useJourney";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
+import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
+import { onboardingTourSteps } from "@/config/tour/onboarding-tour";
 
 /**
  * BPlen HUB — Step Journey Engine 🧬🛡️
@@ -38,6 +40,35 @@ export default function StepJourneyPage() {
     }
   }, [stepConfig, currentSubStepId, progress, stepId]);
 
+  // Guided Tour State (Parte 2 do Flow de Onboarding)
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [revealedSections, setRevealedSections] = useState<string[]>([]);
+  const [currentFocus, setCurrentFocus] = useState<string | null>(null);
+
+  const getSectionStyle = (sectionId: string): React.CSSProperties => {
+    return {
+      filter: isTourOpen && !revealedSections.includes(sectionId) ? "blur(12px)" : "blur(0px)",
+      transition: "all 0.8s ease-out",
+      pointerEvents: (isTourOpen && !revealedSections.includes(sectionId) ? "none" : "auto") as React.CSSProperties["pointerEvents"],
+      zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1,
+      borderRadius: "2rem",
+      boxShadow: isTourOpen && currentFocus === sectionId 
+        ? "0 0 80px rgba(255, 0, 128, 0.3)" 
+        : undefined
+    };
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+       const search = window.location.search;
+       if (search.includes("startTour=part2")) {
+          const timer = setTimeout(() => setIsTourOpen(true), 1500);
+          window.history.replaceState({}, "", window.location.pathname);
+          return () => clearTimeout(timer);
+       }
+    }
+  }, []);
+
   if (loading || (!stepConfig && stages.length === 0)) {
     return <AtmosphericLoading />;
   }
@@ -59,15 +90,17 @@ export default function StepJourneyPage() {
       badge={stepStatus === "completed" ? "Finalizado" : "Em Progresso"}
     >
       {/* Sidebar: SubStep Navigation Rail */}
-      <SubStepRail 
-        substeps={stepConfig.substeps}
-        currentSubStepId={currentSubStepId}
-        completedSubStepIds={progress?.steps[stepId]?.completedSubSteps || []}
-        onSelectSubStep={setCurrentSubStepId}
-      />
+      <div id="hub-etapa-checkin" style={getSectionStyle("hub-etapa-checkin")}>
+         <SubStepRail 
+           substeps={stepConfig.substeps}
+           currentSubStepId={currentSubStepId}
+           completedSubStepIds={progress?.steps[stepId]?.completedSubSteps || []}
+           onSelectSubStep={setCurrentSubStepId}
+         />
+      </div>
 
       {/* Main Task Area: Step Renderer */}
-      <div className="flex-1 flex flex-col pt-[5px] pb-4 px-4 sm:pb-8 sm:px-8">
+      <div id="hub-conteudo" style={getSectionStyle("hub-conteudo")} className="flex-1 flex flex-col pt-[5px] pb-4 px-4 sm:pb-8 sm:px-8">
         <StepRenderer 
           substep={currentSubStep} 
           status={stepStatus}
@@ -91,6 +124,19 @@ export default function StepJourneyPage() {
         />
       </div>
     </StepContainer>
+
+    <GuidedTourOverlay 
+      steps={onboardingTourSteps.slice(5)}
+      isOpen={isTourOpen}
+      onComplete={() => {
+         setIsTourOpen(false);
+         setRevealedSections([]);
+         setCurrentFocus(null);
+      }}
+      onReveal={(ids) => setRevealedSections(ids)}
+      onFocus={(id) => setCurrentFocus(id)}
+      userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
+    />
     </div>
   );
 }

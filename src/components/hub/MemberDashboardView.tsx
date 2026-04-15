@@ -63,15 +63,21 @@ export default function MemberDashboardView() {
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
   const [currentFocus, setCurrentFocus] = useState<string | null>(null);
   
-  const getSectionStyle = (sectionId: string) => ({
-    filter: isTourOpen && !revealedSections.includes(sectionId) ? "blur(12px)" : "blur(0px)",
-    transition: "all 0.8s ease-out",
-    pointerEvents: (isTourOpen && !revealedSections.includes(sectionId) ? "none" : "auto") as React.CSSProperties["pointerEvents"],
-    zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1,
-    boxShadow: isTourOpen && currentFocus === sectionId 
-      ? "0 0 0 2px var(--accent-start), 0 0 40px rgba(255, 0, 128, 0.4)" 
-      : undefined
-  });
+  const getSectionStyle = (sectionId: string): React.CSSProperties => {
+    let bRadius = "3.5rem"; // 56px
+    if (sectionId === "hub-agenda") bRadius = "2.5rem"; // 40px
+
+    return {
+      filter: isTourOpen && !revealedSections.includes(sectionId) ? "blur(12px)" : "blur(0px)",
+      transition: "all 0.8s ease-out",
+      pointerEvents: (isTourOpen && !revealedSections.includes(sectionId) ? "none" : "auto") as React.CSSProperties["pointerEvents"],
+      zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1,
+      borderRadius: bRadius,
+      boxShadow: isTourOpen && currentFocus === sectionId 
+        ? "0 0 80px rgba(255, 0, 128, 0.3)" // Luz difusa suave, sem a borda dura sólida
+        : undefined
+    };
+  };
 
   useEffect(() => {
      // Check if we just bounced back here to start the tour natively
@@ -412,21 +418,21 @@ export default function MemberDashboardView() {
       )}
 
       <GuidedTourOverlay 
-        steps={onboardingTourSteps.map(step => {
-           // Inject logic to the last step's action to close and jump to step 2 check-in
-           if (step.title === "Tour Concluído!") {
+        steps={onboardingTourSteps.slice(0, 5).map((step, idx) => {
+           // No último passo da Dashboard (Assessments), redirecionar para a página da jornada
+           if (idx === 4) {
               return {
                  ...step,
                  action: () => {
                     setIsTourOpen(false);
                     setRevealedSections([]);
-                    // Retornar para a jornada
-                    window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
+                    setCurrentFocus(null);
+                    window.location.href = "/hub/membro/journey/onboarding?startTour=part2";
                  }
               }
            }
            return step;
-        })} 
+        })}
         isOpen={isTourOpen} 
         onComplete={() => {
            setIsTourOpen(false);

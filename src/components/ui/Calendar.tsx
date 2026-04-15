@@ -369,16 +369,28 @@ export default function Calendar({
                 const isWeekLocked = userBookings.some(b => b.week === evWeek && b.year === evYear);
 
                 return (
-                  <div key={ev.id} className="group relative flex flex-col p-6 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-3xl hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
-                    <div className="flex gap-5">
+                  <button
+                    key={ev.id}
+                    onClick={() => openConfirmModal(ev)}
+                    disabled={isBooking === ev.id || isFull || isWeekLocked}
+                    className={`group relative flex flex-col p-6 rounded-3xl transition-all duration-300 border text-left w-full focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]
+                       ${isFull || isWeekLocked
+                          ? "bg-[var(--bg-primary)]/20 border-[var(--border-primary)] opacity-50 grayscale cursor-not-allowed"
+                          : isBooking === ev.id
+                            ? "bg-[var(--accent-soft)] border-[var(--accent-start)]/50 cursor-wait opacity-80"
+                            : "bg-[var(--bg-primary)]/40 border-[var(--border-primary)] hover:border-[var(--accent-start)] hover:bg-[var(--accent-soft)]/20 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                       }
+                    `}
+                  >
+                    <div className="flex gap-5 w-full">
                       <div className="shrink-0 flex flex-col items-center gap-1 pt-1">
-                        <span className="text-[11px] font-black text-[var(--text-primary)]">{format(evDate, "HH:mm")}</span>
+                        <span className={`text-[11px] font-black ${isFull || isWeekLocked ? "text-[var(--text-muted)]" : "text-[var(--text-primary)]"}`}>{format(evDate, "HH:mm")}</span>
                         <div className="w-0.5 h-10 bg-[var(--text-muted)] opacity-10 rounded-full" />
                         <Clock className="w-3 h-3 text-[var(--text-muted)] opacity-20" />
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4">
                           <div className="text-left">
                             <h5 className="font-black text-[var(--text-primary)] text-sm group-hover:text-[var(--accent-start)] transition-colors leading-tight">{ev.summary}</h5>
 
@@ -406,18 +418,18 @@ export default function Calendar({
                             )}
                           </div>
 
-                          <button
-                            onClick={() => openConfirmModal(ev)}
-                            disabled={isBooking === ev.id || isFull || isWeekLocked}
-                            className={`px-5 py-2.5 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest shrink-0 shadow-lg ${isFull || isWeekLocked
-                                ? "bg-[var(--accent-soft)] text-[var(--text-muted)] opacity-30 shadow-none scale-100"
-                                : isBooking === ev.id
-                                  ? "bg-[var(--accent-start)] opacity-50 text-white cursor-wait"
-                                  : "bg-gradient-to-tr from-[var(--accent-start)] to-[var(--accent-end)] text-white shadow-[var(--accent-start)]/20 hover:scale-[1.05] active:scale-[0.95]"
-                              }`}
-                          >
-                            {isBooking === ev.id ? "Aguarde..." : isFull ? "Sem Vagas" : isWeekLocked ? "Semana Ocupada" : "Agendar Reunião"}
-                          </button>
+                          <div className="shrink-0 text-right md:text-center mt-2 md:mt-0">
+                             {/* Subtle text indicator to replace button */}
+                             {isBooking === ev.id ? (
+                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--accent-start)] animate-pulse">Aguarde...</span>
+                             ) : isFull ? (
+                                <span className="text-[9px] font-black tracking-widest uppercase text-red-500 opacity-70">Sem Vagas</span>
+                             ) : isWeekLocked ? (
+                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--text-muted)] opacity-50">Semana Ocupada</span>
+                             ) : (
+                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--accent-start)] opacity-0 group-hover:opacity-100 transition-opacity hidden md:inline-block">Selecionar</span>
+                             )}
+                          </div>
                         </div>
                         {ev.description && (
                           <p className="text-[10px] text-[var(--text-muted)] opacity-70 line-clamp-2 italic leading-relaxed bg-[var(--accent-soft)] p-3 rounded-xl mt-3 text-left">
@@ -434,7 +446,7 @@ export default function Calendar({
                         <span className="text-[10px] font-bold uppercase tracking-tight">{status.message}</span>
                       </div>
                     )}
-                  </div>
+                  </button>
                 );
               })
             )}

@@ -32,8 +32,20 @@ export const onboardingTourSteps: TourStep[] = [
   },
 
   {
+    targetId: "hub-etapa-checkin",
+    title: "Trilha de Checkpoints",
+    content: "Aqui na lateral esquerda você tem a sua trilha de atividades. Cada módulo é composto por checkings ou conteúdos que você precisa concluir para avançar para a próxima etapa. Fique de olho nela!",
+    buttonLabel: "Perfeito, vou acompanhar por aqui."
+  },
+  {
+    targetId: "hub-conteudo",
+    title: "Central de Conteúdo Educativo",
+    content: "No centro da tela encontra-se a área principal de conteúdo e execução de tarefas! Sempre que houver um formulário, vídeo ou agendamento, ele será feito e reproduzido exatamente aqui.",
+    buttonLabel: "Ficou muito claro!"
+  },
+  {
     title: "Tour Concluído!",
-    content: "{User_Nickname}, parabéns! Você está pronto para dar mais um passo a diante e seguir para o seu Check-In como Membro Oficial BPlen! Basta clicar no botão abaixo para concluir o tour e prosseguir em sua jornada.",
-    buttonLabel: "Finalizar Tour"
+    content: "{User_Nickname}, parabéns! Você está pronto para dar o seu primeiro passo oficial como Membro BPlen. Basta clicar abaixo para encerrar nosso guia e iniciar a sua jornada.",
+    buttonLabel: "Finalizar Tour Mágico"
   }
 ];
