@@ -5,6 +5,8 @@ import { TriadDonutChart } from "@/components/hub/TriadDonutChart";
 import { StackedBarChart } from "@/components/hub/StackedBarChart";
 import { DiscChart } from "@/components/hub/DiscChart";
 import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
+import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
+import { onboardingTourSteps } from "@/config/tour/onboarding-tour";
 import { 
   getGestaoTempoResult, 
   getAprendizadoResult, 
@@ -55,6 +57,22 @@ export default function MemberDashboardView() {
   // Dashboard Agenda Modal (Reuse)
   const [selectedBooking_Dashboard, setSelectedBooking_Dashboard] = useState<UserBooking | null>(null);
   const [isEvaluating_Dashboard, setIsEvaluating_Dashboard] = useState<string | null>(null);
+
+  // Guided Tour State
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  useEffect(() => {
+     // Check if we just bounced back here to start the tour natively
+     if (typeof window !== "undefined") {
+        const search = window.location.search;
+        if (search.includes("startTour=true")) {
+           const timer = setTimeout(() => setIsTourOpen(true), 1500);
+           // Limpar a URL para não refazer no refresh
+           window.history.replaceState({}, "", "/hub/membro");
+           return () => clearTimeout(timer);
+        }
+     }
+  }, []);
 
   const handleEvaluate_Dashboard = async (id: string, r: number, f: string) => {
     if (!matricula || !user) return;
@@ -174,7 +192,7 @@ export default function MemberDashboardView() {
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
                 {/* Barra Lateral: Laboratório de Assessments 🧪 */}
-                <aside className="space-y-6">
+                <aside id="hub-assessments" className="space-y-6">
                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-8 shadow-sm relative overflow-hidden group">
                      {/* Header do Laboratório */}
                      <div className="flex items-center gap-4 mb-2">
@@ -266,7 +284,7 @@ export default function MemberDashboardView() {
                 {/* Coluna Principal: Agenda & Outras Funções */}
                 <div className="space-y-8 flex flex-col">
                    {/* Card de Agenda */}
-                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
+                   <div id="hub-agenda" className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[2.5rem] space-y-6 shadow-sm">
                       <div className="flex items-center gap-4">
                          <div className="p-3 bg-[var(--accent-start)]/10 rounded-2xl border border-[var(--accent-start)]/20 text-[var(--accent-start)]">
                             <CalendarDays size={20} />
@@ -316,7 +334,7 @@ export default function MemberDashboardView() {
                    </div>
 
                    {/* Módulo Gestão de Carreira */}
-                   <div className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
+                   <div id="hub-carreira" className="p-8 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] space-y-6 shadow-sm opacity-60">
                       <div className="flex items-center gap-4">
                          <div className="p-3 bg-pink-500/5 rounded-2xl border border-pink-500/20 text-pink-500">
                             <Briefcase size={20} />
@@ -361,6 +379,29 @@ export default function MemberDashboardView() {
           }}
         />
       )}
+
+      <GuidedTourOverlay 
+        steps={onboardingTourSteps.map(step => {
+           // Inject logic to the last step's action to close and jump to step 2 check-in
+           if (step.title === "Tour Concluído!") {
+              return {
+                 ...step,
+                 action: () => {
+                    setIsTourOpen(false);
+                    // Retornar para a jornada
+                    window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
+                 }
+              }
+           }
+           return step;
+        })} 
+        isOpen={isTourOpen} 
+        onComplete={() => {
+           setIsTourOpen(false);
+           window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
+        }}
+        userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
+      />
 
       <HomeFooter />
     </div>

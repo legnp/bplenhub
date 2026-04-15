@@ -30,18 +30,7 @@ export const onboardingTourSteps: TourStep[] = [
     content: "Nesta área, organizaremos os resultados das suas análises comportamentais. Cada assessment (como DISC e Gestão do Tempo) contribuirá para o melhor planejamento e desenvolvimento do seu perfil profissional.",
     buttonLabel: "Espero descobrir meu perfil profissional logo! Me leve para o próximo módulo."
   },
-  {
-    targetId: "hub-trilha",
-    title: "Trilha de Desenvolvimento",
-    content: "Essa é a trilha de checkpoints da sua jornada. Cada etapa possui checkpoints para apoiar o seu Desenvolvimento de Carreira de forma progressiva, respeitando o seu ritmo e conectando teoria à prática.",
-    buttonLabel: "Entendi"
-  },
-  {
-    targetId: "hub-conteudo",
-    title: "Conteúdo & Recursos",
-    content: "Aqui acontece a troca de conhecimento entre a BPlen e você: Materiais, ferramentas, frameworks, vídeos e leituras recomendadas. Tudo projetado especificamente para o seu processo de desenvolvimento.",
-    buttonLabel: "Tenho tudo o que preciso para iniciar a minha jornada BPlen."
-  },
+
   {
     title: "Tour Concluído!",
     content: "{User_Nickname}, parabéns! Você está pronto para dar mais um passo a diante e seguir para o seu Check-In como Membro Oficial BPlen! Basta clicar no botão abaixo para concluir o tour e prosseguir em sua jornada.",

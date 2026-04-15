@@ -10,8 +10,6 @@ import { fetchCalendarEvents } from "@/actions/calendar";
 import { SurveyEngine } from "@/components/forms/SurveyEngine";
 import { getSurveyConfig } from "@/config/surveys";
 import { useAuthContext } from "@/context/AuthContext";
-import { GuidedTourOverlay } from "@/components/shared/GuidedTourOverlay";
-import { onboardingTourSteps } from "@/config/tour/onboarding-tour";
 
 interface StepRendererProps {
   substep: SubStepConfig;
@@ -71,12 +69,19 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
   }, [substep.type, substep.referenceId]);
 
   const [isSurveyActive, setIsSurveyActive] = React.useState(false);
-  const [isTourOpen, setIsTourOpen] = React.useState(false);
 
   React.useEffect(() => {
     setIsSurveyActive(false);
-    setIsTourOpen(false);
   }, [substep.id]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+       if (window.location.search.includes("action=finishTour") && substep.referenceId === "welcome_video_01") {
+          onComplete();
+          window.history.replaceState({}, "", window.location.pathname);
+       }
+    }
+  }, [substep.referenceId, onComplete]);
 
   const renderContent = () => {
     switch (substep.type) {
@@ -84,18 +89,8 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
         const isGuidedTour = substep.referenceId === "welcome_video_01";
 
         if (isGuidedTour) {
-           return (
+            return (
               <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 relative">
-                 <GuidedTourOverlay 
-                    steps={onboardingTourSteps} 
-                    isOpen={isTourOpen} 
-                    onComplete={() => {
-                       setIsTourOpen(false);
-                       onComplete();
-                    }}
-                    userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
-                 />
-
                  <div className="space-y-4">
                     <div className="flex items-center gap-3">
                        <div className="w-8 h-8 bg-pink-500/10 rounded-xl flex items-center justify-center text-pink-500">
@@ -108,7 +103,10 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                  </div>
                  
                  <div className="p-16 border border-[var(--border-primary)] rounded-[3.5rem] bg-[var(--input-bg)]/20 flex flex-col items-center justify-center text-center gap-8 shadow-inner">
-                    <div className="w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-xl bg-pink-600 cursor-pointer hover:scale-105 active:scale-95 transition-all" onClick={() => setIsTourOpen(true)}>
+                    <div 
+                       className="w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-xl bg-pink-600 cursor-pointer hover:scale-105 active:scale-95 transition-all" 
+                       onClick={() => window.location.href = "/hub/membro?startTour=true"}
+                    >
                        <PlayCircle size={32} />
                     </div>
                     <div className="space-y-2">
