@@ -17,6 +17,7 @@ interface GuidedTourOverlayProps {
   steps: TourStep[];
   onComplete: () => void;
   onReveal?: (revealedIds: string[]) => void;
+  onFocus?: (targetId: string | null) => void;
   isOpen: boolean;
   userName?: string;
 }
@@ -25,7 +26,7 @@ interface GuidedTourOverlayProps {
  * BPlen Guided Labs — Tour Engine 🧬✨
  * Posicionamento inteligente ao lado do card alvo.
  */
-export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userName }: GuidedTourOverlayProps) {
+export function GuidedTourOverlay({ steps, onComplete, onReveal, onFocus, isOpen, userName }: GuidedTourOverlayProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isNarrating, setIsNarrating] = useState(false);
   const [revealedIds, setRevealedIds] = useState<string[]>([]);
@@ -94,6 +95,9 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
   useEffect(() => {
     if (!isOpen) return;
     if (currentStep?.targetId) {
+       
+      onFocus?.(currentStep.targetId);
+      
       setRevealedIds(prev => {
         const next = prev.includes(currentStep.targetId!) ? prev : [...prev, currentStep.targetId!];
         onReveal?.(next);
@@ -109,9 +113,10 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
         calculatePosition();
       }
     } else {
+      onFocus?.(null);
       setTooltipPos(null);
     }
-  }, [currentIndex, isOpen, calculatePosition]);
+  }, [currentIndex, isOpen, calculatePosition, onFocus, onReveal]);
 
   // Recalcular ao redimensionar
   useEffect(() => {
@@ -167,14 +172,8 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
         position: 'fixed',
         top: tooltipPos.top,
         left: tooltipPos.left,
-        transform: 'none',
       }
-    : {
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-      };
+    : {}; // Centralização será feita via FlexBox no wrapper para não conflitar com Framer Motion
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
@@ -184,18 +183,20 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
         onClick={() => {}} 
       />
 
-      {/* Narrative Dialog Box — posicionado ao lado do card */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          ref={tooltipRef}
-          key={currentIndex}
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.95 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="pointer-events-auto w-full max-w-md p-8 bg-[var(--bg-primary)]/95 backdrop-blur-2xl border border-[var(--border-primary)] rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.3)] flex flex-col gap-6 z-[101]"
-          style={tooltipStyle}
-        >
+      {/* Wrapper de posicionamento flex para quando não há targetId */}
+      <div className={!tooltipPos ? "absolute inset-0 flex items-center justify-center pointer-events-none z-[101]" : "pointer-events-none z-[101]"}>
+         {/* Narrative Dialog Box — posicionado ao lado do card */}
+         <AnimatePresence mode="wait">
+           <motion.div
+             ref={tooltipRef}
+             key={currentIndex}
+             initial={{ opacity: 0, y: 20, scale: 0.95 }}
+             animate={{ opacity: 1, y: 0, scale: 1 }}
+             exit={{ opacity: 0, y: -20, scale: 0.95 }}
+             transition={{ duration: 0.5, ease: "easeOut" }}
+             className="pointer-events-auto w-full max-w-md p-8 bg-[var(--bg-primary)]/95 backdrop-blur-2xl border border-[var(--border-primary)] rounded-[2.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.3)] flex flex-col gap-6"
+             style={tooltipStyle}
+           >
           {/* Header / Narrator Controls */}
           <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-4">
              <div className="flex items-center gap-3">
@@ -242,6 +243,7 @@ export function GuidedTourOverlay({ steps, onComplete, onReveal, isOpen, userNam
           </div>
         </motion.div>
       </AnimatePresence>
+      </div>
     </div>
   );
 }

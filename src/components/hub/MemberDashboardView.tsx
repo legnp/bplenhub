@@ -61,12 +61,16 @@ export default function MemberDashboardView() {
   // Guided Tour State
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [revealedSections, setRevealedSections] = useState<string[]>([]);
+  const [currentFocus, setCurrentFocus] = useState<string | null>(null);
   
   const getSectionStyle = (sectionId: string) => ({
     filter: isTourOpen && !revealedSections.includes(sectionId) ? "blur(12px)" : "blur(0px)",
-    transition: "filter 0.8s ease-out",
+    transition: "all 0.8s ease-out",
     pointerEvents: (isTourOpen && !revealedSections.includes(sectionId) ? "none" : "auto") as React.CSSProperties["pointerEvents"],
-    zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1
+    zIndex: isTourOpen && revealedSections.includes(sectionId) ? 50 : 1,
+    boxShadow: isTourOpen && currentFocus === sectionId 
+      ? "0 0 0 2px var(--accent-start), 0 0 40px rgba(255, 0, 128, 0.4)" 
+      : undefined
   });
 
   useEffect(() => {
@@ -81,6 +85,23 @@ export default function MemberDashboardView() {
         }
      }
   }, []);
+
+  // Orquestrador de Desfoque para elementos fora da hierarquia deste componente (Header global)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+       const header = document.querySelector("header");
+       if (header) {
+          if (isTourOpen) {
+             header.style.filter = "blur(12px)";
+             header.style.pointerEvents = "none";
+             header.style.transition = "filter 0.8s ease-out";
+          } else {
+             header.style.filter = "blur(0px)";
+             header.style.pointerEvents = "auto";
+          }
+       }
+    }
+  }, [isTourOpen]);
 
   const handleEvaluate_Dashboard = async (id: string, r: number, f: string) => {
     if (!matricula || !user) return;
@@ -410,9 +431,11 @@ export default function MemberDashboardView() {
         onComplete={() => {
            setIsTourOpen(false);
            setRevealedSections([]);
+           setCurrentFocus(null);
            window.location.href = "/hub/membro/journey/onboarding?action=finishTour";
         }}
         onReveal={(ids) => setRevealedSections(ids)}
+        onFocus={(id) => setCurrentFocus(id)}
         userName={user?.displayName ? user.displayName.split(" ")[0] : "Membro"}
       />
 
