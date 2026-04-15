@@ -71,6 +71,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
   const interpolate = (text: string) => {
     const combinedData = {
       ...(config.templateData || {}),
+      ...userMetadata,
       ...responses
     };
 
@@ -80,6 +81,11 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
       interpolated = interpolated.replace(new RegExp(`{{${key}}}`, 'g'), valStr);
       interpolated = interpolated.replace(new RegExp(`{${key}}`, 'g'), valStr);
     });
+
+    // Fallback explícito para evitar chaves quebradas na tela se apagadas do BD
+    const fallbackName = combinedData["User_Nickname"] || (userMetadata?.name ? userMetadata.name.split(" ")[0] : "Membro");
+    interpolated = interpolated.replace(/\{\{User_Nickname\}\}/gi, fallbackName);
+    interpolated = interpolated.replace(/\{User_Nickname\}/gi, fallbackName);
 
     return interpolated;
   };

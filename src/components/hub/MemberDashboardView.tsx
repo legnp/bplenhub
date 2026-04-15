@@ -427,6 +427,9 @@ export default function MemberDashboardView() {
                     setIsTourOpen(false);
                     setRevealedSections([]);
                     setCurrentFocus(null);
+                    if (typeof window !== 'undefined') {
+                       sessionStorage.setItem("bplen_tour_onboarding", "true");
+                    }
                     window.location.href = "/hub/membro/journey/onboarding?startTour=part2";
                  }
               }
