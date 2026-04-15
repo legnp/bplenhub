@@ -53,14 +53,6 @@ export default function StepJourneyPage() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto py-8 px-4">
-      <Link 
-         href="/hub/membro"
-         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-2"
-      >
-         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-         Voltar ao Dashboard
-      </Link>
-
       <StepContainer 
         title={stepConfig.title} 
       description={stepConfig.description}

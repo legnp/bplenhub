@@ -26,54 +26,7 @@ export function StepContainer({ children, title, description, badge }: StepConta
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="w-full h-full max-w-7xl mx-auto flex flex-col gap-6"
     >
-      {/* Header Glass Section */}
-      <div className="relative p-8 rounded-[2.5rem] bg-[var(--input-bg)]/30 backdrop-blur-xl border border-[var(--border-primary)] shadow-2xl overflow-hidden">
-        {/* Glow Effect */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent-start)]/5 blur-[100px] -z-10" />
-        
-        <div className="flex flex-col gap-2 relative z-10">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tight uppercase">
-              {title}
-            </h1>
-            {badge && (
-              <span className="px-3 py-1 bg-[var(--accent-start)]/10 text-[var(--accent-start)] border border-[var(--accent-start)]/20 rounded-full text-[8px] font-black uppercase tracking-[0.2em]">
-                {badge}
-              </span>
-            )}
-          </div>
 
-          {/* Collapsible Details */}
-          <button
-            onClick={() => setIsDetailsOpen(prev => !prev)}
-            className="flex items-center gap-2 mt-1 group cursor-pointer w-fit"
-          >
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-colors">
-              Detalhes da Etapa
-            </span>
-            <ChevronDown 
-              size={12} 
-              className={`text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-all duration-300 ${isDetailsOpen ? "rotate-180" : ""}`} 
-            />
-          </button>
-
-          <AnimatePresence>
-            {isDetailsOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <p className="text-xs font-bold text-[var(--text-muted)] opacity-60 max-w-2xl leading-relaxed uppercase tracking-wider pt-2">
-                  {description}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
 
       {/* Main Glass Workspace */}
       <div className="flex-1 p-8 rounded-[3.5rem] bg-[var(--bg-primary)] border border-[var(--border-primary)] shadow-2xl relative overflow-hidden">

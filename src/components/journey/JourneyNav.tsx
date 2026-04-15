@@ -87,6 +87,7 @@ const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string 
 
 export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelemetry, onSelectStep }: JourneyNavProps) {
   const [hoveredStep, setHoveredStep] = useState<string | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState<string | null>(null);
   const currentStepIndex = stages.findIndex(s => s.id === currentStepId);
 
   return (
@@ -271,12 +272,98 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                     <br />
                     {stage.title}
                   </p>
+                  
+                  {/* Botão de Detalhes da Etapa */}
+                  <button 
+                     onClick={() => setDetailModalOpen(stage.id)}
+                     className="mt-2 mx-auto flex items-center justify-center text-[var(--text-muted)] opacity-40 hover:opacity-100 hover:text-[var(--text-primary)] transition-all"
+                  >
+                     <LucideIcons.ChevronDown size={14} />
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Modal de Detalhes Estratégicos */}
+      <AnimatePresence>
+         {detailModalOpen && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+               {/* Backdrop */}
+               <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setDetailModalOpen(null)}
+                  className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" 
+               />
+               
+               {/* Modal Content */}
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  className="relative bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] p-10 max-w-lg w-full shadow-[0_32px_64px_rgba(0,0,0,0.5)] z-10"
+               >
+                  <button 
+                     onClick={() => setDetailModalOpen(null)}
+                     className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-colors"
+                  >
+                     <LucideIcons.X size={16} />
+                  </button>
+                  
+                  {(() => {
+                     const stage = stages.find(s => s.id === detailModalOpen);
+                     if (!stage) return null;
+                     
+                     const theme = STAGE_THEMES[stage.id] || { color: "#EC4899", icon: LucideIcons.Compass };
+                     const Icon = theme.icon;
+
+                     return (
+                        <div className="space-y-8">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: `${theme.color}20`, color: theme.color }}>
+                                 <Icon size={24} />
+                              </div>
+                              <div>
+                                 <h3 className="text-xl font-black tracking-tight text-[var(--text-primary)]">{stage.title}</h3>
+                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-1">Visão Estratégica</p>
+                              </div>
+                           </div>
+                           
+                           <div className="p-6 bg-[var(--input-bg)]/50 border border-[var(--border-primary)] rounded-[2rem]">
+                              <p className="text-sm leading-relaxed text-[var(--text-secondary)] font-medium">
+                                 {stage.description || "Faz parte do desenvolvimento contínuo da sua carreira na metodologia BPlen."}
+                              </p>
+                           </div>
+                           
+                           {stage.substeps && stage.substeps.length > 0 && (
+                              <div className="pt-2">
+                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                    <LucideIcons.MapPin size={12} className="text-[var(--accent-start)]" />
+                                    Paradas da Etapa
+                                 </h4>
+                                 <ul className="space-y-3">
+                                    {stage.substeps.map(ss => (
+                                       <li key={ss.id} className="flex items-center gap-3 text-xs text-[var(--text-muted)] group hover:text-[var(--text-primary)] transition-colors">
+                                          <div className="w-6 h-6 rounded-lg bg-[var(--input-bg)] border border-[var(--border-primary)] flex items-center justify-center text-[9px] font-black">
+                                             <LucideIcons.CheckCircle2 size={10} className="text-[var(--text-muted)] group-hover:text-[var(--accent-start)] transition-colors" />
+                                          </div>
+                                          <span className="font-medium text-[11px] uppercase tracking-widest">{ss.title}</span>
+                                       </li>
+                                    ))}
+                                 </ul>
+                              </div>
+                           )}
+                        </div>
+                     );
+                  })()}
+               </motion.div>
+            </div>
+         )}
+      </AnimatePresence>
     </div>
   );
 }
