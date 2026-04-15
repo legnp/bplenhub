@@ -36,7 +36,7 @@ export default function JourneyLayout({ children }: { children: React.ReactNode 
         <div className="max-w-7xl mx-auto px-6 mb-8">
            <Link 
               href="/hub/membro"
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-6"
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors group mb-5"
            >
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               Voltar ao Dashboard

@@ -52,7 +52,7 @@ export default function StepJourneyPage() {
   const stepStatus = getStepStatus(stepId);
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto py-8 px-4">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pt-5 pb-8 px-4">
       <StepContainer 
         title={stepConfig.title} 
       description={stepConfig.description}
@@ -67,7 +67,7 @@ export default function StepJourneyPage() {
       />
 
       {/* Main Task Area: Step Renderer */}
-      <div className="flex-1 flex flex-col p-4 sm:p-8">
+      <div className="flex-1 flex flex-col pt-[5px] pb-4 px-4 sm:pb-8 sm:px-8">
         <StepRenderer 
           substep={currentSubStep} 
           status={stepStatus}
