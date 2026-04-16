@@ -8,6 +8,7 @@ export const discSurvey: SurveyConfig = {
   id: "disc",
   kind: "survey",
   title: "Perfil Comportamental (DISC)",
+  description: "Mapeamento de perfil",
   analytics: {
     surveyId: "disc",
     domain: "BEHAVIORAL",

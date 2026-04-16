@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowLeft } from "lucide-react";
 import { StepContainer } from "@/components/journey/StepContainer";
 import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
+import Link from "next/link";
 import { SubStepRail } from "@/components/journey/SubStepRail";
 import { StepRenderer } from "@/components/journey/StepRenderer";
 import { useAuthContext } from "@/context/AuthContext";
@@ -104,9 +105,18 @@ export default function PrimeirosPassosPage() {
   const isAllCompleted = completedSubSteps.length === standaloneStage.substeps.length;
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pt-5 pb-8 px-4 animate-fade-in">
-      {/* 🧭 Global Journey Navigator */}
-      <MemberJourneyHero />
+    <div className="flex flex-col gap-10 w-full max-w-7xl mx-auto pt-5 pb-8 px-4 animate-fade-in">
+      {/* 🧭 Global Journey Navigator (Minimal Variant) */}
+      <div className="px-6 space-y-6">
+        <Link 
+          href="/hub"
+          className="inline-flex items-center gap-3 px-5 py-2.5 bg-[var(--input-bg)]/40 border border-[var(--border-primary)] rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:border-[var(--accent-start)]/30 hover:text-[var(--accent-start)] transition-all group shadow-sm"
+        >
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          {BPLEN_NOMENCLATURE.primeiros_passos.back_button}
+        </Link>
+        <MemberJourneyHero variant="minimal" />
+      </div>
 
       <StepContainer
         title={standaloneStage.title}
@@ -125,6 +135,7 @@ export default function PrimeirosPassosPage() {
         {/* Main Task Area: Step Renderer 🎥📋 */}
         <div id="hub-conteudo" className="flex-1 flex flex-col pt-[5px] pb-4 px-4 sm:pb-8 sm:px-8">
           <StepRenderer
+            context="primeiros_passos"
             substep={currentSubStep}
             status={isAllCompleted ? "completed" : "current"}
             onComplete={async () => {

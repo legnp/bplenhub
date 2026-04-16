@@ -8,6 +8,7 @@ export const revisaoCurriculoSurvey: SurveyConfig = {
   id: "revisao_curriculo",
   kind: "survey",
   title: "Revisão de Currículo",
+  description: "Otimização estratégica",
   steps: [
     {
       id: "intro",

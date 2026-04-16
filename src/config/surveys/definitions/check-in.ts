@@ -11,6 +11,7 @@ export const checkInSurvey: SurveyConfig = {
   id: "check_in",
   kind: "survey",
   title: "Check-in BPlen",
+  description: "Demandas e estado atual da jornada",
   submitLabel: "Finalizar Check-in",
   analytics: {
     surveyId: "check_in",

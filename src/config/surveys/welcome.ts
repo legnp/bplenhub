@@ -8,6 +8,7 @@ export const welcomeSurveyConfig: SurveyConfig = {
   id: "welcome_survey",
   kind: "survey",
   title: "Boas-vindas ao BPlen HUB",
+  description: "Pesquisa Inicial",
   steps: [
     {
       id: "step_nickname",

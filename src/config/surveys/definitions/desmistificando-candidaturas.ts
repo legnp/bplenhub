@@ -8,6 +8,7 @@ export const desmistificandoCandidaturasSurvey: SurveyConfig = {
   id: "desmistificando_candidaturas",
   kind: "survey",
   title: "Desmistificando Candidaturas",
+  description: "Dicas básicas",
   steps: [
     {
       id: "intro",

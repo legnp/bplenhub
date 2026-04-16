@@ -8,6 +8,7 @@ export const preAnaliseComportamentalSurvey: SurveyConfig = {
   id: "pre_analise_comportamental",
   kind: "survey",
   title: "Pré-Análise Comportamental",
+  description: "Preparação para o DISC",
   analytics: {
     surveyId: "pre_analise_comportamental",
     domain: "COMPORTAMENTO",

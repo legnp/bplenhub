@@ -8,6 +8,7 @@ export const preferenciasAprendizadoSurvey: SurveyConfig = {
   id: "preferencias_aprendizado",
   kind: "survey",
   title: "Mapa de Preferências de Aprendizado",
+  description: "Estilos de absorção",
   analytics: {
     surveyId: "preferencias_aprendizado",
     domain: "APRENDIZADO",

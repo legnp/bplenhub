@@ -8,6 +8,7 @@ export const preferenciasReconhecimentoSurvey: SurveyConfig = {
   id: "preferencias_reconhecimento",
   kind: "survey",
   title: "Mapa de Preferências de Reconhecimento",
+  description: "Linguagens de valorização",
   analytics: {
     surveyId: "preferencias_reconhecimento",
     domain: "RECONHECIMENTO",

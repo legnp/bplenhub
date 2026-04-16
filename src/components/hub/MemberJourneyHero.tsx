@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Compass, Target } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Compass, Target, ChevronRight, ArrowLeft } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 import { useJourney } from "@/hooks/useJourney";
 import { JourneyNav } from "@/components/journey/JourneyNav";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+
+import { BPLEN_NOMENCLATURE } from "@/config/nomenclature";
 
 interface MemberJourneyHeroProps {
   showAction?: boolean;
+  variant?: "default" | "minimal";
 }
 
 /**
@@ -18,7 +20,7 @@ interface MemberJourneyHeroProps {
  * Componente unificado para exibição da Jornada (Regra: 1 para Muitos).
  * Utilizado na Home do HUB e na Área de Membro.
  */
-export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps) {
+export function MemberJourneyHero({ showAction = false, variant = "default" }: MemberJourneyHeroProps) {
   const { user } = useAuthContext();
   
   // Journey Integration
@@ -44,40 +46,56 @@ export function MemberJourneyHero({ showAction = false }: MemberJourneyHeroProps
 
   if (loading && !stages.length) return null; // Ou um skeleton sutil
 
+  const isMinimal = variant === "minimal";
+
   return (
-    <section className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg transform-gpu">
-      <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
-        <div className="absolute top-0 right-0 p-12 opacity-5">
-           <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
+    <section className={isMinimal 
+      ? "bg-transparent border-none p-0 relative overflow-visible group" 
+      : "bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3.5rem] p-10 md:p-14 relative overflow-visible group shadow-sm transition-all duration-500 hover:shadow-lg transform-gpu"
+    }>
+      {!isMinimal && (
+        <div className="absolute inset-0 overflow-hidden rounded-[3.5rem] pointer-events-none">
+          <div className="absolute top-0 right-0 p-12 opacity-5">
+             <Compass size={180} className="text-[var(--accent-start)] rotate-12" />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="relative z-10 space-y-8">
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-4">
-               <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
-                  <Target size={18} className="animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">Jornada de Membro BPlen</span>
-               </div>
-               <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight italic">
-                 Jornada do seu <span className="text-[var(--accent-start)] not-italic">desenvolvimento</span>
-               </h2>
-            </div>
-
-            {showAction && (
-               <Link 
-                 href="/hub/membro"
-                 className="group/btn flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-[var(--accent-start)]/10 hover:border-[var(--accent-start)]/30 transition-all duration-500 shadow-sm"
+         <AnimatePresence>
+            {!isMinimal && (
+               <motion.div 
+                 initial={{ opacity: 0, height: 0 }}
+                 animate={{ opacity: 1, height: "auto" }}
+                 exit={{ opacity: 0, height: 0 }}
+                 className="flex flex-col md:flex-row md:items-end justify-between gap-6 overflow-hidden pb-4"
                >
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-start)] transition-colors">
-                     Ir para área de membro
-                  </span>
-                  <ChevronRight size={14} className="text-[var(--text-muted)] group-hover/btn:text-[var(--accent-start)] group-hover/btn:translate-x-1 transition-all" />
-               </Link>
-            )}
-         </div>
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2.5 text-[var(--accent-start)]">
+                        <Target size={18} className="animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">{BPLEN_NOMENCLATURE.member_area.hero_badge}</span>
+                     </div>
+                     <h2 className="text-2xl font-black text-[var(--text-primary)] tracking-tight italic">
+                       {BPLEN_NOMENCLATURE.member_area.hero_title.split(" ").slice(0, -1).join(" ")} <span className="text-[var(--accent-start)] not-italic">{BPLEN_NOMENCLATURE.member_area.hero_title.split(" ").pop()}</span>
+                     </h2>
+                  </div>
 
-         <div className="pt-4">
+                  {showAction && (
+                     <Link 
+                       href="/hub/membro"
+                       className="group/btn flex items-center gap-3 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-[var(--accent-start)]/10 hover:border-[var(--accent-start)]/30 transition-all duration-500 shadow-sm"
+                     >
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover/btn:text-[var(--accent-start)] transition-colors">
+                           {BPLEN_NOMENCLATURE.member_area.hero_action}
+                        </span>
+                        <ChevronRight size={14} className="text-[var(--text-muted)] group-hover/btn:text-[var(--accent-start)] group-hover/btn:translate-x-1 transition-all" />
+                     </Link>
+                  )}
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         <div className={isMinimal ? "pt-0" : "pt-4"}>
             {stages.length > 0 && (
               <JourneyNav 
                  stages={stages}

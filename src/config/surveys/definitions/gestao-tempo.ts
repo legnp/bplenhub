@@ -8,6 +8,7 @@ export const gestaoTempoSurvey: SurveyConfig = {
   id: "gestao_tempo",
   kind: "survey",
   title: "Análise de Gestão do Tempo",
+  description: "Produtividade e foco",
   analytics: {
     surveyId: "gestao_tempo",
     domain: "GESTAO_TEMPO",

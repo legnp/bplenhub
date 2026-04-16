@@ -26,19 +26,26 @@ import { UserBooking } from "@/actions/calendar";
 import { SurveyEngine } from "@/components/forms/SurveyEngine";
 import { getSurveyConfig } from "@/config/surveys";
 import { useAuthContext } from "@/context/AuthContext";
+import { BPLEN_NOMENCLATURE } from "@/config/nomenclature";
 
 interface StepRendererProps {
   substep: SubStepConfig;
   status: "locked" | "available" | "current" | "completed";
   onComplete: () => void;
+  context?: "primeiros_passos" | "member_journey";
 }
 
 /**
  * BPlen HUB — StepRenderer 🧬🛡️
  * Orchestrator that renders the appropriate content type for a journey substep.
  */
-export function StepRenderer({ substep, status, onComplete }: StepRendererProps) {
+export function StepRenderer({ substep, status, onComplete, context = "member_journey" }: StepRendererProps) {
   const { user, matricula } = useAuthContext();
+
+  // Selecionar o dicionário de textos baseado no contexto da página 🍱
+  const nomen = context === "primeiros_passos" 
+    ? BPLEN_NOMENCLATURE.primeiros_passos 
+    : BPLEN_NOMENCLATURE.member_area.journey;
 
   if (status === "locked") {
     return (
@@ -46,9 +53,9 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
         <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center mb-6">
            <AlertCircle size={24} className="text-[var(--text-muted)]" />
         </div>
-        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-[var(--text-primary)]">Conteúdo Bloqueado</h3>
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em] text-[var(--text-primary)]">{nomen.locked_title}</h3>
         <p className="text-[10px] font-medium text-[var(--text-muted)] mt-2 text-center max-w-xs">
-           Esta parte da jornada será liberada assim que você concluir os passos anteriores.
+           {nomen.locked_desc}
         </p>
       </div>
     );
@@ -132,10 +139,10 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                        <div className="w-8 h-8 bg-pink-500/10 rounded-xl flex items-center justify-center text-pink-500">
                           <Sparkles size={18} />
                        </div>
-                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-500/high">Tour Guiado BPlen</span>
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-pink-500/high">{nomen.badge_tour}</span>
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight">Boas-vindas ao HUB</h2>
-                    <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">Prepare-se para conhecer o seu novo ecossistema de desenvolvimento de carreira.</p>
+                    <h2 className="text-3xl font-black tracking-tight">{nomen.instructions.welcome_title}</h2>
+                    <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">{nomen.instructions.welcome_desc}</p>
                  </div>
                  
                  <div className="p-16 border border-[var(--border-primary)] rounded-[3.5rem] bg-[var(--input-bg)]/20 flex flex-col items-center justify-center text-center gap-8 shadow-inner">
@@ -146,9 +153,9 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                        <PlayCircle size={32} />
                     </div>
                     <div className="space-y-2">
-                       <p className="text-[12px] font-black uppercase tracking-widest">Aperte o Play para iniciar o Tour</p>
+                       <p className="text-[12px] font-black uppercase tracking-widest">{nomen.instructions.tour_play_label}</p>
                        <p className="text-[10px] font-medium text-[var(--text-muted)] max-w-xs mx-auto">
-                          A BPlen preparou um guia narrado para te apresentar todos os recursos do HUB.
+                          {nomen.instructions.tour_helper_text}
                        </p>
                     </div>
                  </div>
@@ -163,7 +170,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                    <div className="w-8 h-8 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
                       <PlayCircle size={18} />
                    </div>
-                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500/high">Conteúdo Educativo</span>
+                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500/high">{nomen.badge_content}</span>
                 </div>
                 <h2 className="text-3xl font-black tracking-tight">{substep.title}</h2>
                 <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">{substep.description}</p>
@@ -173,7 +180,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <PlayCircle size={64} className="text-white opacity-20 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 z-10" />
                 <div className="absolute bottom-8 left-8 z-10 opacity-0 group-hover:opacity-100 transition-all transform translate-y-4 group-hover:translate-y-0 text-white">
-                   <p className="text-[10px] font-black uppercase tracking-widest">Aperte o Play para iniciar</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest">{nomen.instructions.content_play_label}</p>
                 </div>
              </div>
 
@@ -182,7 +189,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                    onClick={onComplete}
                    className="px-10 py-4 bg-[var(--accent-start)] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[var(--accent-start)]/20"
                 >
-                   Marcar como Concluído
+                   {nomen.actions.mark_as_done}
                 </button>
              </div>
           </div>
@@ -209,7 +216,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
         }
 
         return (
-          <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+          <div className="flex-1 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 pt-6">
              <div className="space-y-4">
                 <div className="flex items-center gap-3">
                    <div className={cn(
@@ -222,43 +229,41 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                       "text-[10px] font-black uppercase tracking-[0.3em]",
                       isSurvey ? "text-purple-500" : "text-emerald-500"
                    )}>
-                      {isSurvey ? "Passaporte do Membro BPlen" : "Formulário BPlen"}
+                      {isSurvey ? nomen.badge_survey : nomen.badge_form}
                    </span>
                 </div>
                 <h2 className="text-3xl font-black tracking-tight">{substep.title}</h2>
                 <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">{substep.description}</p>
              </div>
              
-             <div className="p-16 border border-[var(--border-primary)] rounded-[3.5rem] bg-[var(--input-bg)]/20 flex flex-col items-center justify-center text-center gap-8 shadow-inner">
-                <div className={cn(
-                   "w-20 h-20 rounded-[2rem] flex items-center justify-center text-white shadow-xl",
-                   isSurvey ? "bg-purple-600" : "bg-emerald-600"
-                )}>
-                   {isSurvey ? <ClipboardCheck size={32} /> : <FileText size={32} />}
-                </div>
-
+             {/* 🔘 Interaction Area: No Card, Pure Luxury */}
+             <div className="flex items-center gap-6 animate-in fade-in zoom-in duration-700 delay-300">
                 {status === "completed" ? (
-                   <div className="space-y-4 max-w-sm">
-                      <p className="text-[12px] font-black uppercase tracking-widest text-[var(--accent-start)]">Check-in Concluído</p>
-                      <p className="text-[10px] font-medium text-[var(--text-muted)]">
-                         Muito obrigada por nos contar sobre você! Siga para a próxima parada para agendar a sua sessão de onboarding.
-                      </p>
-                   </div>
-                ) : (
                    <>
-                     <div className="space-y-2">
-                        <p className="text-[12px] font-black uppercase tracking-widest">{isSurvey ? "Check-in disponível." : "Aguardando Preenchimento"}</p>
-                        <p className="text-[10px] font-medium text-[var(--text-muted)] max-w-xs mx-auto">
-                           {isSurvey ? "Nos conte mais sobre você para personalizarmos a sua jornada." : "Complete as informações necessárias para este estágio."}
-                        </p>
+                     {/* Success Badge */}
+                     <div className="flex items-center gap-3 px-5 py-3 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
+                        <CheckCircle2 size={18} className="text-[var(--accent-start)]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-[var(--accent-start)]">
+                           {nomen.instructions.survey_status_done}
+                        </span>
                      </div>
+
+                     {/* Discreet Review Button */}
                      <button 
                         onClick={() => setIsSurveyActive(true)}
-                        className="px-10 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl"
+                        className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-2 group"
                      >
-                        {isSurvey ? "Fazer Check-In" : "Preencher Formulário"}
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] group-hover:bg-[var(--accent-start)] transition-colors" />
+                        {nomen.actions.review}
                      </button>
                    </>
+                ) : (
+                   <button 
+                      onClick={() => setIsSurveyActive(true)}
+                      className="px-12 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-[var(--text-primary)]/10"
+                   >
+                      {isSurvey ? nomen.actions.survey_start : nomen.actions.form_start}
+                   </button>
                 )}
              </div>
           </div>
@@ -281,7 +286,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
                       <CalendarIcon size={18} />
                    </div>
                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">
-                      {isCompleted ? "Sessão Concluída" : activeBooking ? "Sessão Agendada" : "Agendamento de Sessão"}
+                      {isCompleted ? nomen.badge_meeting.completed : activeBooking ? nomen.badge_meeting.confirmed : nomen.badge_meeting.booking}
                    </span>
                 </div>
                 <h2 className="text-3xl font-black tracking-tight">

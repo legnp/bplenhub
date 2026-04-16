@@ -20,6 +20,7 @@ import { useTheme, BPlenTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { BPlenLogo } from "@/components/shared/BPlenLogo";
+import { BPLEN_NOMENCLATURE } from "@/config/nomenclature";
 
 /**
  * HubHeader (Ecossistema Privado)
@@ -175,7 +176,7 @@ export function HubHeader() {
                        {/* Status de Conexão */}
                        <div className="flex items-center gap-2 py-1 px-2 bg-[var(--accent-start)]/5 rounded-lg border border-[var(--accent-start)]/5">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
-                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">Sincronizado</span>
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">{BPLEN_NOMENCLATURE.navigation.sync_status}</span>
                        </div>
 
                        {/* Identidade do Usuário */}
@@ -198,37 +199,53 @@ export function HubHeader() {
                           <Link 
                             href="/hub"
                             onClick={() => setIsSocialMenuOpen(false)}
-                            className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--accent-soft)] transition-all group border border-transparent hover:border-[var(--accent-start)]/10"
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
+                              (pathname === "/hub" || pathname === "/hub/primeiros_passos")
+                                ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)]"
+                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                            }`}
                           >
-                             <Home size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent-start)]" />
-                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Início</span>
+                             <Home size={16} />
+                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.home}</span>
                           </Link>
 
                           <Link 
                             href="/hub/membro"
                             onClick={() => setIsSocialMenuOpen(false)}
-                            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
+                              pathname.startsWith("/hub/membro")
+                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
+                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
+                            }`}
                           >
                              <ShieldCheck size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">Área de Membro</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.member_area}</span>
                           </Link>
 
                           <Link 
                             href="/hub/profile_settings"
                             onClick={() => setIsSocialMenuOpen(false)}
-                            className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--accent-soft)] transition-all group border border-transparent hover:border-[var(--accent-start)]/10"
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
+                              pathname.startsWith("/hub/profile_settings")
+                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
+                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
+                            }`}
                           >
-                             <UserCog size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent-start)]" />
-                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Perfil & Configurações</span>
+                             <UserCog size={16} />
+                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.profile}</span>
                           </Link>
 
                           <Link 
                             href="/hub/networking"
                             onClick={() => setIsSocialMenuOpen(false)}
-                            className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--accent-soft)] transition-all group border border-transparent hover:border-[var(--accent-start)]/10"
+                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
+                              pathname.startsWith("/hub/networking")
+                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
+                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
+                            }`}
                           >
-                             <Users size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent-start)]" />
-                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Networking BPlen</span>
+                             <Users size={16} />
+                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.networking}</span>
                           </Link>
 
                           <button 
@@ -241,14 +258,14 @@ export function HubHeader() {
                             className="w-full flex items-center gap-3 p-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group border border-transparent hover:border-red-500/10"
                           >
                              <LogOut size={16} className={isLoggingOut ? "animate-pulse" : ""} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{isLoggingOut ? "Saindo..." : "Sair"}</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">{isLoggingOut ? BPLEN_NOMENCLATURE.navigation.logging_out : BPLEN_NOMENCLATURE.navigation.logout}</span>
                           </button>
                        </div>
 
                        <div className="h-px bg-[var(--border-primary)] opacity-40" />
 
                        <div className="space-y-3">
-                          <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">Conexão Digital</p>
+                          <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">{BPLEN_NOMENCLATURE.navigation.social_label}</p>
                           <div className="grid grid-cols-2 gap-2">
                              {socialLinks.map((social, i) => (
                                <Link
