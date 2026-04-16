@@ -13,6 +13,7 @@ import { useJourney } from "@/hooks/useJourney";
 import { getStandaloneStageAction } from "@/actions/journey";
 import { JourneyStep } from "@/types/journey";
 import AtmosphericLoading from "@/components/shared/AtmosphericLoading";
+import { BPLEN_NOMENCLATURE } from "@/config/nomenclature";
 
 /**
  * BPlen HUB — Primeiros Passos 🧬🚀
