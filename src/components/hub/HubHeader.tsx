@@ -5,27 +5,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Menu, 
   Palette,
   Check,
-  ArrowLeft,
-  X,
   LogOut,
   ShieldCheck,
   UserCog,
   Users,
-  Home
+  Home,
+  ChevronDown
 } from "lucide-react";
 import { useTheme, BPlenTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { BPlenLogo } from "@/components/shared/BPlenLogo";
 import { BPLEN_NOMENCLATURE } from "@/config/nomenclature";
+import { cn } from "@/lib/utils";
 
 /**
  * HubHeader (Ecossistema Privado)
  * Cabeçalho compartilhado para Hub e Admin.
- * Inclui Seletor de Temas dinâmico e Navegação de Retorno.
+ * Reestruturado para Identidade Vertical Premium 💎📸
  */
 
 interface ThemeOption {
@@ -46,7 +45,7 @@ const THEMES: ThemeOption[] = [
 
 export function HubHeader() {
   const { theme, setTheme } = useTheme();
-  const { user, nickname, logout } = useAuthContext();
+  const { user, nickname, photoUrl, logout } = useAuthContext();
   const router = useRouter();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isSocialMenuOpen, setIsSocialMenuOpen] = useState(false);
@@ -69,7 +68,11 @@ export function HubHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isSubPage = pathname !== "/hub" && pathname !== "/admin";
+  // Iniciais para fallback do Avatar
+  const getInitials = () => {
+    if (!nickname) return "BP";
+    return nickname.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  };
 
   const socialLinks = [
     { icon: <img src="/linkedin.webp" alt="LinkedIn" className="w-5 h-5 object-contain" />, url: "https://www.linkedin.com/in/lisandralencina/", name: "LinkedIn" },
@@ -79,174 +82,82 @@ export function HubHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-[100] w-full px-6 py-4 flex items-center justify-between bg-transparent border-none">
+    <header className="fixed top-6 right-6 z-[100] flex flex-col items-center">
       
-      {/* Esquerda: Branding */}
-      <div className="flex items-center gap-4">
-         <Link 
-            href={pathname.startsWith("/admin") ? "/admin" : "/hub/membro"} 
-         >
-            <BPlenLogo variant="hub" size={48} />
+      {/* 🚀 Logo BPlen Flutuante (Esquerda) */}
+      <div className="fixed top-8 left-8 transition-all hover:scale-105 duration-500 z-[100]">
+         <Link href="/hub/membro">
+            <BPlenLogo variant="hub" size={42} />
          </Link>
       </div>
 
-      {/* Direita: Ações & Temas */}
-      <div className="flex items-center gap-2 md:gap-3">
+      {/* 💎 Pilar de Identidade Vertical */}
+      <div className="flex flex-col items-center gap-2 p-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full backdrop-blur-[var(--glass-blur)] shadow-2xl animate-in fade-in slide-in-from-right-4 duration-700">
          
-         {/* Seletor de Temas (Dropdown) */}
-         <div className="relative" ref={themeMenuRef}>
-            <button 
-              onClick={() => {
-                setIsThemeMenuOpen(!isThemeMenuOpen);
-                setIsSocialMenuOpen(false);
-              }}
-              className={`p-3 rounded-2xl transition-all border flex items-center justify-center
-                ${isThemeMenuOpen 
-                  ? "bg-[var(--accent-soft)] border-[var(--accent-start)] text-[var(--accent-start)] shadow-[0_0_20px_rgba(var(--accent-start-rgb),0.1)]" 
-                  : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)]"}`}
-              title="Temas"
-            >
-               <Palette size={18} />
-            </button>
-
-            <AnimatePresence>
-               {isThemeMenuOpen && (
-                 <motion.div 
-                   initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                   className="absolute top-16 right-0 p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-64 backdrop-blur-[var(--glass-blur)] z-[200] overflow-hidden"
-                 >
-                    <div className="space-y-1">
-                       <p className="px-3 py-2 text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Imersão</p>
-                       {THEMES.map((opt) => (
-                          <button
-                            key={opt.id}
-                            onClick={() => {
-                              setTheme(opt.id);
-                              setIsThemeMenuOpen(false);
-                            }}
-                            className={`w-full p-2.5 rounded-2xl flex items-center justify-between transition-all group
-                              ${theme === opt.id ? "bg-[var(--accent-start)]/20 text-[var(--accent-start)]" : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]"}`}
-                          >
-                             <div className="flex items-center gap-3">
-                                <div 
-                                  className="w-4 h-4 rounded-full border border-[var(--border-primary)] shadow-sm"
-                                  style={{ backgroundColor: opt.color }}
-                                />
-                                <span className={`text-[11px] font-bold ${theme === opt.id ? "text-[var(--accent-start)]" : "text-[var(--text-secondary)]"}`}>
-                                   {opt.label}
-                                </span>
-                             </div>
-                             {theme === opt.id && <Check size={12} className="text-[var(--accent-start)]" />}
-                          </button>
-                       ))}
-                    </div>
-                 </motion.div>
-               )}
-            </AnimatePresence>
-         </div>
-
-         {/* Menu Social Sanduíche (Dropdown) */}
+         {/* 📸 Avatar Circular Premium */}
          <div className="relative" ref={socialMenuRef}>
             <button 
-              onClick={() => {
-                setIsSocialMenuOpen(!isSocialMenuOpen);
-                setIsThemeMenuOpen(false);
-              }}
-              className={`p-3 rounded-2xl transition-all border flex items-center justify-center
-                ${isSocialMenuOpen 
-                  ? "bg-[var(--accent-soft)] border-[var(--accent-start)] text-[var(--accent-start)] shadow-[0_0_20px_rgba(var(--accent-start-rgb),0.1)]" 
-                  : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)]"}`}
-              title="Redes Sociais"
+               onClick={() => {
+                  setIsSocialMenuOpen(!isSocialMenuOpen);
+                  setIsThemeMenuOpen(false);
+               }}
+               className={cn(
+                  "w-11 h-11 rounded-full border-2 transition-all duration-500 overflow-hidden flex items-center justify-center group bg-white/5",
+                  isSocialMenuOpen ? "border-[var(--accent-start)] scale-110 shadow-[0_0_20px_rgba(var(--accent-start-rgb),0.3)]" : "border-white/10 hover:border-white/30"
+               )}
             >
-               <Menu size={18} />
+               {photoUrl ? (
+                  <img 
+                     src={photoUrl} 
+                     alt={nickname || "Perfil"} 
+                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                  />
+               ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[var(--accent-start)] to-[var(--accent-end)] flex items-center justify-center text-[10px] font-black text-white">
+                     {getInitials()}
+                  </div>
+               )}
             </button>
 
+            {/* Menu Social Dropdown */}
             <AnimatePresence>
                {isSocialMenuOpen && (
                  <motion.div 
-                   initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                   className="absolute top-16 right-0 p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-56 backdrop-blur-[var(--glass-blur)] z-[200]"
+                   initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                   animate={{ opacity: 1, x: -15, scale: 1 }}
+                   exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                   className="absolute top-0 right-14 p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[2.5rem] shadow-2xl w-60 backdrop-blur-[var(--glass-blur)] z-[200]"
                  >
                     <div className="space-y-6">
+                       <p className="px-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em]">{BPLEN_NOMENCLATURE.navigation.member_area}</p>
                        
-                       {/* Status de Conexão */}
-                       <div className="flex items-center gap-2 py-1 px-2 bg-[var(--accent-start)]/5 rounded-lg border border-[var(--accent-start)]/5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-soft" />
-                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)]">{BPLEN_NOMENCLATURE.navigation.sync_status}</span>
+                       <div className="px-2 space-y-1">
+                          <p className="text-[12px] font-black text-[var(--text-primary)] leading-tight uppercase">{user?.displayName || "Membro BPlen"}</p>
+                          <p className="text-[9px] font-bold text-[var(--accent-start)] italic">@{nickname || "membro"}</p>
                        </div>
 
-                       {/* Identidade do Usuário */}
-                       <div className="space-y-1.5 px-1">
-                          <p className="text-[11px] font-black tracking-tight text-[var(--text-primary)] leading-tight uppercase truncate">
-                             {user?.displayName || "Membro BPlen"}
-                          </p>
-                          <div className="flex flex-col gap-0.5">
-                             <p className="text-[10px] font-bold text-[var(--accent-start)] italic">
-                                @{nickname || "user"}
-                             </p>
-                             <p className="text-[8px] font-bold text-[var(--text-muted)] opacity-60 truncate">
-                                {user?.email}
-                             </p>
-                          </div>
-                       </div>
-
-                       {/* Links Principais do Usuário */}
                        <div className="space-y-1">
-                          <Link 
-                            href="/hub"
-                            onClick={() => setIsSocialMenuOpen(false)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
-                              (pathname === "/hub" || pathname === "/hub/primeiros_passos")
-                                ? "bg-[var(--accent-start)]/5 border-[var(--accent-start)]/10 text-[var(--accent-start)]"
-                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                            }`}
-                          >
-                             <Home size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.home}</span>
-                          </Link>
-
-                          <Link 
-                            href="/hub/membro"
-                            onClick={() => setIsSocialMenuOpen(false)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
-                              pathname.startsWith("/hub/membro")
-                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
-                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
-                            }`}
-                          >
-                             <ShieldCheck size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.member_area}</span>
-                          </Link>
-
-                          <Link 
-                            href="/hub/profile_settings"
-                            onClick={() => setIsSocialMenuOpen(false)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
-                              pathname.startsWith("/hub/profile_settings")
-                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
-                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
-                            }`}
-                          >
-                             <UserCog size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.profile}</span>
-                          </Link>
-
-                          <Link 
-                            href="/hub/networking"
-                            onClick={() => setIsSocialMenuOpen(false)}
-                            className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border ${
-                              pathname.startsWith("/hub/networking")
-                                ? "bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
-                                : "hover:bg-[var(--accent-soft)] border-transparent hover:border-[var(--accent-start)]/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-3 rounded-2xl flex items-center gap-3 transition-all"
-                            }`}
-                          >
-                             <Users size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{BPLEN_NOMENCLATURE.navigation.networking}</span>
-                          </Link>
+                          {[
+                            { href: "/hub", icon: Home, label: BPLEN_NOMENCLATURE.navigation.home, active: pathname === "/hub" },
+                            { href: "/hub/membro", icon: ShieldCheck, label: BPLEN_NOMENCLATURE.navigation.member_area, active: pathname.startsWith("/hub/membro") },
+                            { href: "/hub/profile_settings", icon: UserCog, label: BPLEN_NOMENCLATURE.navigation.profile, active: pathname.startsWith("/hub/profile_settings") },
+                            { href: "/hub/networking", icon: Users, label: BPLEN_NOMENCLATURE.navigation.networking, active: pathname.startsWith("/hub/networking") },
+                          ].map((item) => (
+                             <Link 
+                               key={item.href}
+                               href={item.href}
+                               onClick={() => setIsSocialMenuOpen(false)}
+                               className={cn(
+                                 "w-full flex items-center gap-3 p-3 rounded-2xl transition-all group border",
+                                 item.active 
+                                   ? "bg-[var(--accent-start)]/10 border-[var(--accent-start)]/20 text-[var(--accent-start)]"
+                                   : "border-transparent text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]"
+                               )}
+                             >
+                                <item.icon size={16} />
+                                <span className={cn("text-[10px] uppercase tracking-widest", item.active ? "font-black" : "font-bold")}>{item.label}</span>
+                             </Link>
+                          ))}
 
                           <button 
                             onClick={async () => {
@@ -254,17 +165,16 @@ export function HubHeader() {
                               await logout();
                               router.push("/");
                             }}
-                            disabled={isLoggingOut}
-                            className="w-full flex items-center gap-3 p-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group border border-transparent hover:border-red-500/10"
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/10"
                           >
                              <LogOut size={16} className={isLoggingOut ? "animate-pulse" : ""} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">{isLoggingOut ? BPLEN_NOMENCLATURE.navigation.logging_out : BPLEN_NOMENCLATURE.navigation.logout}</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">Sair</span>
                           </button>
                        </div>
 
-                       <div className="h-px bg-[var(--border-primary)] opacity-40" />
+                       <div className="h-px bg-white/5 mx-2" />
 
-                       <div className="space-y-3">
+                       <div className="space-y-3 px-2">
                           <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">{BPLEN_NOMENCLATURE.navigation.social_label}</p>
                           <div className="grid grid-cols-2 gap-2">
                              {socialLinks.map((social, i) => (
@@ -272,8 +182,7 @@ export function HubHeader() {
                                  key={i}
                                  href={social.url}
                                  target="_blank"
-                                 className="p-3 bg-[var(--social-bg)] border border-[var(--border-primary)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
-                                 title={social.name}
+                                 className="p-3 bg-white/5 border border-white/5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--accent-start)]/30 hover:bg-[var(--accent-soft)] transition-all flex items-center justify-center group"
                                >
                                   <div className="scale-90 group-hover:scale-100 transition-transform">
                                      {social.icon}
@@ -287,7 +196,65 @@ export function HubHeader() {
                )}
             </AnimatePresence>
          </div>
+
+         {/* 🔽 Chevron Discreto */}
+         <div className={cn(
+            "transition-all duration-500 text-[var(--text-muted)] opacity-30",
+            isSocialMenuOpen ? "rotate-180 opacity-60" : ""
+         )}>
+            <ChevronDown size={12} />
+         </div>
+
+         {/* 🎨 Seletor de Temas Vertical */}
+         <div className="relative" ref={themeMenuRef}>
+            <button 
+               onClick={() => {
+                  setIsThemeMenuOpen(!isThemeMenuOpen);
+                  setIsSocialMenuOpen(false);
+               }}
+               className={cn(
+                  "p-3 rounded-full transition-all duration-500 flex items-center justify-center",
+                  isThemeMenuOpen ? "bg-[var(--accent-start)] text-white rotate-90" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"
+               )}
+            >
+               <Palette size={16} />
+            </button>
+
+            {/* Menu Temas Dropdown */}
+            <AnimatePresence>
+               {isThemeMenuOpen && (
+                 <motion.div 
+                   initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                   animate={{ opacity: 1, x: -15, scale: 1 }}
+                   exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                   className="absolute bottom-0 right-14 p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[2.5rem] shadow-2xl w-56 backdrop-blur-[var(--glass-blur)] z-[200]"
+                 >
+                    <div className="space-y-1">
+                       <p className="px-3 py-1 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 text-center">Seleção de Imersão</p>
+                       {THEMES.map((opt) => (
+                          <button
+                            key={opt.id}
+                            onClick={() => {
+                              setTheme(opt.id);
+                              setIsThemeMenuOpen(false);
+                            }}
+                            className={cn(
+                               "w-full p-2.5 rounded-2xl flex items-center gap-3 transition-all",
+                               theme === opt.id ? "bg-[var(--accent-start)]/20 text-[var(--accent-start)]" : "text-[var(--text-secondary)] hover:bg-white/5"
+                            )}
+                          >
+                             <div className="w-3.5 h-3.5 rounded-full border border-white/20" style={{ backgroundColor: opt.color }} />
+                             <span className="text-[10px] font-bold">{opt.label}</span>
+                             {theme === opt.id && <Check size={10} className="ml-auto" />}
+                          </button>
+                       ))}
+                    </div>
+                 </motion.div>
+               )}
+            </AnimatePresence>
+         </div>
       </div>
+
     </header>
   );
 }

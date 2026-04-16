@@ -33,7 +33,7 @@ export function HubShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme !== 'light' ? `theme-${theme}` : ''}`}>
       <HubHeader />
-      <main className="flex-1 w-full bg-background transition-colors duration-500 relative">
+      <main className="flex-1 w-full bg-background transition-colors duration-500 relative pt-20">
         {children}
       </main>
     </div>
