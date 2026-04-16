@@ -23,6 +23,16 @@ interface JourneyNavProps {
 
 // Mapeamento de Ícones Vibrantes e Cores Premium (Alinhado ao Apple IOS Pro) ✨🧬
 const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string }> = {
+  "primeiros_passos": { 
+    icon: LucideIcons.Rocket, 
+    color: "#EC4899", 
+    gradient: "from-pink-500 to-rose-500" 
+  },
+  "primeiros-passos": { 
+    icon: LucideIcons.Rocket, 
+    color: "#EC4899", 
+    gradient: "from-pink-500 to-rose-500" 
+  },
   "onboarding": { 
     icon: LucideIcons.Rocket, 
     color: "#EC4899", 
@@ -118,6 +128,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             
             // 🔍 Resolução Inteligente de Tema (ID -> Ordem -> Fallback)
             const THEME_ORDER_MAP: Record<number, string> = {
+              0: "primeiros-passos",
               1: "onboarding",
               2: "preparacao-de-carreira",
               3: "analise-comportamental",
@@ -162,7 +173,10 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             const Wrapper = onSelectStep ? "div" : Link;
             const wrapperProps = onSelectStep 
               ? { onClick: () => onSelectStep(stage.id), role: "button" } 
-              : { href: `/hub/membro/journey/${stage.id}` };
+              : { href: (stage.id === 'PRIMEIROS_PASSOS' || stage.id === 'primeiros_passos' || stage.order === 0) 
+                  ? "/hub/primeiros_passos" 
+                  : `/hub/membro/journey/${stage.id}` 
+                };
 
             return (
               <div 
@@ -215,8 +229,6 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                    )}
                 </div>
 
-
-
                 {/* BOTÃO DO STEP (ÍCONE VIBRANTE) 🚀✨ */}
                 <Wrapper
                   {...(wrapperProps as any)}
@@ -268,7 +280,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                     "text-[9px] uppercase tracking-[0.25em] font-black transition-colors leading-tight max-w-[110px]",
                     isCurrent ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] opacity-50"
                   )}>
-                    {(index + 1).toString().padStart(2, '0')}
+                    {stage.order === 0 ? "00" : (stage.order).toString().padStart(2, '0')}
                     <br />
                     {stage.title}
                   </p>
@@ -312,7 +324,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                      className="absolute top-8 right-8 w-8 h-8 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)] transition-colors"
                   >
                      <LucideIcons.X size={16} />
-                  </button>
+                   </button>
                   
                   {(() => {
                      const stage = stages.find(s => s.id === detailModalOpen);

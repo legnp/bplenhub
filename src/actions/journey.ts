@@ -30,7 +30,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
     // 2. Map and Filter active products
     const journeyProducts = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Product))
-      .filter(p => p.status?.toLowerCase() === "active" && p.order && p.order > 0);
+      .filter(p => p.status?.toLowerCase() === "active" && p.order !== undefined && Number(p.order) >= 0);
 
     // 3. GROUP BY ORDER 📦
     const groupedStages: Record<number, { main: Product, products: Product[] }> = {};
@@ -123,7 +123,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 
         // 🔮 Mapeamento de Ícones Inteligente (Baseado em Ordem/Slug)
         const getIconName = (order: number, slug?: string) => {
-          if (slug === 'onboarding') return "Rocket";
+          if (order === 0 || slug === 'onboarding') return "Rocket";
           if (slug?.includes('analise-comportamental')) return "Fingerprint";
           if (order === 2) return "Compass";
           if (order === 4) return "Map";
