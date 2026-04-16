@@ -78,6 +78,7 @@ export interface SurveyConfig {
   id: string;
   kind: Extract<EntityKind, "survey">;
   title: string;
+  description?: string;
   steps: SurveyStepConfig[];
   analytics: SurveyAnalyticsMeta;
   policy: SurveyEditPolicy;
