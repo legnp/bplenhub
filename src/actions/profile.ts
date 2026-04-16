@@ -3,7 +3,7 @@
 import { db } from "@/lib/firebase";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { getDriveClient } from "@/lib/google-auth";
-import { ensureFolder, uploadFileToDrive } from "@/lib/drive-utils";
+import { ensureFolder, uploadFileToDrive, makeFilePublic } from "@/lib/drive-utils";
 import { serverEnv } from "@/env";
 import { Readable } from "stream";
 
@@ -21,22 +21,17 @@ export async function updateProfileImageAction(matricula: string, base64Image: s
     const subFolderName = isPJ ? "2.3.B2B" : "2.2.B2C";
 
     // 2. Garantir a hierarquia de pastas
-    // Caminho: Usuarios / [SubFolder] / [MATRICULA]
     const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
     const categoryFolderId = await ensureFolder(drive, baseFolderId, subFolderName);
     const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
-    
-    // 3. Garantir que a pasta "Identidade" existe
     const identidadFolderId = await ensureFolder(drive, userFolderId, "Identidade");
     
-    // 3. Converter Base64 para Buffer (WebP processado no Client)
+    // 3. Converter Base64 para Buffer
     const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
     
-    // 4. Upload ou Substituição do arquivo
-    // Drive aceita duplicados, mas vamos manter o padrão foto_profile_matricula.webp
+    // 4. Upload do arquivo
     const fileName = `foto_profile_${matricula}.webp`;
-    
     const result = await uploadFileToDrive(
       drive,
       identidadFolderId,
@@ -45,17 +40,23 @@ export async function updateProfileImageAction(matricula: string, base64Image: s
       Readable.from(buffer)
     );
 
-    // 5. Atualizar o Firestore do Membro
+    // 5. Garantir Soberania de Visibilidade (Público para Leitura) 🔓
+    await makeFilePublic(drive, result.id);
+
+    // 6. Gerar URL de Incorporação Direta (Formato UC para Imagens) 📸
+    const directPhotoUrl = `https://drive.google.com/uc?export=view&id=${result.id}`;
+
+    // 7. Atualizar o Firestore do Membro
     const userRef = doc(db, "User", matricula);
     await updateDoc(userRef, {
-      photoUrl: result.webViewLink,
+      photoUrl: directPhotoUrl,
       photoDriveId: result.id,
       lastPhotoUpdate: new Date().toISOString()
     });
 
     return { 
       success: true, 
-      photoUrl: result.webViewLink 
+      photoUrl: directPhotoUrl 
     };
   } catch (error: any) {
     console.error("❌ [ProfileAction] Erro ao atualizar foto:", error);

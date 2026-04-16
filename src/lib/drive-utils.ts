@@ -184,6 +184,28 @@ export async function uploadFileToDrive(
 }
 
 /**
+ * 5. Gerenciador de Permissões
+ * Torna um arquivo legível por qualquer pessoa com o link (Necessário para Imagens/Avatares).
+ */
+export async function makeFilePublic(
+  drive: drive_v3.Drive,
+  fileId: string
+) {
+  try {
+    await drive.permissions.create({
+      fileId,
+      supportsAllDrives: true,
+      requestBody: {
+        role: "reader",
+        type: "anyone",
+      },
+    });
+  } catch (err: any) {
+    console.error(`⚠️ [Drive:Permissions] Falha ao tornar arquivo público (${fileId}):`, err.message);
+  }
+}
+
+/**
  * Renomeia um arquivo ou pasta no Google Drive.
  */
 export async function renameFile(
