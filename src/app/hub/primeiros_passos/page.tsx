@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { StepContainer } from "@/components/journey/StepContainer";
+import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
 import { SubStepRail } from "@/components/journey/SubStepRail";
 import { StepRenderer } from "@/components/journey/StepRenderer";
 import { useAuthContext } from "@/context/AuthContext";
@@ -103,7 +104,10 @@ export default function PrimeirosPassosPage() {
   const isAllCompleted = completedSubSteps.length === standaloneStage.substeps.length;
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pt-5 pb-8 px-4 animate-fade-in">
+    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pt-5 pb-8 px-4 animate-fade-in">
+      {/* 🧭 Global Journey Navigator */}
+      <MemberJourneyHero />
+
       <StepContainer
         title={standaloneStage.title}
         description={standaloneStage.description}
