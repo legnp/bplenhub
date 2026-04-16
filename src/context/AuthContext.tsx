@@ -19,6 +19,7 @@ interface AuthContextType {
   isAdmin: boolean;
   matricula: string | null;
   nickname: string | null;
+  photoUrl: string | null;
   services: UserServices;
   logout: () => Promise<void>;
 }
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   matricula: null,
   nickname: null,
+  photoUrl: null,
   services: {},
   logout: async () => {},
 });
