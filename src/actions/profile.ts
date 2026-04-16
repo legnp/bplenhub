@@ -5,6 +5,7 @@ import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { getDriveClient } from "@/lib/google-auth";
 import { ensureFolder, uploadFileToDrive } from "@/lib/drive-utils";
 import { serverEnv } from "@/env";
+import { Readable } from "stream";
 
 /**
  * BPlen HUB — Profile Actions 🧬🛡️
@@ -35,7 +36,7 @@ export async function updateProfileImageAction(matricula: string, base64Image: s
       identidadFolderId,
       fileName,
       "image/webp",
-      buffer
+      Readable.from(buffer)
     );
 
     // 5. Atualizar o Firestore do Membro
