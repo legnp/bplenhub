@@ -237,9 +237,9 @@ export function StepRenderer({ substep, status, onComplete, context = "member_jo
              </div>
              
              {/* 🔘 Interaction Area: No Card, Pure Luxury */}
-             <div className="flex items-center gap-6 animate-in fade-in zoom-in duration-700 delay-300">
+             <div className="flex flex-col items-center justify-center pt-10 animate-in fade-in zoom-in duration-700 delay-300">
                 {status === "completed" ? (
-                   <>
+                   <div className="flex items-center gap-6">
                      {/* Success Badge */}
                      <div className="flex items-center gap-3 px-5 py-3 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
                         <CheckCircle2 size={18} className="text-[var(--accent-start)]" />
@@ -256,13 +256,15 @@ export function StepRenderer({ substep, status, onComplete, context = "member_jo
                         <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] group-hover:bg-[var(--accent-start)] transition-colors" />
                         {nomen.actions.review}
                      </button>
-                   </>
+                   </div>
                 ) : (
                    <button 
                       onClick={() => setIsSurveyActive(true)}
-                      className="px-12 py-4.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[11px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-[var(--text-primary)]/10"
+                      className="group relative flex items-center gap-4 px-14 py-5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[12px] font-black uppercase tracking-[0.25em] hover:scale-105 active:scale-95 transition-all shadow-2xl hover:shadow-[var(--text-primary)]/20 overflow-hidden"
                    >
-                      {isSurvey ? nomen.actions.survey_start : nomen.actions.form_start}
+                      <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                      <PlayCircle size={20} className="relative z-10" />
+                      <span className="relative z-10">{isSurvey ? nomen.actions.survey_start : nomen.actions.form_start}</span>
                    </button>
                 )}
              </div>
