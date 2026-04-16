@@ -16,11 +16,17 @@ export async function updateProfileImageAction(matricula: string, base64Image: s
   try {
     const drive = await getDriveClient();
     
-    // 1. Localizar/Criar pasta raiz do Usuário no Drive
-    // Caminho: Usuarios / [MATRICULA]
-    const userFolderId = await ensureFolder(drive, serverEnv.GOOGLE_DRIVE_USUARIOS_ID, matricula);
+    // 1. Identificar Segmento (B2B/B2C) — Regra de Negócio BPlen 🛡️
+    const isPJ = matricula.includes("-PJ-");
+    const subFolderName = isPJ ? "2.3.B2B" : "2.2.B2C";
+
+    // 2. Garantir a hierarquia de pastas
+    // Caminho: Usuarios / [SubFolder] / [MATRICULA]
+    const baseFolderId = serverEnv.GOOGLE_DRIVE_USUARIOS_ID;
+    const categoryFolderId = await ensureFolder(drive, baseFolderId, subFolderName);
+    const userFolderId = await ensureFolder(drive, categoryFolderId, matricula);
     
-    // 2. Garantir que a pasta "Identidade" existe
+    // 3. Garantir que a pasta "Identidade" existe
     const identidadFolderId = await ensureFolder(drive, userFolderId, "Identidade");
     
     // 3. Converter Base64 para Buffer (WebP processado no Client)
