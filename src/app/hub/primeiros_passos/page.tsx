@@ -31,13 +31,16 @@ export default function PrimeirosPassosPage() {
       try {
         // Buscamos pelo ID que é imutável e mais seguro
         const stage = await getStandaloneStageAction("PRIMEIROS_PASSOS");
-        if (stage) {
+        if (stage && stage.substeps && stage.substeps.length > 0) {
           setStandaloneStage(stage);
           
           // Lógica de Navegação Inicial: Focar no primeiro incompleto
           const completedIds = progress?.steps[stage.id]?.completedSubSteps || [];
           const firstIncomplete = stage.substeps.find(ss => !completedIds.includes(ss.id));
-          setCurrentSubStepId(firstIncomplete?.id || stage.substeps[0].id);
+          setCurrentSubStepId(firstIncomplete?.id || stage.substeps[0]?.id || "");
+        } else if (stage) {
+          // Caso existir o estágio mas não ter subpassos
+          setStandaloneStage(stage);
         }
       } catch (err) {
         console.error("❌ [PrimeirosPassos] Falha ao sincronizar estágio:", err);
@@ -61,13 +64,37 @@ export default function PrimeirosPassosPage() {
       <div className="p-20 text-center space-y-4">
         <h2 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-widest">Trilha não encontrada</h2>
         <button 
-          onClick={() => router.push("/hub/membro")}
+          onClick={() => router.push("/hub")}
           className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent-start)] hover:opacity-70"
         >
-          Voltar ao Dashboard
+          Voltar ao Início
         </button>
       </div>
     );
+  }
+
+  // Estado de Segurança: Caso a trilha esteja vazia no Firestore
+  if (!standaloneStage.substeps || standaloneStage.substeps.length === 0) {
+     return (
+        <div className="p-20 text-center space-y-6 max-w-xl mx-auto animate-fade-in">
+           <div className="w-16 h-16 bg-[var(--accent-soft)] rounded-full flex items-center justify-center mx-auto text-[var(--accent-start)]">
+              <Sparkles size={32} />
+           </div>
+           <div className="space-y-2">
+              <h2 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-widest">Quase lá!</h2>
+              <p className="text-[11px] font-medium text-[var(--text-muted)] lg:px-12 leading-relaxed">
+                 Estamos preparando os seus Primeiros Passos personalizados. 
+                 Em breve este ecossistema estará repleto de ferramentas para sua carreira.
+              </p>
+           </div>
+           <button 
+             onClick={() => router.push("/hub")}
+             className="px-8 py-3 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all"
+           >
+             Voltar ao Início
+           </button>
+        </div>
+     );
   }
 
   const currentSubStep = standaloneStage.substeps.find(ss => ss.id === currentSubStepId) || standaloneStage.substeps[0];
