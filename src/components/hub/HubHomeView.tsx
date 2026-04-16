@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Target,
   Briefcase,
-  Globe
+  Globe,
+  Search
 } from "lucide-react";
 import { MOCK_SERVICES, MOCK_TOOLS } from "@/config/hub-data";
 import { useTheme } from "@/context/ThemeContext";
