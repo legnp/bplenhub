@@ -2,7 +2,7 @@
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { Product } from "@/types/products";
-import { JourneyStep, SubStepConfig } from "@/types/journey";
+import { JourneyStep, SubStepConfig, JourneyProgress } from "@/types/journey";
 import { surveys } from "@/config/surveys";
 import { JOURNEY_STAGES } from "@/config/journey/steps-registry";
 
