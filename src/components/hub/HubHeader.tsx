@@ -197,13 +197,19 @@ export function HubHeader() {
             </AnimatePresence>
          </div>
 
-         {/* 🔽 Chevron Discreto (Flutuante) */}
-         <div className={cn(
-            "transition-all duration-500 text-[var(--text-muted)] opacity-30 my-1",
-            isSocialMenuOpen ? "rotate-180 opacity-80" : ""
-         )}>
+         {/* 🔽 Chevron Interativo 🔽 */}
+         <button 
+            onClick={() => {
+               setIsSocialMenuOpen(!isSocialMenuOpen);
+               setIsThemeMenuOpen(false);
+            }}
+            className={cn(
+               "transition-all duration-500 text-[var(--text-muted)] hover:text-[var(--text-primary)] opacity-30 hover:opacity-100 my-1 p-1 rounded-full hover:bg-white/5",
+               isSocialMenuOpen ? "rotate-180 opacity-80" : ""
+            )}
+         >
             <ChevronDown size={14} />
-         </div>
+         </button>
 
          {/* 🎨 Seletor de Temas (Flutuante) */}
          <div className="relative" ref={themeMenuRef}>
@@ -220,14 +226,14 @@ export function HubHeader() {
                <Palette size={18} />
             </button>
 
-            {/* Menu Temas Dropdown (Ajustado) */}
+            {/* Menu Temas Dropdown (Ajustado para abrir para baixo e evitar corte) */}
             <AnimatePresence>
                {isThemeMenuOpen && (
                  <motion.div 
                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
                    animate={{ opacity: 1, x: -24, scale: 1 }}
                    exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                   className="absolute bottom-0 right-24 p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[2.5rem] shadow-2xl w-60 backdrop-blur-[var(--glass-blur)] z-[200]"
+                   className="absolute top-0 right-24 p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[2.5rem] shadow-2xl w-60 backdrop-blur-[var(--glass-blur)] z-[200]"
                  >
                     <div className="space-y-1">
                        <p className="px-3 py-1 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 text-center">Seleção de Imersão</p>
