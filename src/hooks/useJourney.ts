@@ -102,7 +102,7 @@ export function useJourney(uid: string) {
     return {
       status: stepProgress?.status || "locked",
       percentage,
-      hasAccess: hasQuota || stepId === 'onboarding', // Onboarding sempre liberado por padrão
+      hasAccess: hasQuota || stage?.order === 0 || stepId === 'onboarding', // Step 0 e Onboarding sempre liberados
       isNext,
       substepsLabel: `${completedCount}/${totalSubsteps}`
     };
