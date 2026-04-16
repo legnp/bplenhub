@@ -30,6 +30,10 @@ import { getSocialPosts } from "@/actions/social";
 import { SocialPost } from "@/types/social";
 import { BPlenLogo } from "@/components/shared/BPlenLogo";
 import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
+import { useAuthContext } from "@/context/AuthContext";
+import { useJourney } from "@/hooks/useJourney";
+import { cn } from "@/lib/utils";
+import * as LucideIcons from "lucide-react";
 
 /**
  * HUB HOME VIEW — O Coração da Experiência Privada 🧬
@@ -37,6 +41,9 @@ import { MemberJourneyHero } from "@/components/hub/MemberJourneyHero";
  */
 
 export function HubHomeView() {
+  const { user } = useAuthContext();
+  const { stages, progress, loading: journeyLoading } = useJourney(user?.uid || "guest");
+  
   const [latestPosts, setLatestPosts] = useState<SocialPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
 
@@ -53,6 +60,11 @@ export function HubHomeView() {
     }
     loadPosts();
   }, []);
+
+  // 🛰️ Localizar Estágio "Primeiros Passos" (Order 0)
+  const primeirosPassosStage = stages.find(s => s.order === 0 || s.id === 'primeiros_passos');
+  const ppSubsteps = primeirosPassosStage?.substeps || [];
+  const ppProgress = progress?.steps[primeirosPassosStage?.id || ""]?.completedSubSteps || [];
 
   const getPlatformLabel = (platform: string) => {
     const labels: Record<string, string> = {
@@ -124,36 +136,84 @@ export function HubHomeView() {
               </div>
            </section>
 
-           {/* Laboratório de Ferramentas Preview */}
+           {/* 🧬 Telemetria Ativa: Primeiros Passos */}
            <section className="space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-6">
                  <h3 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
                     <Target size={22} className="text-[#667eea]" /> Primeiros Passos
                  </h3>
                  <Link href="/hub/primeiros_passos" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-2 group">
-                    Explorar ferramentas <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    Explorar trilha <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                  </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {MOCK_TOOLS.slice(0, 4).map((tool) => (
-                    <Link 
-                      key={tool.id}
-                      href="/hub/primeiros_passos"
-                      className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[#667eea]/5 hover:border-[#667eea]/20 transition-all group relative overflow-hidden h-full flex flex-col"
-                    >
-                       <div className="flex flex-col gap-4 relative z-10 flex-grow text-left">
-                          <div className="p-3 bg-[var(--input-bg)] w-fit rounded-xl text-[var(--text-secondary)] group-hover:text-[var(--accent-end)] transition-colors">
-                             <ToolPlaceholderIcon name={tool.icon} />
-                          </div>
-                          <h4 className="text-sm font-bold text-[var(--text-primary)] group-hover:translate-x-1 transition-transform">{tool.title}</h4>
-                       </div>
-                       <div className="mt-6 flex items-center justify-between text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]">
-                          {tool.status === 'soon' ? 'Em Breve' : 'Disponível'}
-                          <ChevronRight size={12} />
-                       </div>
-                    </Link>
-                 ))}
+                 {journeyLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                       <div key={i} className="h-40 bg-[var(--input-bg)] animate-pulse rounded-[2rem] border border-[var(--border-primary)]" />
+                    ))
+                 ) : ppSubsteps.length > 0 ? (
+                    ppSubsteps.map((substep, idx) => {
+                       const isCompleted = ppProgress.includes(substep.id);
+                       // Resolver ícone baseado no tipo (Survey, Form, etc)
+                       let Icon = Search;
+                       if (substep.type === "survey") Icon = MessageSquare;
+                       if (substep.type === "meeting") Icon = Globe;
+                       
+                       return (
+                          <Link 
+                            key={substep.id}
+                            href="/hub/primeiros_passos"
+                            className={cn(
+                               "p-6 rounded-[2rem] border transition-all group relative overflow-hidden h-full flex flex-col",
+                               isCompleted 
+                                 ? "bg-[var(--accent-soft)]/5 border-[var(--accent-start)]/20 shadow-sm" 
+                                 : "bg-[var(--input-bg)] border-[var(--input-border)] hover:bg-white/5 hover:border-[#667eea]/20"
+                            )}
+                          >
+                             <div className="flex flex-col gap-4 relative z-10 flex-grow text-left">
+                                <div className={cn(
+                                   "p-3 w-fit rounded-xl transition-colors",
+                                   isCompleted ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)]" : "bg-[var(--input-bg)] text-[var(--text-muted)] group-hover:text-[#667eea]"
+                                )}>
+                                   <Icon size={20} />
+                                </div>
+                                <div className="space-y-1">
+                                   <h4 className="text-sm font-bold text-[var(--text-primary)] group-hover:translate-x-1 transition-transform line-clamp-1">{substep.title}</h4>
+                                   <p className="text-[10px] font-medium text-[var(--text-muted)] line-clamp-2 leading-tight opacity-70 italic">
+                                      {substep.description || "Parada da jornada estratégica"}
+                                   </p>
+                                </div>
+                             </div>
+
+                             <div className="mt-6 flex items-center justify-between">
+                                <div className={cn(
+                                   "flex items-center gap-2 text-[9px] font-black uppercase tracking-widest",
+                                   isCompleted ? "text-[var(--accent-start)]" : "text-[var(--text-muted)]"
+                                )}>
+                                   <div className={cn(
+                                      "w-1.5 h-1.5 rounded-full animate-pulse",
+                                      isCompleted ? "bg-[var(--accent-start)]" : "bg-gray-400 opacity-40"
+                                   )} />
+                                   {isCompleted ? "100% Concluído" : "Pendente (0%)"}
+                                </div>
+                                <ChevronRight size={12} className="text-[var(--text-muted)] opacity-30" />
+                             </div>
+
+                             {/* Selo de Conclusão Glass */}
+                             {isCompleted && (
+                                <div className="absolute top-4 right-4 text-[var(--accent-start)]/40 p-1">
+                                   <CheckCircle2 size={16} />
+                                </div>
+                             )}
+                          </Link>
+                       )
+                    })
+                 ) : (
+                    <div className="col-span-2 py-12 px-6 border border-dashed border-[var(--border-primary)] rounded-[2rem] text-center">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-40">Módulo em configuração ativa</p>
+                    </div>
+                 )}
               </div>
            </section>
 
@@ -244,7 +304,8 @@ export function HubHomeView() {
 }
 
 function ToolPlaceholderIcon({ name }: { name: string }) {
-   if (name === "BarChart") return <BarChart size={20} />;
-   if (name === "Target") return <Target size={20} />;
-   return <Layout size={20} />;
+   if (name === "BarChart") return <LucideIcons.BarChart size={20} />;
+   if (name === "Target") return <LucideIcons.Target size={20} />;
+   return <LucideIcons.Layout size={20} />;
 }
+

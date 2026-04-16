@@ -310,12 +310,18 @@ export async function updateJourneySubStepAction(
         newCompleted = newCompleted.filter(id => id !== subStepId);
       }
 
-      // Buscar a configuração do estágio para ver se encerrou
+      // 🔍 DETECÇÃO DE CONCLUSÃO ROBUSTA (Global & Standalone) 🛡️
+      // Precisamos saber o total de paradas para marcar como 'completed'
       const stages = await getJourneyStagesAction();
-      const stage = stages.find(s => s.id === stepId);
-      const totalSubsteps = stage?.substeps.length || 0;
+      let stage = stages.find(s => s.id === stepId);
       
-      const newStatus = (newCompleted.length >= totalSubsteps && totalSubsteps > 0) ? "completed" : "current";
+      // Fallback para estágios especiais (Step 00 / Standalone)
+      if (!stage) {
+        stage = await getStandaloneStageAction(stepId) || undefined;
+      }
+
+      const totalSubsteps = stage?.substeps.length || 0;
+      const newStatus = (totalSubsteps > 0 && newCompleted.length >= totalSubsteps) ? "completed" : "current";
 
       const updatedSteps = {
         ...current?.steps,
@@ -327,7 +333,7 @@ export async function updateJourneySubStepAction(
         }
       };
 
-      // Se completou, marcar o próximo como disponível/current se for o caso
+      // 🛰️ LIBERAÇÃO AUTOMÁTICA EM CADEIA
       if (newStatus === "completed") {
          const currentIdx = stages.findIndex(s => s.id === stepId);
          if (currentIdx !== -1 && currentIdx < stages.length - 1) {
@@ -344,10 +350,13 @@ export async function updateJourneySubStepAction(
          }
       }
 
-      // Calcular Evolução Global (Porcentagem Real 📈)
+      // 📈 CÁLCULO DE TELEMETRIA GLOBAL REAL
+      // Incluímos todos os estágios conhecidos na conta do progresso total
       const totalAllSubsteps = stages.reduce((acc, s) => acc + s.substeps.length, 0);
-      const completedAllSubsteps = Object.values(updatedSteps)
-        .reduce((acc: number, s: any) => acc + (s.completedSubSteps?.length || 0), 0);
+      const completedAllSubsteps = stages.reduce((acc, s) => {
+        const sProgress = updatedSteps[s.id];
+        return acc + (sProgress?.completedSubSteps?.length || 0);
+      }, 0);
       
       const overallProgress = totalAllSubsteps > 0 
         ? Math.round((completedAllSubsteps / totalAllSubsteps) * 100) 

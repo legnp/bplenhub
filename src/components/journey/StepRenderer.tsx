@@ -184,13 +184,32 @@ export function StepRenderer({ substep, status, onComplete, context = "member_jo
                 </div>
              </div>
 
-             <div className="flex justify-end pt-4">
-                <button 
-                   onClick={onComplete}
-                   className="px-10 py-4 bg-[var(--accent-start)] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[var(--accent-start)]/20"
-                >
-                   {nomen.actions.mark_as_done}
-                </button>
+             <div className="flex justify-between items-center pt-4">
+                {status === "completed" && (
+                   <div className="flex items-center gap-3 px-5 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                      <CheckCircle2 size={18} className="text-emerald-500" />
+                      <span className="text-[11px] font-black uppercase tracking-widest text-emerald-500">
+                         {nomen.instructions.survey_status_done}
+                      </span>
+                   </div>
+                )}
+                
+                <div className="flex gap-4 ml-auto">
+                   {status === "completed" && substep.allowReview && (
+                      <button 
+                         onClick={() => { /* Lógica de rever vídeo/conteúdo se necessário */ }}
+                         className="px-8 py-4 border border-[var(--border-primary)] text-[var(--text-muted)] rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:text-[var(--text-primary)] transition-all"
+                      >
+                         {nomen.actions.review}
+                      </button>
+                   )}
+                   <button 
+                      onClick={onComplete}
+                      className="px-10 py-4 bg-[var(--accent-start)] text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[var(--accent-start)]/20"
+                   >
+                      {status === "completed" ? nomen.actions.review : nomen.actions.mark_as_done}
+                   </button>
+                </div>
              </div>
           </div>
         );
@@ -236,26 +255,27 @@ export function StepRenderer({ substep, status, onComplete, context = "member_jo
                 <p className="text-[12px] font-medium text-[var(--text-muted)] max-w-xl leading-relaxed">{substep.description}</p>
              </div>
              
-             {/* 🔘 Interaction Area: No Card, Pure Luxury */}
              <div className="flex flex-col items-center justify-center pt-10 animate-in fade-in zoom-in duration-700 delay-300">
                 {status === "completed" ? (
                    <div className="flex items-center gap-6">
-                     {/* Success Badge */}
-                     <div className="flex items-center gap-3 px-5 py-3 bg-[var(--accent-start)]/10 border border-[var(--accent-start)]/20 rounded-2xl">
-                        <CheckCircle2 size={18} className="text-[var(--accent-start)]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-[var(--accent-start)]">
+                     <div className="flex items-center gap-3 px-5 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                        <CheckCircle2 size={18} className="text-emerald-500" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-emerald-500">
                            {nomen.instructions.survey_status_done}
                         </span>
                      </div>
 
-                     {/* Discreet Review Button */}
-                     <button 
-                        onClick={() => setIsSurveyActive(true)}
-                        className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-2 group"
-                     >
-                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] group-hover:bg-[var(--accent-start)] transition-colors" />
-                        {nomen.actions.review}
-                     </button>
+                     {substep.allowReview && (
+                        <button 
+                           onClick={() => {
+                              setIsSurveyActive(true);
+                           }}
+                           className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-emerald-500 transition-colors flex items-center gap-2 group"
+                        >
+                           <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)] group-hover:bg-emerald-500 transition-colors" />
+                           {nomen.actions.review}
+                        </button>
+                     )}
                    </div>
                 ) : (
                    <button 

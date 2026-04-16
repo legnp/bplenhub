@@ -20,6 +20,7 @@ export interface SubStepConfig {
   type: ContentType;
   referenceId: string; // The ID of the survey, form, or document being referenced
   description?: string;
+  allowReview?: boolean; // Se verdadeiro, exibe o botão de revisão após conclusão
 }
 
 export interface JourneyStep {
