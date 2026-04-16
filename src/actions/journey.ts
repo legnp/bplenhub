@@ -169,6 +169,7 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
  */
 export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
   try {
+    const db = getAdminDb();
     // Busca Multi-Camadas (A prova de falhas de digitação) 🛡️
     let productDoc: any = await db.collection("products").doc(slug).get();
     
