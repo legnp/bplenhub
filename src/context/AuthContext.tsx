@@ -85,7 +85,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setMatricula(mat);
           
           if (mat) {
-            // listener em tempo real para o Perfil (Nickname e Foto) 📡
+            // Controle de Bootstrap: Aguardar o primeiro snapshot de cada listener 🛡️
+            let profileReady = false;
+            let permissionsReady = false;
+
+            const checkBootstrapDone = () => {
+              if (profileReady && permissionsReady) {
+                setLoading(false);
+              }
+            };
+
+            // listener em tempo real para o Perfil
             const userRef = doc(db, "User", mat);
             unsubscribeProfile.current = onSnapshot(userRef, (userSnap) => {
                if (userSnap.exists()) {
@@ -94,6 +104,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   setNickname(resolvedNick);
                   setPhotoUrl(d.photoUrl || null);
                }
+               profileReady = true;
+               checkBootstrapDone();
+            }, (err) => {
+               console.error("❌ [AuthContext] Erro no listener de perfil:", err);
+               profileReady = true; // Resolve para evitar travamento
+               checkBootstrapDone();
             });
 
             // Listener de Permissões
@@ -103,15 +119,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const pData = permSnap.data();
                 setIsAdmin(pData.admin === true);
                 setServices(pData.services || {});
+              } else {
+                setIsAdmin(false);
               }
+              permissionsReady = true;
+              checkBootstrapDone();
+            }, (err) => {
+               console.error("❌ [AuthContext] Erro no listener de permissões:", err);
+               permissionsReady = true; // Resolve para evitar travamento
+               checkBootstrapDone();
             });
+          } else {
+            setLoading(false);
           }
+        } else {
+          // Usuário sem mapeamento de matrícula (Visitante/Lead)
+          setLoading(false);
         }
       } catch (err: unknown) {
         console.error("❌ [AuthContext] Erro ao inicializar estado global:", err);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => {

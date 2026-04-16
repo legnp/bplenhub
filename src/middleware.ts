@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Definir Rotas Protegidas
-  const isProtectedPath = pathname.startsWith('/hub');
+  const isProtectedPath = pathname.startsWith('/hub') || pathname.startsWith('/admin');
 
   // 2. Verificar Sessão (Cookie de Soberania BPlen)
   const sessionUid = request.cookies.get('bplen_session_uid')?.value;
