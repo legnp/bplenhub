@@ -264,11 +264,20 @@ export async function updateJourneySubStepAction(
          }
       }
 
+      // Calcular Evolução Global (Porcentagem Real 📈)
+      const totalAllSubsteps = stages.reduce((acc, s) => acc + s.substeps.length, 0);
+      const completedAllSubsteps = Object.values(updatedSteps)
+        .reduce((acc: number, s: any) => acc + (s.completedSubSteps?.length || 0), 0);
+      
+      const overallProgress = totalAllSubsteps > 0 
+        ? Math.round((completedAllSubsteps / totalAllSubsteps) * 100) 
+        : 0;
+
       const finalProgress = {
         matricula,
         lastActiveStepId: stepId,
         steps: updatedSteps,
-        overallProgress: 0, // Pode ser calculado depois se necessário
+        overallProgress: overallProgress,
         updatedAt: new Date().toISOString()
       };
 

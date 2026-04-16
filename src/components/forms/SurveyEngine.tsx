@@ -210,7 +210,7 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
     });
 
     // Se a lista for curta e os nomes pequenos, usamos 2 colunas por padrão no desktop
-    if (isShortList && allShortLabels && options.length > 2) {
+    if (isShortList && allShortLabels && options.length > 1) {
         return "grid-cols-1 md:grid-cols-2";
     }
 
@@ -244,15 +244,19 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
               </label>
             )}
             <div className={`grid gap-3 ${getFieldGridCols(field)}`}>
-              {(field.options as string[])?.map((opt) => (
-                <ChoiceButton
-                  key={opt}
-                  active={rawValue === opt}
-                  onClick={() => updateResponse(field.id, opt)}
-                >
-                  {opt}
-                </ChoiceButton>
-              ))}
+              {((field.options as any[]) || []).map((opt) => {
+                const label = typeof opt === "string" ? opt : opt.label;
+                const val = typeof opt === "string" ? opt : opt.value;
+                return (
+                  <ChoiceButton
+                    key={val}
+                    active={rawValue === val}
+                    onClick={() => updateResponse(field.id, val)}
+                  >
+                    {label}
+                  </ChoiceButton>
+                );
+              })}
             </div>
             
             {/* Campo Condicional "Outro" 🧬 */}
@@ -375,6 +379,22 @@ export function SurveyEngine({ config, userUid, onComplete }: SurveyEngineProps)
               value={String(rawValue || "")}
               onChange={(e) => updateResponse(field.id, e.target.value)}
               rows={4}
+            />
+          </div>
+        );
+      case "date":
+        return (
+          <div className="space-y-2 pt-2">
+            {field.label && (
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--accent-start)] ml-1">
+                {field.label}
+              </label>
+            )}
+            <InputGlass
+              type="date"
+              autoFocus={field.autoFocus}
+              value={String(rawValue || "")}
+              onChange={(e) => updateResponse(field.id, e.target.value)}
             />
           </div>
         );

@@ -288,6 +288,20 @@ export function FormsEngine({ config, userUid, onComplete, customSubmit, isPrevi
             />
           </div>
         );
+      case "date":
+        const dateValue = typeof rawValue === "string" ? rawValue : "";
+        return (
+          <div className="space-y-2">
+            {field.label && <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] ml-1">{field.label}</label>}
+            <InputGlass
+              type="date"
+              autoFocus={field.autoFocus}
+              placeholder={field.placeholder}
+              onChange={(e) => updateResponse(field.id, e.target.value, field)}
+              value={dateValue}
+            />
+          </div>
+        );
       case "file":
         return (
           <FileField

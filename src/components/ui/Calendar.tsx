@@ -374,9 +374,7 @@ export default function Calendar({
                       </div>
 
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex justify-between items-start mb-0.5 gap-4">
-                           <h5 className="font-black text-[var(--text-primary)] text-sm group-hover:text-[var(--accent-start)] transition-colors leading-tight line-clamp-1">{ev.summary}</h5>
-                           
+                        <div className="flex justify-end items-start mb-0.5 gap-4">
                            {/* Compact and clear select button or status badge */}
                            {isBooking === ev.id ? (
                               <span className="text-[9px] px-2 py-1 bg-[var(--accent-start)]/10 rounded-md font-black tracking-widest uppercase text-[var(--accent-start)] animate-pulse shrink-0">Aguarde...</span>
