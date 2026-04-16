@@ -43,8 +43,9 @@ export async function updateProfileImageAction(matricula: string, base64Image: s
     // 5. Garantir Soberania de Visibilidade (Público para Leitura) 🔓
     await makeFilePublic(drive, result.id);
 
-    // 6. Gerar URL de Incorporação Direta (Formato UC para Imagens) 📸
-    const directPhotoUrl = `https://drive.google.com/uc?export=view&id=${result.id}`;
+    // 6. Gerar URL de Incorporação Direta (Formato Thumbnail de Alta Resolução) 📸
+    // O formato 'thumbnail?id=...&sz=s1000' é o mais resiliente para incorporação externa
+    const directPhotoUrl = `https://drive.google.com/thumbnail?id=${result.id}&sz=s1000`;
 
     // 7. Atualizar o Firestore do Membro
     const userRef = doc(db, "User", matricula);
