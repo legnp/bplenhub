@@ -163,6 +163,65 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 }
 
 /**
+ * BPlen HUB — Standalone Stage Loader 🛰️🧬
+ * Busca um único produto por slug e o formata como um JourneyStep isolado.
+ * Útil para Primeiros Passos e outras trilhas fora da jornada core do membro.
+ */
+export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
+  try {
+    const db = getAdminDb();
+    const snapshot = await db.collection("products")
+      .where("slug", "==", slug)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    const product = { id: doc.id, ...doc.data() } as Product;
+
+    const substeps: SubStepConfig[] = [];
+    
+    // Buscar substeps funcionais (Surveys, Forms, Meetings)
+    if (product.capabilities?.surveys) {
+      product.capabilities.surveys.forEach(srvId => {
+        const srv = (surveys as any)[srvId];
+        substeps.push({
+          id: `ss-srv-${srvId}`,
+          title: srv?.title || `Pesquisa: ${srvId}`,
+          type: "survey",
+          referenceId: srvId,
+          description: srv?.description || "Análise e diagnóstico"
+        });
+      });
+    }
+
+    // Mesclar com workflow do Admin se disponível (Soberania do Workflow)
+    if (product.workflow && product.workflow.length > 0) {
+      substeps.forEach((ss, idx) => {
+        const workflowStep = product.workflow[idx];
+        if (workflowStep) {
+          ss.title = workflowStep.title;
+          if (workflowStep.description) ss.description = workflowStep.description;
+        }
+      });
+      while (substeps.length > product.workflow.length) substeps.pop();
+    }
+
+    return {
+      id: product.slug || product.id,
+      order: product.order || 0,
+      title: product.title,
+      description: product.sheet?.description || "",
+      icon: "Rocket", // Default para standalone
+      substeps: substeps
+    };
+  } catch (error) {
+    console.error(`🚨 [JourneyAction] Erro ao buscar standalone stage (${slug}):`, error);
+    return null;
+  }
+}
+
+/**
  * Busca o progresso real do usuário no Firestore 🔐🧬
  */
 export async function getJourneyProgressAction(uid: string): Promise<JourneyProgress | null> {

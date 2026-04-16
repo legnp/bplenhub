@@ -130,8 +130,8 @@ export function HubHomeView() {
                  <h3 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
                     <Target size={22} className="text-[#667eea]" /> Ferramentas
                  </h3>
-                 <Link href="/hub/ferramentas" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-2 group">
-                    Explorar Lab <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                 <Link href="/hub/primeiros_passos" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-2 group">
+                    Explorar ferramentas <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                  </Link>
               </div>
 
@@ -139,7 +139,7 @@ export function HubHomeView() {
                  {MOCK_TOOLS.slice(0, 4).map((tool) => (
                     <Link 
                       key={tool.id}
-                      href="/hub/ferramentas"
+                      href="/hub/primeiros_passos"
                       className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--input-border)] hover:bg-[#667eea]/5 hover:border-[#667eea]/20 transition-all group relative overflow-hidden h-full flex flex-col"
                     >
                        <div className="flex flex-col gap-4 relative z-10 flex-grow text-left">
@@ -217,7 +217,7 @@ export function HubHomeView() {
                <div className="space-y-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Ecossistema</h4>
                   <ul className="space-y-2">
-                     <li><Link href="/hub/ferramentas" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all font-medium">Laboratório</Link></li>
+                     <li><Link href="/hub/primeiros_passos" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all font-medium">Primeiros Passos</Link></li>
                      <li><Link href="/servicos" className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all font-medium">Próximos Passos</Link></li>
                   </ul>
                </div>
