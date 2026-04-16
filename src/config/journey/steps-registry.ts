@@ -26,7 +26,7 @@ export const JOURNEY_STAGES: JourneyStep[] = [
         title: "Check-in", 
         type: "survey", 
         referenceId: "check_in",
-        description: "Completar dados básicos" 
+        description: "Demandas e estado atual da jornada" 
       },
       { 
         id: "sessao_onboarding", 

@@ -1,15 +1,13 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { JourneyProgress, StepStatus, UserStepProgress, JourneyStep } from "@/types/journey";
-import { getJourneyStagesAction } from "@/actions/journey";
+import { getJourneyStagesAction, getJourneyProgressAction, updateJourneySubStepAction } from "@/actions/journey";
 import { getMemberQuotasAction } from "@/actions/quotas";
 import { MemberQuotaWallet } from "@/types/entitlements";
 
 /**
  * BPlen HUB — useJourney 🧬🛡️
  * Logic hook for member journey progress and access control.
- * Now fully dynamic: fetches stages from Products and progress from User metadata.
+ * Fully persistent: fetches/saves stages and progress from Firestore.
  */
 export function useJourney(uid: string) {
   const [stages, setStages] = useState<JourneyStep[]>([]);
@@ -17,21 +15,26 @@ export function useJourney(uid: string) {
   const [quotas, setQuotas] = useState<MemberQuotaWallet | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        console.log("🧬 [useJourney] Sincronizando telemetria dinâmica...");
-        
-        // 1. Fetch Stages from Firestore (via Action)
-        const dynamicStages = await getJourneyStagesAction();
-        setStages(dynamicStages);
+  const init = async () => {
+    setLoading(true);
+    try {
+      console.log("🧬 [useJourney] Sincronizando telemetria dinâmica via Server Actions...");
+      
+      // 1. Fetch Stages from Firestore (via Action)
+      const dynamicStages = await getJourneyStagesAction();
+      setStages(dynamicStages);
 
-        // 2. Fetch Real Quotas for granular access
-        const userQuotas = await getMemberQuotasAction(uid);
-        setQuotas(userQuotas);
+      // 2. Fetch Real Quotas for granular access
+      const userQuotas = await getMemberQuotasAction(uid);
+      setQuotas(userQuotas);
 
-        // 3. Initialize or Fetch Progress from Firestore
+      // 3. Fetch Real Progress from Firestore
+      const dbProgress = await getJourneyProgressAction(uid);
+      
+      if (dbProgress) {
+        setProgress(dbProgress);
+      } else {
+        // Fallback: Initialize local layout for first-time use
         const initialSteps: Record<string, UserStepProgress> = {};
         dynamicStages.forEach((stage, idx) => {
           initialSteps[stage.id] = {
@@ -42,55 +45,38 @@ export function useJourney(uid: string) {
           };
         });
 
-        // TODO: In the next phase, load real progress from /users/{uid}/journey
-        const initialProgress: JourneyProgress = {
-          matricula: "MEMBER-ID", 
+        setProgress({
+          matricula: "PENDING", 
           lastActiveStepId: dynamicStages[0]?.id || "onboarding",
           steps: initialSteps,
           overallProgress: 0
-        };
-
-        setProgress(initialProgress);
-      } catch (error) {
-        console.error("❌ [useJourney] Falha crítica na sincronização:", error);
-      } finally {
-        setLoading(false);
+        });
       }
-    };
+    } catch (error) {
+      console.error("❌ [useJourney] Falha crítica na sincronização:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (uid && uid !== "guest") init();
   }, [uid]);
 
-  const updateSubStep = (stepId: string, subStepId: string, completed: boolean) => {
-    if (!progress) return;
+  /**
+   * Atualiza o progresso real no Firebase e atualiza o estado local 🛰️
+   */
+  const updateSubStep = async (stepId: string, subStepId: string, completed: boolean) => {
+    if (!progress || uid === "guest") return;
 
-    setProgress(prev => {
-      if (!prev) return null;
-      const step = prev.steps[stepId];
-      if (!step) return prev;
-
-      const newCompleted = completed 
-        ? [...new Set([...step.completedSubSteps, subStepId])]
-        : step.completedSubSteps.filter(id => id !== subStepId);
-
-      const stage = stages.find(s => s.id === stepId);
-      const allSubStepsCount = stage?.substeps.length || 0;
-      const status: StepStatus = (newCompleted.length >= allSubStepsCount && allSubStepsCount > 0) 
-        ? "completed" 
-        : "current";
-
-      return {
-        ...prev,
-        steps: {
-          ...prev.steps,
-          [stepId]: {
-            ...step,
-            completedSubSteps: newCompleted,
-            status
-          }
-        }
-      };
-    });
+    try {
+      const result = await updateJourneySubStepAction(uid, stepId, subStepId, completed);
+      if (result.success && result.progress) {
+        setProgress(result.progress);
+      }
+    } catch (error) {
+      console.error("❌ [useJourney] Erro ao salvar progresso:", error);
+    }
   };
 
   /**
@@ -108,7 +94,7 @@ export function useJourney(uid: string) {
     // Checagem de Acesso Granular
     const hasQuota = quotas?.quotas[stepId] ? (quotas.quotas[stepId].total > 0) : false;
     
-    // Identificar se é o "Próximo Passo" lógico
+    // Identificar se é o "Próximo Passo" lógico (Baseado em ID sequencial ou LastActive)
     const currentStepIndex = stages.findIndex(s => s.id === progress?.lastActiveStepId);
     const thisStepIndex = stages.findIndex(s => s.id === stepId);
     const isNext = thisStepIndex === currentStepIndex + 1;
@@ -116,7 +102,7 @@ export function useJourney(uid: string) {
     return {
       status: stepProgress?.status || "locked",
       percentage,
-      hasAccess: hasQuota,
+      hasAccess: hasQuota || stepId === 'onboarding', // Onboarding sempre liberado por padrão
       isNext,
       substepsLabel: `${completedCount}/${totalSubsteps}`
     };
@@ -133,6 +119,8 @@ export function useJourney(uid: string) {
     quotas,
     updateSubStep,
     getStepStatus,
-    getStageTelemetry
+    getStageTelemetry,
+    refreshJourney: init // Permite forçar recarregamento se necessário
   };
 }
+

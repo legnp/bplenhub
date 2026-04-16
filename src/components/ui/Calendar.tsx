@@ -195,25 +195,7 @@ export default function Calendar({
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-500">
 
-      {/* 1. Header Bar: Filtros */}
-      <div className="flex justify-end gap-3 px-2">
-        <div className="relative group">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] opacity-40 group-focus-within:text-[var(--accent-start)]">
-            <Filter className="w-3.5 h-3.5" />
-          </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="appearance-none pl-9 pr-10 py-2 bg-[var(--input-bg)] backdrop-blur-md border border-[var(--input-border)] rounded-xl text-xs font-bold text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20 transition-all cursor-pointer hover:bg-[var(--accent-soft)] uppercase tracking-tight"
-          >
-            {eventTypes.map(type => (
-              <option key={type} value={type} className="bg-[var(--bg-primary)] text-[var(--text-primary)]">{type}</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] opacity-30 pointer-events-none" />
-        </div>
-      </div>
-
+      {/* Header Bar: Filtros (Removido a pedido) */}
       {/* 2. Política de Agendamento */}
       <div className="flex flex-col md:flex-row gap-4 p-5 bg-[var(--accent-soft)] border border-[var(--border-primary)] rounded-3xl animate-in fade-in slide-in-from-top-2 duration-700">
         <div className="flex items-center gap-3 md:border-r md:border-[var(--border-primary)] md:pr-6 text-left">
@@ -383,57 +365,59 @@ export default function Calendar({
                     `}
                   >
                     <div className="flex gap-5 w-full">
-                      <div className="shrink-0 flex flex-col items-center gap-1 pt-1">
-                        <span className={`text-[11px] font-black ${isFull || isWeekLocked ? "text-[var(--text-muted)]" : "text-[var(--text-primary)]"}`}>{format(evDate, "HH:mm")}</span>
-                        <div className="w-0.5 h-10 bg-[var(--text-muted)] opacity-10 rounded-full" />
-                        <Clock className="w-3 h-3 text-[var(--text-muted)] opacity-20" />
+                      <div className="shrink-0 flex flex-col items-center gap-0.5 pt-0.5 min-w-[44px]">
+                        <span className={`text-[12px] font-black ${isFull || isWeekLocked ? "text-[var(--text-muted)] opacity-50" : "text-[var(--text-primary)]"}`}>{format(evDate, "HH:mm")}</span>
+                        <div className="w-px h-3 bg-[var(--text-muted)] opacity-20 my-0.5 rounded-full" />
+                        <span className="text-[10px] font-black text-[var(--text-muted)] opacity-50">
+                           {ev.end ? format(parseISO(ev.end), "HH:mm") : format(new Date(evDate.getTime() + 60 * 60000), "HH:mm")}
+                        </span>
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4">
-                          <div className="text-left">
-                            <h5 className="font-black text-[var(--text-primary)] text-sm group-hover:text-[var(--accent-start)] transition-colors leading-tight">{ev.summary}</h5>
-
-                            <div className="flex items-center gap-2 mt-1">
-                              <Users className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
-                              <span className={`text-[10px] font-bold ${isFull ? "text-red-500" : "text-[var(--text-muted)] opacity-60"}`}>
-                                {isFull ? "ESGOTADO" : `${capacity - registered} vagas disponíveis`}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2 mt-1">
-                              <User className="w-3 h-3 text-[var(--text-muted)] opacity-40" />
-                              <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-60 uppercase tracking-tight">
-                                Orientador: {ev.mentor || "BPlen"}
-                              </span>
-                            </div>
-
-                            {ev.theme && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <Tag className="w-3 h-3 text-[var(--accent-start)] opacity-40" />
-                                <span className="text-[10px] font-bold text-[var(--accent-start)] uppercase tracking-tight">
-                                  Tema: {ev.theme}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="shrink-0 text-right md:text-center mt-2 md:mt-0">
-                             {/* Subtle text indicator to replace button */}
-                             {isBooking === ev.id ? (
-                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--accent-start)] animate-pulse">Aguarde...</span>
-                             ) : isFull ? (
-                                <span className="text-[9px] font-black tracking-widest uppercase text-red-500 opacity-70">Sem Vagas</span>
-                             ) : isWeekLocked ? (
-                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--text-muted)] opacity-50">Semana Ocupada</span>
-                             ) : (
-                                <span className="text-[9px] font-black tracking-widest uppercase text-[var(--accent-start)] opacity-0 group-hover:opacity-100 transition-opacity hidden md:inline-block">Selecionar</span>
-                             )}
-                          </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-0.5 gap-4">
+                           <h5 className="font-black text-[var(--text-primary)] text-sm group-hover:text-[var(--accent-start)] transition-colors leading-tight line-clamp-1">{ev.summary}</h5>
+                           
+                           {/* Compact and clear select button or status badge */}
+                           {isBooking === ev.id ? (
+                              <span className="text-[9px] px-2 py-1 bg-[var(--accent-start)]/10 rounded-md font-black tracking-widest uppercase text-[var(--accent-start)] animate-pulse shrink-0">Aguarde...</span>
+                           ) : isFull ? (
+                              <span className="text-[9px] px-2 py-1 bg-red-500/10 rounded-md font-black tracking-widest uppercase text-red-500 opacity-80 shrink-0">Esgotado</span>
+                           ) : isWeekLocked ? (
+                              <span className="text-[9px] px-2 py-1 bg-[var(--text-muted)]/10 rounded-md font-black tracking-widest uppercase text-[var(--text-muted)] opacity-60 shrink-0">Ocupado</span>
+                           ) : (
+                              <span className="text-[9px] px-2.5 py-1 bg-[var(--text-muted)]/5 group-hover:bg-[var(--accent-start)]/10 rounded-md font-black tracking-widest uppercase text-[var(--text-muted)] opacity-60 group-hover:opacity-100 group-hover:text-[var(--accent-start)] transition-all shrink-0">Selecionar</span>
+                           )}
                         </div>
+
+                        {/* Inline details to save space */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-[10px] uppercase tracking-tight">
+                           <div className="flex items-center gap-1.5">
+                             <Users className="w-3 h-3 text-[var(--text-muted)] opacity-40 shrink-0" />
+                             <span className={`font-bold ${isFull ? "text-red-500" : "text-[var(--text-muted)] opacity-70"}`}>
+                               {isFull ? "SEM VAGAS" : `${capacity - registered} VAGAS`}
+                             </span>
+                           </div>
+
+                           <div className="flex items-center gap-1.5">
+                             <User className="w-3 h-3 text-[var(--text-muted)] opacity-40 shrink-0" />
+                             <span className="font-bold text-[var(--text-muted)] opacity-70">
+                               Orientador: <span className="text-[var(--text-primary)] opacity-90">{ev.mentor || "BPlen"}</span>
+                             </span>
+                           </div>
+
+                           {ev.theme && (
+                             <div className="flex items-center gap-1.5">
+                               <Tag className="w-3 h-3 text-[var(--accent-start)] opacity-40 shrink-0" />
+                               <span className="font-bold text-[var(--accent-start)] opacity-90">
+                                 {ev.theme}
+                               </span>
+                             </div>
+                           )}
+                        </div>
+
                         {ev.description && (
-                          <p className="text-[10px] text-[var(--text-muted)] opacity-70 line-clamp-2 italic leading-relaxed bg-[var(--accent-soft)] p-3 rounded-xl mt-3 text-left">
-                            &quot;{ev.description}&quot;
+                          <p className="text-[10px] text-[var(--text-muted)] opacity-60 line-clamp-1 italic leading-relaxed mt-2 text-left">
+                            {ev.description}
                           </p>
                         )}
                       </div>
@@ -458,8 +442,8 @@ export default function Calendar({
       <GlassModal
         isOpen={isConfirmModalOpen && !!eventToConfirm}
         onClose={() => setIsConfirmModalOpen(false)}
-        title={eventToConfirm?.summary}
-        subtitle="Confirmação de Agendamento"
+        title="Confirmação de Agendamento"
+        subtitle={`Podemos confirmar o agendamento da sessão de ${eventToConfirm?.summary}?`}
         maxWidth="max-w-lg"
       >
         <div className="space-y-6 mb-10">

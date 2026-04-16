@@ -57,7 +57,7 @@ export function LikertScale({ value = { score: "" }, onChange, options = ["1", "
                   transition-all duration-300
                   ${isActive || isHovered 
                     ? "fill-[#FFB800] text-[#FFB800] transform drop-shadow-[0_0_10px_rgba(255,184,0,0.4)]" 
-                    : "text-black/20 fill-black/5 dark:text-white/20 dark:fill-white/5"}
+                    : "text-[var(--text-muted)] opacity-40 fill-[var(--text-muted)]/10"}
                 `}
               />
 

@@ -132,9 +132,12 @@ export default function StepJourneyPage() {
           <StepRenderer
             substep={currentSubStep}
             status={stepStatus}
-            onComplete={() => {
+            onComplete={async () => {
               // Mark current as complete
-              updateSubStep(stepId, currentSubStepId, true);
+              await updateSubStep(stepId, currentSubStepId, true);
+
+              // Force a layout refresh to update percentage in Navigator
+              router.refresh();
 
               // Advance linearly choice
               const currentIndex = stepConfig.substeps.findIndex(ss => ss.id === currentSubStepId);

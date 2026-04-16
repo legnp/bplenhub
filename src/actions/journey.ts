@@ -161,3 +161,125 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
     return [];
   }
 }
+
+/**
+ * Busca o progresso real do usuário no Firestore 🔐🧬
+ */
+export async function getJourneyProgressAction(uid: string): Promise<JourneyProgress | null> {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Resolver Matrícula via UID
+    const uidMapSnap = await db.collection("_AuthMap").doc(uid).get();
+    if (!uidMapSnap.exists) return null;
+    const matricula = uidMapSnap.data()?.matricula;
+    if (!matricula) return null;
+
+    // 2. Buscar Documentos de Progresso
+    const progressRef = db.collection("User").doc(matricula).collection("User_Journey").doc("progress");
+    const progressSnap = await progressRef.get();
+
+    if (!progressSnap.exists) return null;
+
+    const data = progressSnap.data();
+    return {
+      matricula,
+      lastActiveStepId: data?.lastActiveStepId || "onboarding",
+      steps: data?.steps || {},
+      overallProgress: data?.overallProgress || 0
+    };
+  } catch (error) {
+    console.error("❌ [JourneyAction] Erro ao buscar progresso:", error);
+    return null;
+  }
+}
+
+/**
+ * Atualiza o progresso de um substep (Parada) no Firebase 🛰️✨
+ */
+export async function updateJourneySubStepAction(
+  uid: string, 
+  stepId: string, 
+  subStepId: string, 
+  completed: boolean
+): Promise<{ success: boolean; progress?: JourneyProgress }> {
+  try {
+    const db = getAdminDb();
+    
+    // 1. Resolver Matrícula
+    const uidMapSnap = await db.collection("_AuthMap").doc(uid).get();
+    if (!uidMapSnap.exists) throw new Error("Usuário não mapeado.");
+    const matricula = uidMapSnap.data()?.matricula;
+
+    const progressRef = db.collection("User").doc(matricula).collection("User_Journey").doc("progress");
+    
+    const trxResult = await db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(progressRef);
+      const current = snap.exists ? snap.data() : { steps: {}, lastActiveStepId: stepId };
+      
+      const stepProgress = current?.steps[stepId] || {
+        stepId,
+        status: "current",
+        completedSubSteps: []
+      };
+
+      let newCompleted = [...(stepProgress.completedSubSteps || [])];
+      if (completed) {
+        if (!newCompleted.includes(subStepId)) newCompleted.push(subStepId);
+      } else {
+        newCompleted = newCompleted.filter(id => id !== subStepId);
+      }
+
+      // Buscar a configuração do estágio para ver se encerrou
+      const stages = await getJourneyStagesAction();
+      const stage = stages.find(s => s.id === stepId);
+      const totalSubsteps = stage?.substeps.length || 0;
+      
+      const newStatus = (newCompleted.length >= totalSubsteps && totalSubsteps > 0) ? "completed" : "current";
+
+      const updatedSteps = {
+        ...current?.steps,
+        [stepId]: {
+          ...stepProgress,
+          completedSubSteps: newCompleted,
+          status: newStatus,
+          updatedAt: new Date().toISOString()
+        }
+      };
+
+      // Se completou, marcar o próximo como disponível/current se for o caso
+      if (newStatus === "completed") {
+         const currentIdx = stages.findIndex(s => s.id === stepId);
+         if (currentIdx !== -1 && currentIdx < stages.length - 1) {
+            const nextStageId = stages[currentIdx + 1].id;
+            if (!updatedSteps[nextStageId]) {
+               updatedSteps[nextStageId] = {
+                  stepId: nextStageId,
+                  status: "current",
+                  completedSubSteps: []
+               };
+            } else if (updatedSteps[nextStageId].status === "locked") {
+               updatedSteps[nextStageId].status = "current";
+            }
+         }
+      }
+
+      const finalProgress = {
+        matricula,
+        lastActiveStepId: stepId,
+        steps: updatedSteps,
+        overallProgress: 0, // Pode ser calculado depois se necessário
+        updatedAt: new Date().toISOString()
+      };
+
+      transaction.set(progressRef, finalProgress, { merge: true });
+      return finalProgress;
+    });
+
+    return { success: true, progress: trxResult as unknown as JourneyProgress };
+  } catch (error) {
+    console.error("❌ [JourneyAction] Erro ao atualizar subpasso:", error);
+    return { success: false };
+  }
+}
+
