@@ -123,7 +123,8 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 
         // 🔮 Mapeamento de Ícones Inteligente (Baseado em Ordem/Slug)
         const getIconName = (order: number, slug?: string) => {
-          if (order === 0 || slug === 'onboarding') return "Rocket";
+          if (order === 0) return "Search";
+          if (slug === 'onboarding') return "Rocket";
           if (slug?.includes('analise-comportamental')) return "Fingerprint";
           if (order === 2) return "Compass";
           if (order === 4) return "Map";

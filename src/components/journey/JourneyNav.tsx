@@ -103,15 +103,19 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
   return (
     <div className="w-full py-[5px] px-4 overflow-visible">
       <div className="max-w-6xl mx-auto relative px-2">
-        {/* Linha de Conexão de Fundo (Token Border Primary) */}
-        <div className="absolute top-[60px] left-0 w-full h-[1px] bg-[var(--border-primary)] opacity-40" />
+        {/* 🎇 Horizonte de Conexão (Efeito Eéreo) */}
+        <div 
+          className="absolute top-[92px] left-0 w-full h-[1.5px] bg-[var(--border-primary)] opacity-10" 
+          style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
+        />
         
-        {/* Linha de Progresso Ativo (Gradient Accent conforme manual) */}
+        {/* 🎆 Linha de Progresso Ativo (Glow Rail) */}
         <motion.div 
-          className="absolute top-[60px] left-0 h-[1px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)]"
+          className="absolute top-[92px] left-0 h-[1.5px] bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] shadow-[0_0_12px_var(--accent-start)]"
           initial={{ width: 0 }}
           animate={{ width: `${(Math.max(0, currentStepIndex) / (stages.length - 1)) * 100}%` }}
           transition={{ duration: 1, ease: "easeInOut" }}
+          style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 100%)' }}
         />
 
         <div className="flex justify-between items-center relative z-10 w-full">
