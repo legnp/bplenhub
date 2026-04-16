@@ -39,43 +39,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [matricula, setMatricula] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [services, setServices] = useState<UserServices>({});
   
   // Referência para gerenciar o encerramento rigoroso do listener de permissões
   const unsubscribePermissions = useRef<Unsubscribe | null>(null);
+  const unsubscribeProfile = useRef<Unsubscribe | null>(null);
 
   useEffect(() => {
     // Escuta mudanças no estado de autenticação (login/logout/refresh)
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
-      // Cleanup de listeners anteriores se o usuário mudar ou deslogar
+      // Cleanup de listeners anteriores
       if (unsubscribePermissions.current) {
         unsubscribePermissions.current();
         unsubscribePermissions.current = null;
+      }
+      if (unsubscribeProfile.current) {
+        unsubscribeProfile.current();
+        unsubscribeProfile.current = null;
       }
 
       if (!currentUser) {
         setIsAdmin(false);
         setMatricula(null);
         setNickname(null);
+        setPhotoUrl(null);
         setServices({});
-        await syncSessionCookie(null); // Remove o cookie do servidor 🛡️
+        await syncSessionCookie(null);
         setLoading(false);
         return;
       }
       
-      // Sincroniza o UID com o servidor para Route Guards (Server Components)
       await syncSessionCookie(currentUser.uid);
 
-      // Hardcoded fallback safety para email master (UX imediata)
-      const email = currentUser.email?.toLowerCase() || "";
-      if (email === "lisandra.lencina@bplen.com" || email === "it@bplen.com" || email.endsWith("@bplen.com")) {
-        setIsAdmin(true);
-      }
-
       try {
-        // 1. Obter Matrícula BPlen via UID Map (Leitura Única)
         const uidMapRef = doc(db, "_AuthMap", currentUser.uid);
         const uidMapSnap = await getDoc(uidMapRef);
         
@@ -84,34 +83,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setMatricula(mat);
           
           if (mat) {
-            // 2. Obter Dados de Perfil (Leitura Única para Nickname)
+            // listener em tempo real para o Perfil (Nickname e Foto) 📡
             const userRef = doc(db, "User", mat);
-            const userSnap = await getDoc(userRef);
-            
-            if (userSnap.exists()) {
-              const d = userSnap.data();
-              // Priorizar nova estrutura: User_Nickname na raiz
-              const resolvedNick = d.User_Nickname || d.User_Welcome?.User_Nickname || d.Authentication_Name || d.User_Name || "Membro BPlen";
-              setNickname(resolvedNick);
+            unsubscribeProfile.current = onSnapshot(userRef, (userSnap) => {
+               if (userSnap.exists()) {
+                  const d = userSnap.data();
+                  const resolvedNick = d.User_Nickname || d.User_Welcome?.User_Nickname || d.Authentication_Name || d.User_Name || "Membro BPlen";
+                  setNickname(resolvedNick);
+                  setPhotoUrl(d.photoUrl || null);
+               }
+            });
 
-              // 3. Estabelecer Listener em Tempo Real para Permissões (onSnapshot)
-              const permissionsRef = doc(db, "User", mat, "User_Permissions", "access");
-              
-              unsubscribePermissions.current = onSnapshot(permissionsRef, (permSnap) => {
-                if (permSnap.exists()) {
-                  const pData = permSnap.data();
-                  setIsAdmin(pData.admin === true);
-                  setServices(pData.services || {});
-                  console.log(`📡 [AuthContext] Permissões atualizadas em tempo real para: ${currentUser.email}`);
-                } else {
-                  // Fallback se o documento sumir
-                  setIsAdmin(false);
-                  setServices({});
-                }
-              }, (error) => {
-                console.error("❌ [AuthContext] Erro no listener de permissões:", error);
-              });
-            }
+            // Listener de Permissões
+            const permissionsRef = doc(db, "User", mat, "User_Permissions", "access");
+            unsubscribePermissions.current = onSnapshot(permissionsRef, (permSnap) => {
+              if (permSnap.exists()) {
+                const pData = permSnap.data();
+                setIsAdmin(pData.admin === true);
+                setServices(pData.services || {});
+              }
+            });
           }
         }
       } catch (err: unknown) {
@@ -123,15 +114,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       unsubscribeAuth();
-      if (unsubscribePermissions.current) {
-        unsubscribePermissions.current();
-      }
+      if (unsubscribePermissions.current) unsubscribePermissions.current();
+      if (unsubscribeProfile.current) unsubscribeProfile.current();
     };
   }, []);
 
   const logout = async () => {
     try {
-      await syncSessionCookie(null); // Limpeza preventiva no servidor
+      await syncSessionCookie(null);
       await signOut(auth);
     } catch (error) {
       console.error("❌ [AuthContext] Erro ao deslogar:", error);
@@ -139,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname, services, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, matricula, nickname, photoUrl, services, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -5,6 +5,8 @@ import { UserCog, ArrowLeft, Briefcase, Database, ShieldCheck } from "lucide-rea
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+import { ProfileIdentityTab } from "@/components/hub/ProfileIdentityTab";
+
 /**
  * BPlen HUB — Perfil & Configurações ⚙️🧬
  * Espaço para autogestão de identidade, pitch e visibilidade na rede.
@@ -48,7 +50,7 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* 🧭 Navegação por Abas Horizontal */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)]/20 border border-[var(--border-primary)]/50 rounded-2xl w-fit">
+      <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)]/20 border border-[var(--border-primary)]/50 rounded-2xl w-fit overflow-x-auto no-scrollbar">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -58,7 +60,7 @@ export default function ProfileSettingsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all duration-500 text-[11px] font-black uppercase tracking-widest",
+                "flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all duration-500 text-[11px] font-black uppercase tracking-widest whitespace-nowrap",
                 isActive 
                   ? "bg-[var(--accent-start)] text-white shadow-lg shadow-[var(--accent-start)]/20 scale-105" 
                   : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"
@@ -72,13 +74,8 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* Conteúdo Dinâmico por Aba */}
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {activeTab === "geral" && (
-           <PlaceholderCard 
-              title="Configurações Gerais" 
-              desc="Edite seu pitch, foto de perfil e informações básicas de identidade." 
-           />
-        )}
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-[400px]">
+        {activeTab === "geral" && <ProfileIdentityTab />}
         {activeTab === "talento" && (
            <PlaceholderCard 
               title="Banco de Talento" 
