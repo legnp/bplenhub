@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { StepContainer } from "@/components/journey/StepContainer";
 import { SubStepRail } from "@/components/journey/SubStepRail";
 import { StepRenderer } from "@/components/journey/StepRenderer";
