@@ -94,15 +94,6 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
       setIsEvaluating(false);
     }
   };
-        } catch (error) {
-          console.error("Erro ao carregar agenda na jornada:", error);
-        } finally {
-          setLoadingEvents(false);
-        }
-      };
-      loadEvents();
-    }
-  }, [substep.type, substep.referenceId]);
 
   const [isSurveyActive, setIsSurveyActive] = React.useState(false);
 
