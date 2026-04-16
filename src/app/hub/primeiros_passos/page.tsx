@@ -25,10 +25,11 @@ export default function PrimeirosPassosPage() {
   const [currentSubStepId, setCurrentSubStepId] = useState<string>("");
   const [isLoadingStage, setIsLoadingStage] = useState(true);
 
-  // 🛰️ Carregar Dados Reais do Produto "Primeiros Passos"
+  // 🛰️ Carregar Dados Reais do Produto "PRIMEIROS_PASSOS"
   useEffect(() => {
     async function fetchStage() {
-      const stage = await getStandaloneStageAction("Primeiros Passos");
+      // Buscamos pelo ID que é imutável e mais seguro
+      const stage = await getStandaloneStageAction("PRIMEIROS_PASSOS");
       if (stage) {
         setStandaloneStage(stage);
         

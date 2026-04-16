@@ -128,7 +128,7 @@ export function HubHomeView() {
            <section className="space-y-8">
               <div className="flex items-center justify-between border-b border-[var(--border-primary)] pb-6">
                  <h3 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
-                    <Target size={22} className="text-[#667eea]" /> Ferramentas
+                    <Target size={22} className="text-[#667eea]" /> Primeiros Passos
                  </h3>
                  <Link href="/hub/primeiros_passos" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-2 group">
                     Explorar ferramentas <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

@@ -170,14 +170,20 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
   try {
     const db = getAdminDb();
-    const snapshot = await db.collection("products")
-      .where("slug", "==", slug)
-      .limit(1)
-      .get();
+    
+    // Busca por Slug OU ID (Mais robusto) 🛡️
+    let productDoc: any = await db.collection("products").doc(slug).get();
+    
+    if (!productDoc.exists) {
+      const snapshot = await db.collection("products")
+        .where("slug", "==", slug)
+        .limit(1)
+        .get();
+      if (!snapshot.empty) productDoc = snapshot.docs[0];
+    }
 
-    if (snapshot.empty) return null;
-    const doc = snapshot.docs[0];
-    const product = { id: doc.id, ...doc.data() } as Product;
+    if (!productDoc.exists) return null;
+    const product = { id: productDoc.id, ...productDoc.data() } as Product;
 
     const substeps: SubStepConfig[] = [];
     
