@@ -82,14 +82,16 @@ export function HubHeader() {
   ];
 
   return (
-    <header className="fixed top-6 right-6 z-[100] flex flex-col items-center">
-      
-      {/* 🚀 Logo BPlen Flutuante (Esquerda) */}
+    <>
+      {/* 🚀 Logo BPlen Flutuante (Esquerda) — elemento fixed independente */}
       <div className="fixed top-8 left-8 transition-all hover:scale-105 duration-500 z-[100]">
-         <Link href="/hub/membro">
-            <BPlenLogo variant="hub" size={42} />
-         </Link>
+        <Link href="/hub/membro">
+          <BPlenLogo variant="hub" size={42} />
+        </Link>
       </div>
+
+      {/* 💎 Painel de Identidade Vertical (Direita) */}
+      <header className="fixed top-6 right-6 z-[100] flex flex-col items-center">
 
       {/* 💎 Identidade Vertical Premium (Elementos Flutuantes) 💎 */}
       <div className="flex flex-col items-center gap-1 animate-in fade-in slide-in-from-right-4 duration-700">
@@ -261,6 +263,7 @@ export function HubHeader() {
          </div>
       </div>
 
-    </header>
+      </header>
+    </>
   );
 }

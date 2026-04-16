@@ -39,9 +39,9 @@ function normalizePrivateKey(key: string | undefined): string {
     cleaned = `-----BEGIN PRIVATE KEY-----\n${cleaned}\n-----END PRIVATE KEY-----`;
   }
 
-  // 5. Auditoria de Segurança (Log Silencioso do Backend)
+  // 5. Auditoria de Segurança (Apenas métricas, sem exposição de conteúdo 🛡️)
   if (process.env.NODE_ENV === "production") {
-    console.log(`[PEM Debug] Key Length: ${cleaned.length} | Prefix: ${cleaned.substring(0, 30)}...`);
+    console.log(`[PEM] Key loaded: ${cleaned.length} chars | Headers: ${cleaned.includes("-----BEGIN PRIVATE KEY-----")}`);
   }
 
   return cleaned;
