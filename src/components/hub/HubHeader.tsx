@@ -13,7 +13,8 @@ import {
   LogOut,
   ShieldCheck,
   UserCog,
-  Users
+  Users,
+  Home
 } from "lucide-react";
 import { useTheme, BPlenTheme } from "@/context/ThemeContext";
 import { useAuthContext } from "@/context/AuthContext";
@@ -195,12 +196,21 @@ export function HubHeader() {
                        {/* Links Principais do Usuário */}
                        <div className="space-y-1">
                           <Link 
+                            href="/hub"
+                            onClick={() => setIsSocialMenuOpen(false)}
+                            className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[var(--accent-soft)] transition-all group border border-transparent hover:border-[var(--accent-start)]/10"
+                          >
+                             <Home size={16} className="text-[var(--text-muted)] group-hover:text-[var(--accent-start)]" />
+                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Início</span>
+                          </Link>
+
+                          <Link 
                             href="/hub/membro"
                             onClick={() => setIsSocialMenuOpen(false)}
                             className="w-full flex items-center gap-3 p-3 rounded-2xl bg-[var(--accent-start)]/5 border border-[var(--accent-start)]/10 text-[var(--accent-start)] hover:bg-[var(--accent-soft)] transition-all group"
                           >
                              <ShieldCheck size={16} />
-                             <span className="text-[10px] font-black uppercase tracking-widest">Dashboard</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">Área de Membro</span>
                           </Link>
 
                           <Link 

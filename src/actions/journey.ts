@@ -169,11 +169,16 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
  */
 export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
   try {
-    const db = getAdminDb();
-    
-    // Busca por Slug OU ID (Mais robusto) 🛡️
+    // Busca Multi-Camadas (A prova de falhas de digitação) 🛡️
     let productDoc: any = await db.collection("products").doc(slug).get();
     
+    // 2. Se falhar, tenta o ID em minúsculo com traços
+    if (!productDoc.exists) {
+      const normalizedId = slug.toLowerCase().replace(/_/g, '-');
+      productDoc = await db.collection("products").doc(normalizedId).get();
+    }
+
+    // 3. Se falhar, tenta pelo campo 'slug' exato
     if (!productDoc.exists) {
       const snapshot = await db.collection("products")
         .where("slug", "==", slug)
@@ -182,8 +187,20 @@ export async function getStandaloneStageAction(slug: string): Promise<JourneySte
       if (!snapshot.empty) productDoc = snapshot.docs[0];
     }
 
-    if (!productDoc.exists) return null;
-    const product = { id: productDoc.id, ...productDoc.data() } as Product;
+    // 4. Última tentativa: busca flexível pelo campo slug (case insensitive no código)
+    if (!productDoc.exists) {
+       const allProducts = await db.collection("products").get();
+       productDoc = allProducts.docs.find(d => 
+          d.data().slug?.toLowerCase() === slug.toLowerCase() ||
+          d.data().title?.toLowerCase() === slug.toLowerCase()
+       );
+    }
+
+    if (!productDoc || (productDoc.exists === false)) return null;
+    const productData = productDoc.data ? productDoc.data() : productDoc.exists ? productDoc.data() : null;
+    if (!productData) return null;
+
+    const product = { id: productDoc.id, ...productData } as Product;
 
     const substeps: SubStepConfig[] = [];
     
