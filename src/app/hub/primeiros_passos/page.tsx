@@ -28,20 +28,29 @@ export default function PrimeirosPassosPage() {
   // 🛰️ Carregar Dados Reais do Produto "PRIMEIROS_PASSOS"
   useEffect(() => {
     async function fetchStage() {
-      // Buscamos pelo ID que é imutável e mais seguro
-      const stage = await getStandaloneStageAction("PRIMEIROS_PASSOS");
-      if (stage) {
-        setStandaloneStage(stage);
-        
-        // Lógica de Navegação Inicial: Focar no primeiro incompleto
-        const completedIds = progress?.steps[stage.id]?.completedSubSteps || [];
-        const firstIncomplete = stage.substeps.find(ss => !completedIds.includes(ss.id));
-        setCurrentSubStepId(firstIncomplete?.id || stage.substeps[0].id);
+      try {
+        // Buscamos pelo ID que é imutável e mais seguro
+        const stage = await getStandaloneStageAction("PRIMEIROS_PASSOS");
+        if (stage) {
+          setStandaloneStage(stage);
+          
+          // Lógica de Navegação Inicial: Focar no primeiro incompleto
+          const completedIds = progress?.steps[stage.id]?.completedSubSteps || [];
+          const firstIncomplete = stage.substeps.find(ss => !completedIds.includes(ss.id));
+          setCurrentSubStepId(firstIncomplete?.id || stage.substeps[0].id);
+        }
+      } catch (err) {
+        console.error("❌ [PrimeirosPassos] Falha ao sincronizar estágio:", err);
+      } finally {
+        setIsLoadingStage(false);
       }
-      setIsLoadingStage(false);
     }
-    fetchStage();
-  }, [progress]);
+    
+    // Só dispara quando o progresso estiver sincronizado (Evita race conditions)
+    if (!journeyLoading) {
+      fetchStage();
+    }
+  }, [progress, journeyLoading]);
 
   if (journeyLoading || isLoadingStage) {
     return <AtmosphericLoading />;

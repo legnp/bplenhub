@@ -170,16 +170,16 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
   try {
     const db = getAdminDb();
-    // Busca Multi-Camadas (A prova de falhas de digitação) 🛡️
+    // 1. Busca Direta por ID (PRIMEIROS_PASSOS)
     let productDoc: any = await db.collection("products").doc(slug).get();
     
-    // 2. Se falhar, tenta o ID em minúsculo com traços
+    // 2. Fallback: Slug ID (primeiros-passos)
     if (!productDoc.exists) {
       const normalizedId = slug.toLowerCase().replace(/_/g, '-');
       productDoc = await db.collection("products").doc(normalizedId).get();
     }
 
-    // 3. Se falhar, tenta pelo campo 'slug' exato
+    // 3. Fallback: Query por campo 'slug' exato
     if (!productDoc.exists) {
       const snapshot = await db.collection("products")
         .where("slug", "==", slug)
@@ -188,20 +188,16 @@ export async function getStandaloneStageAction(slug: string): Promise<JourneySte
       if (!snapshot.empty) productDoc = snapshot.docs[0];
     }
 
-    // 4. Última tentativa: busca flexível pelo campo slug (case insensitive no código)
-    if (!productDoc.exists) {
-       const allProducts = await db.collection("products").get();
-       productDoc = allProducts.docs.find(d => 
-          d.data().slug?.toLowerCase() === slug.toLowerCase() ||
-          d.data().title?.toLowerCase() === slug.toLowerCase()
-       );
+    if (!productDoc || (productDoc.exists === false)) {
+      console.warn(`⚠️ [JourneyAction] Standalone stage não encontrado: ${slug}`);
+      return null;
     }
 
-    if (!productDoc || (productDoc.exists === false)) return null;
-    const productData = productDoc.data ? productDoc.data() : productDoc.exists ? productDoc.data() : null;
+    const productData = productDoc.data();
     if (!productData) return null;
 
     const product = { id: productDoc.id, ...productData } as Product;
+
 
     const substeps: SubStepConfig[] = [];
     
