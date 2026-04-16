@@ -2,17 +2,20 @@
 
 import React from "react";
 import { SubStepConfig } from "@/types/journey";
-import { Loader2, FileText, CheckCircle2, AlertCircle, PlayCircle, Calendar as CalendarIcon, ClipboardCheck, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Calendar from "@/components/ui/Calendar";
-import UserBookings from "@/components/ui/UserBookings";
-import { fetchCalendarEvents } from "@/actions/calendar";
-import { SurveyEngine } from "@/components/forms/SurveyEngine";
-import { getSurveyConfig } from "@/config/surveys";
-import { useAuthContext } from "@/context/AuthContext";
-import { getUserBookingsAction, submitEvaluationAction } from "@/actions/calendar";
-import { UserBooking } from "@/types/calendar";
-import { Star, Download, Send } from "lucide-react";
+import { 
+  Loader2, 
+  FileText, 
+  CheckCircle2, 
+  AlertCircle, 
+  PlayCircle, 
+  Calendar as CalendarIcon, 
+  ClipboardCheck, 
+  Sparkles,
+  Star,
+  Download,
+  Send,
+  Clock 
+} from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { format, parseISO } from "date-fns";
 
@@ -27,7 +30,7 @@ interface StepRendererProps {
  * Orchestrator that renders the appropriate content type for a journey substep.
  */
 export function StepRenderer({ substep, status, onComplete }: StepRendererProps) {
-  const { user } = useAuthContext();
+  const { user, matricula } = useAuthContext();
 
   if (status === "locked") {
     return (
@@ -61,10 +64,8 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
         setEvents(allEvents);
       }
 
-      if (user?.uid && (user as any).matricula || (user as any).id) {
-        // useAuthContext provides matricula, but let's be safe
-        const mat = (user as any).matricula || (user as any).id;
-        const bookings = await getUserBookingsAction(mat);
+      if (matricula) {
+        const bookings = await getUserBookingsAction(matricula);
         setUserBookings(bookings);
       }
     } catch (error) {
@@ -72,7 +73,7 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
     } finally {
       setLoadingEvents(false);
     }
-  }, [substep.type, substep.referenceId, user]);
+  }, [substep.type, substep.referenceId, matricula]);
 
   React.useEffect(() => {
     if (substep.type === "meeting") {
@@ -81,10 +82,10 @@ export function StepRenderer({ substep, status, onComplete }: StepRendererProps)
   }, [loadData, substep.type]);
 
   const handleNPS = async (bookingId: string) => {
-    if (!rating || !(user as any).matricula) return;
+    if (!rating || !matricula || !user?.uid) return;
     setIsEvaluating(true);
     try {
-      const res = await submitEvaluationAction((user as any).matricula, bookingId, rating, feedback, user!.uid);
+      const res = await submitEvaluationAction(matricula, bookingId, rating, feedback, user.uid);
       if (res.success) {
         loadData(); // Refresh UI
       }
