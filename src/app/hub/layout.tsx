@@ -1,8 +1,8 @@
 import React from "react";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { HubShell } from "@/components/hub/HubShell";
 import { Metadata } from "next";
+import { verifySignedSession, clearSessionCookie } from "@/actions/auth-session";
 
 export const metadata: Metadata = {
   title: {
@@ -14,21 +14,20 @@ export const metadata: Metadata = {
 /**
  * HUB LAYOUT — O Gate de Autenticação Server-Side 🛡️
  * O servidor toma a decisão de autorização ANTES do JS carregar no cliente.
+ * Agora com verificação CRIPTOGRÁFICA do cookie assinado.
  */
 export default async function HubLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const hasSignedSession = cookieStore.has("bplen_session");
-  const hasLegacySession = cookieStore.has("bplen_session_uid");
+  
+  // 🛡️ Verificação criptográfica do cookie de sessão
+  const session = await verifySignedSession();
 
-  // 🛡️ [Autoridade do Servidor] 
-  // Bloqueio imediato na orquestração da página. Se não houver cookie, o redirect 
-  // ocorre no nível de cabeçalho HTTP, antes de qualquer dado chegar ao navegador.
-  if (!hasSignedSession && !hasLegacySession) {
-     console.log("🚦 [Route Gate] Sessão não encontrada nos cookies. Redirecionamento Server-Side...");
-     redirect("/");
+  if (!session) {
+    // Cookie ausente, inválido ou forjado → redirecionar
+    console.log("🚦 [Route Gate] Sessão inválida ou ausente. Redirecionamento Server-Side...");
+    redirect("/");
   }
 
-  // Se houver sessão (UID no cookie), permitimos a renderização da Shell e do Conteúdo.
+  // Sessão verificada criptograficamente → permitir renderização 
   return (
     <HubShell>
        {children}
