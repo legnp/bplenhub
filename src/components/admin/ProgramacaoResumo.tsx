@@ -3,10 +3,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   getProgramacaoSummaryAction, 
-  getEventNpsDetailsAction,
+  getEventNpsDetailsAction
+} from "@/actions/calendar";
+import { 
   GoogleCalendarEvent,
   EventLifecycleStatus 
-} from "@/actions/calendar";
+} from "@/types/calendar";
 import { 
   FileText, 
   ExternalLink, 

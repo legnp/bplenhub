@@ -1,19 +1,12 @@
 "use server";
 
 /**
- * BPlen HUB — Calendar Actions Dispatcher (🏗️)
- * Este arquivo centraliza o acesso às funções de calendário decompostas.
- * Redireciona para src/actions/calendar-module para evitar conflitos de nomenclatura no Vercel.
+ * BPlen HUB — Calendar Actions Dispatcher 🛰️
+ * Re-exporta as ações de servidor para centralizar o acesso.
+ * Este arquivo atua como o ponto único de entrada para Ações de Rede.
+ * 
+ * ATENÇÃO: Tipos devem ser importados de @/types/calendar para evitar circularidade.
  */
-
-// Types - Os tipos são exportados como 'type' para que o Next.js os ignore na análise de Server Actions.
-export type { 
-  GoogleCalendarEvent, 
-  UserBooking, 
-  AttendeeData, 
-  EventLifecycleStatus, 
-  AttendanceStatus 
-} from "./calendar-module/types";
 
 // Queries
 export { 
@@ -29,19 +22,19 @@ export {
 // Sync
 export { syncCalendarToFirestore } from "./calendar-module/sync";
 
-// Booking & Evaluation
+// Booking
 export { 
   bookEventAction, 
   cancelBookingAction, 
-  adminAddAttendeeAction,
-  submitEvaluationAction
+  submitEvaluationAction 
 } from "./calendar-module/booking";
 
 // Post-Event
 export { 
-  closeEventAction, 
-  closeAttendeeAction, 
-  updateGlobalProgramacaoRegistryAction,
+  closeEventAction,
+  closeAttendeeAction,
+  adminAddAttendeeAction,
   generateEventSummarySheetAction,
+  updateGlobalProgramacaoRegistryAction,
   healProgramacaoMasterAction
 } from "./calendar-module/post-event";

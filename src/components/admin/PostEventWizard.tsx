@@ -19,16 +19,18 @@ import {
   AlertCircle
 } from "lucide-react";
 import { 
-  GoogleCalendarEvent, 
-  AttendeeData, 
-  EventLifecycleStatus, 
-  AttendanceStatus,
   getEventAttendees,
   closeEventAction,
   closeAttendeeAction,
   adminAddAttendeeAction,
   generateEventSummarySheetAction
 } from "@/actions/calendar";
+import { 
+  GoogleCalendarEvent, 
+  AttendeeData, 
+  EventLifecycleStatus, 
+  AttendanceStatus 
+} from "@/types/calendar";
 import { uploadPostEventDocAction } from "@/actions/upload-to-drive";
 import { getAdminUsersList } from "@/actions/users-admin";
 import { AdminUser } from "@/types/users";

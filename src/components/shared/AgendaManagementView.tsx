@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import Calendar from "@/components/ui/Calendar";
 import UserBookings from "@/components/ui/UserBookings";
 import { CalendarCheck, Plus } from "lucide-react";
-import { GoogleCalendarEvent } from "@/actions/calendar";
+import { 
+  getProgramacaoSummaryAction, 
+  getEventNpsDetailsAction
+} from "@/actions/calendar";
+import { 
+  GoogleCalendarEvent,
+  EventLifecycleStatus 
+} from "@/types/calendar";
 import OneToOneBookingModal from "./OneToOneBookingModal";
 
 interface AgendaManagementViewProps {

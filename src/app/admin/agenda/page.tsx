@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { syncCalendarToFirestore, getSyncedEvents, GoogleCalendarEvent } from "@/actions/calendar";
+import { syncCalendarToFirestore, getSyncedEvents } from "@/actions/calendar";
+import { GoogleCalendarEvent } from "@/types/calendar";
 import {
   RefreshCw,
   CheckCircle2,

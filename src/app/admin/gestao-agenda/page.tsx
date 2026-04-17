@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getSyncedEvents, GoogleCalendarEvent } from "@/actions/calendar";
+import { getSyncedEvents } from "@/actions/calendar";
+import { GoogleCalendarEvent } from "@/types/calendar";
 import PostEventWizard from "@/components/admin/PostEventWizard";
 import { 
   Info, 

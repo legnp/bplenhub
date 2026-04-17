@@ -1,10 +1,9 @@
-"use server";
-
 import { getAdminDb } from "@/lib/firebase-admin";
 import { requireAdmin } from "@/lib/auth-guards";
 import { getCalendarClient } from "@/lib/google-auth";
-import { serverEnv } from "@/env";
 import { formatISO, addDays } from "date-fns";
+import { serverEnv } from "@/env";
+import { GoogleCalendarEvent } from "@/types/calendar";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 import { calendar_v3 } from "googleapis";
 import { getEventStandardSlug } from "@/lib/utils";

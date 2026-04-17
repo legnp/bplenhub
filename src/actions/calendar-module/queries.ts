@@ -1,5 +1,3 @@
-"use server";
-
 import { getAdminDb } from "@/lib/firebase-admin";
 import { requireAdmin, requireAuth } from "@/lib/auth-guards";
 import { getCalendarClient } from "@/lib/google-auth";
@@ -7,7 +5,7 @@ import { serverEnv } from "@/env";
 import { formatISO, parseISO, isBefore } from "date-fns";
 import { calendar_v3 } from "googleapis";
 import { safeSerialize } from "@/lib/utils/firestore";
-import { GoogleCalendarEvent, AttendeeData, UserBooking } from "./types";
+import { GoogleCalendarEvent, AttendeeData, UserBooking } from "@/types/calendar";
 
 /**
  * Busca eventos do Google Calendar para visualização rápida no Front.

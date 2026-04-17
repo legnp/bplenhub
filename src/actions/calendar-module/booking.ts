@@ -1,5 +1,3 @@
-"use server";
-
 import admin, { getAdminDb } from "@/lib/firebase-admin";
 import { requireAuth, requireAdmin } from "@/lib/auth-guards";
 import { serverEnv } from "@/env";
@@ -8,7 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { Resend } from "resend";
 import { CALENDAR_CONFIG } from "@/config/calendarConfig";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { GoogleCalendarEvent } from "./types";
+import { GoogleCalendarEvent } from "@/types/calendar";
 import { updateGlobalProgramacaoRegistryAction } from "./post-event";
 import { getBookingConfirmationEmail, getAdminInclusionEmail, getCancellationEmail } from "@/lib/email-templates";
 import { submitSurvey } from "../submit-survey";

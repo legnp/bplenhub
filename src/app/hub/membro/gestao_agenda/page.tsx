@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getProgramacaoForMemberAction, GoogleCalendarEvent } from "@/actions/calendar";
+import { getProgramacaoForMemberAction } from "@/actions/calendar";
+import { GoogleCalendarEvent } from "@/types/calendar";
 import AgendaManagementView from "@/components/shared/AgendaManagementView";
 
 /**

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import GlassModal from "@/components/ui/GlassModal";
 import Calendar from "@/components/ui/Calendar";
-import { GoogleCalendarEvent, getProgramacaoForMemberAction } from "@/actions/calendar";
+import { GoogleCalendarEvent } from "@/types/calendar";
+import { getProgramacaoForMemberAction } from "@/actions/calendar";
 import { getMemberQuotasAction } from "@/actions/quotas";
 import { useAuthContext } from "@/context/AuthContext";
 import { Loader2, Briefcase, Info } from "lucide-react";
