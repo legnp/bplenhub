@@ -1,5 +1,3 @@
-"use server";
-
 /**
  * BPlen HUB — Rate Limiter (Proteção contra Abuso 🛡️)
  * Implementa throttle por UID usando Firestore como store distribuído.
