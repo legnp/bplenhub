@@ -2,8 +2,8 @@
 
 /**
  * BPlen HUB — Calendar Actions Dispatcher (🏗️)
- * Este arquivo foi decomposto na Fase 2 para melhorar a manutenibilidade.
- * Ele mantém os exports originais para compatibilidade de API (Explicit Exports).
+ * Este arquivo centraliza o acesso às funções de calendário decompostas.
+ * Localizado em src/actions/calendar/index.ts para evitar conflitos de nomenclatura.
  */
 
 // Types
@@ -13,7 +13,7 @@ export type {
   AttendeeData, 
   EventLifecycleStatus, 
   AttendanceStatus 
-} from "./calendar/types";
+} from "./types";
 
 // Queries
 export { 
@@ -24,10 +24,10 @@ export {
   getEventNpsDetailsAction,
   getSyncedEvents,
   getUserBookingsAction
-} from "./calendar/queries";
+} from "./queries";
 
 // Sync
-export { syncCalendarToFirestore } from "./calendar/sync";
+export { syncCalendarToFirestore } from "./sync";
 
 // Booking & Evaluation
 export { 
@@ -35,7 +35,7 @@ export {
   cancelBookingAction, 
   adminAddAttendeeAction,
   submitEvaluationAction
-} from "./calendar/booking";
+} from "./booking";
 
 // Post-Event
 export { 
@@ -44,4 +44,4 @@ export {
   updateGlobalProgramacaoRegistryAction,
   generateEventSummarySheetAction,
   healProgramacaoMasterAction
-} from "./calendar/post-event";
+} from "./post-event";
