@@ -282,6 +282,13 @@ export async function bookEventAction(
   leadInfo?: { name: string; phone: string }
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // 🛡️ Rate Limit: previne spam de agendamentos
+    const { checkRateLimit, RATE_LIMITS } = await import("@/lib/rate-limit");
+    const rateCheck = await checkRateLimit({ action: "booking", uid: userId, windowSeconds: RATE_LIMITS.BOOKING.windowSeconds });
+    if (!rateCheck.allowed) {
+      return { success: false, message: `Aguarde ${rateCheck.retryAfterSeconds}s antes de tentar novamente.` };
+    }
+
     const db = getAdminDb();
     const eventRef = db.collection("Calendar_Events").doc(eventId);
     const displayName = nickname || leadInfo?.name || "Convidado BPlen";

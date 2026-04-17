@@ -17,12 +17,13 @@ export const metadata: Metadata = {
  */
 export default async function HubLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const sessionUid = cookieStore.get("bplen_session_uid")?.value;
+  const hasSignedSession = cookieStore.has("bplen_session");
+  const hasLegacySession = cookieStore.has("bplen_session_uid");
 
   // 🛡️ [Autoridade do Servidor] 
   // Bloqueio imediato na orquestração da página. Se não houver cookie, o redirect 
   // ocorre no nível de cabeçalho HTTP, antes de qualquer dado chegar ao navegador.
-  if (!sessionUid) {
+  if (!hasSignedSession && !hasLegacySession) {
      console.log("🚦 [Route Gate] Sessão não encontrada nos cookies. Redirecionamento Server-Side...");
      redirect("/");
   }

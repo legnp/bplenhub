@@ -1,8 +1,6 @@
 import React from "react";
-import { cookies } from "next/headers";
 import { getServiceDeliveryDataAction } from "@/actions/delivery";
 import { ServiceDeliveryView } from "@/components/hub/ServiceDeliveryView";
-import { redirect } from "next/navigation";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -14,14 +12,9 @@ import Link from "next/link";
 
 export default async function ServiceDeliveryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const cookieStore = await cookies();
-  const idToken = cookieStore.get("bplen_session_uid")?.value;
 
-  if (!idToken) {
-    redirect("/");
-  }
-
-  const result = await getServiceDeliveryDataAction(slug, idToken);
+  // A action usa requireAuth() internamente, que verifica o cookie assinado 🛡️
+  const result = await getServiceDeliveryDataAction(slug);
 
   if (!result.success || !result.data) {
     return (

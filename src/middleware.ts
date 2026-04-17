@@ -5,6 +5,9 @@ import type { NextRequest } from 'next/server';
  * BPlen HUB — Middleware de Proteção de Rotas 🛡️
  * Implementa a Soberania de Acesso via servidor para otimizar a performance
  * e garantir que rotas privadas não sejam acessadas por usuários não autenticados.
+ * 
+ * Nota: O middleware verifica apenas a EXISTÊNCIA do cookie.
+ * A validação CRIPTOGRÁFICA ocorre no server-session.ts via verifySessionCookie().
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,11 +15,13 @@ export function middleware(request: NextRequest) {
   // 1. Definir Rotas Protegidas
   const isProtectedPath = pathname.startsWith('/hub') || pathname.startsWith('/admin');
 
-  // 2. Verificar Sessão (Cookie de Soberania BPlen)
-  const sessionUid = request.cookies.get('bplen_session_uid')?.value;
+  // 2. Verificar Sessão (Cookie assinado ou legado)
+  const hasSignedCookie = request.cookies.has('bplen_session');
+  const hasLegacyCookie = request.cookies.has('bplen_session_uid');
+  const hasSession = hasSignedCookie || hasLegacyCookie;
 
   // 3. Lógica de Redirecionamento Autoritário
-  if (isProtectedPath && !sessionUid) {
+  if (isProtectedPath && !hasSession) {
     // Redireciona para a home se não estiver autenticado
     // Adicionamos um query param para que a interface possa saber que o acesso foi negado
     const url = new URL('/', request.url);

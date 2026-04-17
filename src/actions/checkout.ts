@@ -21,6 +21,14 @@ export async function processServicePurchaseAction(
   try {
     // 🛡️ 1. Validar Autenticação
     const session = await requireAuth(idToken);
+
+    // 🛡️ 1.1 Rate Limit: previne spam de checkout
+    const { checkRateLimit, RATE_LIMITS } = await import("@/lib/rate-limit");
+    const rateCheck = await checkRateLimit({ action: "checkout", uid: session.uid, windowSeconds: RATE_LIMITS.CHECKOUT.windowSeconds });
+    if (!rateCheck.allowed) {
+      return { success: false, error: `Aguarde ${rateCheck.retryAfterSeconds}s antes de tentar novamente.` };
+    }
+
     const db = getAdminDb();
 
     // 🕵️ 2. Buscar detalhes do produto

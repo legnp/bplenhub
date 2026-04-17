@@ -5,7 +5,7 @@ import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { doc, getDoc, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { UserServices } from "@/types/users";
-import { syncSessionCookie } from "@/actions/auth-session";
+import { createSignedSessionCookie, clearSessionCookie } from "@/actions/auth-session";
 
 /**
  * BPlen HUB — AuthContext (Estado Global de Autenticação)
@@ -69,12 +69,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setNickname(null);
         setPhotoUrl(null);
         setServices({});
-        await syncSessionCookie(null);
+        await clearSessionCookie();
         setLoading(false);
         return;
       }
       
-      await syncSessionCookie(currentUser.uid);
+      // Criar cookie de sessão assinado via Firebase Admin SDK 🛡️
+      try {
+        const idToken = await currentUser.getIdToken();
+        await createSignedSessionCookie(idToken);
+      } catch (cookieErr) {
+        console.error("⚠️ [AuthContext] Falha ao criar cookie assinado:", cookieErr);
+      }
 
       try {
         const uidMapRef = doc(db, "_AuthMap", currentUser.uid);
@@ -151,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await syncSessionCookie(null);
+      await clearSessionCookie();
       await signOut(auth);
     } catch (error) {
       console.error("❌ [AuthContext] Erro ao deslogar:", error);

@@ -20,7 +20,7 @@ interface DeliveryStatus {
  * Busca os dados necessários para renderizar o Portal de Entrega.
  * Valida permissão, busca o produto e calcula o progresso automático.
  */
-export async function getServiceDeliveryDataAction(slug: string, idToken: string) {
+export async function getServiceDeliveryDataAction(slug: string, idToken?: string) {
   try {
     const session = await requireAuth(idToken);
     const db = getAdminDb();

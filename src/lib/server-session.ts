@@ -1,7 +1,7 @@
 import { getAdminAuth } from "./firebase-admin";
 import { fetchUserPermissionsStatus } from "@/actions/auth-permissions";
 import { UserRole, UserServices } from "@/types/users";
-import { cookies } from "next/headers";
+import { verifySignedSession } from "@/actions/auth-session";
 
 export interface Session {
   uid: string;
@@ -13,9 +13,9 @@ export interface Session {
 
 /**
  * Resolve a identidade do chamador no servidor.
- * Suporta ID Token JWT (Alta Segurança) ou Cookie de Sessão (Transparência).
+ * Suporta ID Token JWT (Alta Segurança) ou Cookie de Sessão Assinado.
  * 
- * @param idToken Token de identidade opcional.
+ * @param idToken Token de identidade opcional (usado por Server Actions chamadas pelo cliente).
  * @returns Objeto Session ou null se inválido.
  */
 export async function getServerSession(idToken?: string): Promise<Session | null> {
@@ -29,10 +29,13 @@ export async function getServerSession(idToken?: string): Promise<Session | null
       uid = decodedToken.uid;
       email = decodedToken.email;
     } 
-    // 2. Fallback: Cookies do Servidor (Transparência para Admin/Member Area)
+    // 2. Fallback: Cookie de Sessão Assinado (verificação criptográfica 🛡️)
     else {
-      const cookieStore = await cookies();
-      uid = cookieStore.get("bplen_session_uid")?.value || null;
+      const session = await verifySignedSession();
+      if (session) {
+        uid = session.uid;
+        email = session.email;
+      }
     }
 
     if (!uid) return null;
