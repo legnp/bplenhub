@@ -29,12 +29,12 @@ export default function PrimeirosPassosPage() {
   const [currentSubStepId, setCurrentSubStepId] = useState<string>("");
   const [isLoadingStage, setIsLoadingStage] = useState(true);
 
-  // 🛰️ Carregar Dados Reais do Produto "PRIMEIROS_PASSOS"
+  // 🛰️ Carregar Dados Reais do Produto "primeiros-passos"
   useEffect(() => {
     async function fetchStage() {
       try {
-        // Buscamos pelo ID que é imutável e mais seguro
-        const stage = await getStandaloneStageAction("PRIMEIROS_PASSOS");
+        // Padronização BPlen: Slugs no Firestore usam hifens (kebab-case)
+        const stage = await getStandaloneStageAction("primeiros-passos");
         if (stage && stage.substeps && stage.substeps.length > 0) {
           setStandaloneStage(stage);
           

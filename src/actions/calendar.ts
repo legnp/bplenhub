@@ -1,10 +1,12 @@
+"use server";
+
 /**
  * BPlen HUB — Calendar Actions Dispatcher (🏗️)
  * Este arquivo centraliza o acesso às funções de calendário decompostas.
  * Redireciona para src/actions/calendar-module para evitar conflitos de nomenclatura no Vercel.
  */
 
-// Types
+// Types - Os tipos são exportados como 'type' para que o Next.js os ignore na análise de Server Actions.
 export type { 
   GoogleCalendarEvent, 
   UserBooking, 

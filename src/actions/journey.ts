@@ -28,9 +28,15 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
     }
 
     // 2. Map and Filter active products
+    // 🛡️ Filtro Resiliente: Aceita 'active', 'Ativo' ou ausência de status (v3.1 default)
     const journeyProducts = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() } as Product))
-      .filter(p => p.status?.toLowerCase() === "active" && p.order !== undefined && Number(p.order) >= 0);
+      .filter(p => {
+        const status = p.status?.toLowerCase();
+        const isActive = !status || status === "active" || status === "ativo";
+        const hasOrder = p.order !== undefined && p.order !== null;
+        return isActive && hasOrder && Number(p.order) >= 0;
+      });
 
     // 3. GROUP BY ORDER 📦
     const groupedStages: Record<number, { main: Product, products: Product[] }> = {};
@@ -171,22 +177,35 @@ export async function getJourneyStagesAction(): Promise<JourneyStep[]> {
 export async function getStandaloneStageAction(slug: string): Promise<JourneyStep | null> {
   try {
     const db = getAdminDb();
-    // 1. Busca Direta por ID (PRIMEIROS_PASSOS)
-    let productDoc: any = await db.collection("products").doc(slug).get();
     
-    // 2. Fallback: Slug ID (primeiros-passos)
-    if (!productDoc.exists) {
-      const normalizedId = slug.toLowerCase().replace(/_/g, '-');
-      productDoc = await db.collection("products").doc(normalizedId).get();
+    // 🧬 REGRA DE NORMALIZAÇÃO BPLEN (Soberania de Dados)
+    // Convertemos underscores para hifens e tudo para minúsculo para bater com o ID do Firestore
+    const normalizedSlug = slug.toLowerCase().replace(/_/g, '-');
+
+    // 1. Busca Direta por ID Normalizado
+    let productDoc: any = await db.collection("products").doc(normalizedSlug).get();
+    
+    // 2. Fallback: Slug ID Original (se for diferente)
+    if (!productDoc.exists && normalizedSlug !== slug) {
+      productDoc = await db.collection("products").doc(slug).get();
     }
 
     // 3. Fallback: Query por campo 'slug' exato
     if (!productDoc.exists) {
       const snapshot = await db.collection("products")
-        .where("slug", "==", slug)
+        .where("slug", "==", normalizedSlug) // Tenta slug normalizado no campo
         .limit(1)
         .get();
       if (!snapshot.empty) productDoc = snapshot.docs[0];
+      
+      // Segundo Fallback: Query por campo 'slug' original
+      if (!productDoc.exists && normalizedSlug !== slug) {
+        const snapshot2 = await db.collection("products")
+          .where("slug", "==", slug)
+          .limit(1)
+          .get();
+        if (!snapshot2.empty) productDoc = snapshot2.docs[0];
+      }
     }
 
     if (!productDoc || (productDoc.exists === false)) {
