@@ -8,6 +8,7 @@ import { mpClient } from "@/lib/mercadopago";
 import { Preference, Payment as MPPayment } from "mercadopago";
 import { validateCouponAction } from "./coupons";
 import { clientEnv } from "@/env";
+import { sendOrderRequestedEmail } from "@/lib/checkout-emails";
 
 /**
  * BPlen HUB — Mercado Pago Checkout Engine (🧠💳)
@@ -65,10 +66,15 @@ export async function createPreferenceAction(
     const orderRef = db.collection(USER_ORDERS_COLLECTION).doc();
     const orderId = orderRef.id;
 
+    // Buscar a Matrícula do BPlen via _AuthMap para rastreabilidade fiscal
+    const uidMapSnap = await db.collection("_AuthMap").doc(session.uid).get();
+    const matricula = uidMapSnap.exists ? uidMapSnap.data()?.matricula : "NAO_MAPEADA";
+
     const orderData = {
       orderId,
       userId: session.uid,
       userEmail: session.email,
+      matricula,
       productId,
       productSlug,
       productTitle: product.title,
@@ -194,7 +200,7 @@ export async function getCheckoutProductAction(slug: string, idToken?: string) {
  * Processamento Efetivo do Pagamento Checkout Transparente
  * Recebe o token do frontend Brick e realiza a cobrança
  */
-export async function processPaymentAction(formData: any, idToken?: string) {
+export async function processPaymentAction(formData: any, orderId: string, idToken?: string) {
   try {
     const session = await requireAuth(idToken);
     
@@ -202,6 +208,7 @@ export async function processPaymentAction(formData: any, idToken?: string) {
     // Injectamos metadata para rastreabilidade do Webhook
     const payload = {
       ...formData,
+      external_reference: orderId, // CRITICAL: Para o Webhook saber qual é o pedido
       metadata: {
         buyer_uid: session.uid,
         checkout_origin: "bplen_hub_v3_transparent"
@@ -210,6 +217,20 @@ export async function processPaymentAction(formData: any, idToken?: string) {
 
     const paymentClient = new MPPayment(mpClient);
     const payment = await paymentClient.create({ body: payload });
+
+    // 📧 Disparo do E-mail 1: "Compra Solicitada"
+    // Buscamos o produto para ter os detalhes no e-mail (ou deixamos genérico se não quisermos onerar). 
+    // Como a action processPaymentAction já é assíncrona, e o form só enviou formData.
+    // Melhor extrair o valor da transação e description do próprio formData.
+    const productTitle = payload.description || "Serviços BPlen HUB";
+    const finalPrice = payload.transaction_amount || 0;
+
+    // Disparo Fire-and-Forget (não segura o fluxo de retorno)
+    // OBS: session possui uid e email, mas não nome. Passamos nome vazio ou pegamos de session se disponível.
+    sendOrderRequestedEmail(
+      { email: session.email || "", name: "" },
+      { orderId, productTitle, finalPrice }
+    );
 
     // O status real de liberação de serviço NÃO DEVE ser amarrado a este retorno síncrono
     // A soberania do serviço dita que a liberação ocorre via Webhook Assíncrono (route.ts).

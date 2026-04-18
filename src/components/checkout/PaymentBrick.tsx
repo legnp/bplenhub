@@ -11,6 +11,7 @@ initMercadoPago(clientEnv.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY, {
 
 interface PaymentBrickProps {
   preferenceId: string;
+  orderId: string;
   amount: number;
   onReady?: () => void;
   onError?: (error: any) => void;
@@ -25,7 +26,7 @@ import { processPaymentAction } from "@/actions/mp-checkout";
  * Gerencia o ciclo de vida do pagamento e callbacks.
  */
 
-export function PaymentBrick({ preferenceId, amount, onReady, onError, onSuccess }: PaymentBrickProps) {
+export function PaymentBrick({ preferenceId, orderId, amount, onReady, onError, onSuccess }: PaymentBrickProps) {
   
   const initialization = {
     amount: amount,
@@ -57,7 +58,7 @@ export function PaymentBrick({ preferenceId, amount, onReady, onError, onSuccess
   const onSubmit = async ({ selectedPaymentMethod, formData }: any) => {
     // 💳 Checkout Transparente: Enviamos o Payload criptografado do cartão para o backend!
     return new Promise<void>((resolve, reject) => {
-      processPaymentAction(formData)
+      processPaymentAction(formData, orderId)
         .then((res) => {
           if (res.success) {
             console.log("✅ [PaymentBrick] Cobrança processada no Mercado Pago!");

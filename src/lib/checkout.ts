@@ -1,5 +1,6 @@
 import admin, { getAdminDb } from "@/lib/firebase-admin";
 import { USER_PERMISSIONS_COLLECTION } from "@/config/collections";
+import { sendServiceGrantedEmail } from "@/lib/checkout-emails";
 
 /**
  * BPlen HUB — Entitlement Engine (Soberania 🛡️)
@@ -22,7 +23,17 @@ export async function grantServiceEntitlement(params: GrantEntitlementParams) {
   
   console.log(`🧬 [Entitlement] Iniciando ativação: ${productTitle} para UID: ${uid}`);
 
-  const userRef = db.collection(USER_PERMISSIONS_COLLECTION).doc(uid);
+  // Resolvemos a Matrícula via _AuthMap (Governança Soberana)
+  const uidMapSnap = await db.collection("_AuthMap").doc(uid).get();
+  const matricula = uidMapSnap.exists ? uidMapSnap.data()?.matricula : null;
+
+  if (!matricula) {
+    console.error(`🚨 [Entitlement Critical Error] UID ${uid} não possui matrícula mapeada no _AuthMap!`);
+    throw new Error("Usuário não possui uma Matrícula Válida. Impossível liberar serviço.");
+  }
+
+  // Caminho Soberano Oficial (Validado)
+  const userRef = db.doc(`User/${matricula}/User_Permissions/access`);
 
   return await db.runTransaction(async (transaction) => {
     const userDoc = await transaction.get(userRef);
@@ -59,15 +70,13 @@ export async function grantServiceEntitlement(params: GrantEntitlementParams) {
       transaction.update(userRef, updateData);
     } else {
       // Se não existir registro de permissão, criamos um básico
-      // Nota: As informações de cadastro (User) já devem existir via Welcome Survey
       transaction.set(userRef, {
-        uid,
         role: "member",
         onboardStatus: "pending",
         ...updateData
       });
     }
 
-    return { success: true };
+    return { success: true, matricula };
   });
 }

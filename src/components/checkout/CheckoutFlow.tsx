@@ -155,7 +155,7 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
                           Tentar Novamente
                        </button>
                     </motion.div>
-                 ) : preferenceId ? (
+                 ) : preferenceId && orderId ? (
                     <motion.div 
                       key="brick"
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -163,6 +163,7 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
                     >
                        <PaymentBrick 
                          preferenceId={preferenceId} 
+                         orderId={orderId}
                          amount={product.price} 
                          onSuccess={(paymentId) => {
                            if (orderId) {

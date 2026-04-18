@@ -5,6 +5,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { USER_ORDERS_COLLECTION } from "@/config/collections";
 import { grantServiceEntitlement } from "@/lib/checkout";
 import admin from "@/lib/firebase-admin";
+import { sendPaymentApprovedEmail, sendServiceGrantedEmail } from "@/lib/checkout-emails";
 
 /**
  * BPlen HUB — Mercado Pago Webhook Handler (🛰️)
@@ -66,8 +67,9 @@ export async function POST(req: NextRequest) {
     // 3. Ativação de Serviço (Apenas se aprovado 🏆)
     if (status === "approved") {
       const order = orderSnap.data();
-      const { userId, productId, productSlug, productTitle } = order!;
+      const { userId, userEmail, productId, productSlug, productTitle, finalPrice } = order!;
 
+      // Ativação da Permissão
       await grantServiceEntitlement({
         uid: userId,
         productId,
@@ -77,6 +79,17 @@ export async function POST(req: NextRequest) {
       });
 
       console.log(`✅ [Webhook:MP] Ordem ${orderId} APROVADA e Serviço Ativado.`);
+
+      // 📧 Disparos Assíncronos de E-mail (Fire-and-Forget)
+      const userObj = { email: userEmail, name: "" }; // Webhook não tem session pro nome
+      const orderObj = { orderId, productTitle, finalPrice };
+
+      // Passamos a promessa adiante mas não seguramos o Webhook. Mercado Pago exige resposta rápida!
+      Promise.allSettled([
+        sendPaymentApprovedEmail(userObj, orderObj, dataId),
+        sendServiceGrantedEmail(userObj, productTitle)
+      ]).catch(err => console.error("🚨 Erro nos e-mails do webhook:", err));
+
     } else {
       console.log(`🟡 [Webhook:MP] Ordem ${orderId} status: ${status} (${status_detail})`);
     }
