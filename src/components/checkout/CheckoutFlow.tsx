@@ -54,59 +54,62 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
       
       {/* 🧾 LADO ESQUERDO: RESUMO DO PEDIDO */}
       <div className="lg:col-span-5 space-y-8">
-        <div className="p-8 rounded-[3rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl space-y-8">
-           <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-accent-start/10 flex items-center justify-center text-accent-start shadow-xl">
+        <div className="p-8 glass space-y-8 relative overflow-hidden">
+           {/* Decorative Orb */}
+           <div className="absolute top-[-50px] right-[-50px] w-32 h-32 bg-[var(--accent-start)] blur-[80px] opacity-20 pointer-events-none rounded-full" />
+           
+           <div className="flex items-center gap-4 relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center text-[var(--accent-start)] shadow-sm">
                  <ShoppingBag size={28} />
               </div>
               <div className="space-y-0.5">
-                 <h2 className="text-2xl font-black tracking-tight text-white uppercase italic">Checkout</h2>
-                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Resumo da contratação</p>
+                 <h2 className="text-2xl font-black tracking-tight text-[var(--text-primary)] uppercase italic">Checkout</h2>
+                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Resumo da contratação</p>
               </div>
            </div>
 
-           <div className="space-y-6 pt-6 border-t border-white/10">
+           <div className="space-y-6 pt-6 border-t border-[var(--border-primary)] relative z-10">
               <div className="flex justify-between items-start">
                  <div className="space-y-1">
-                    <h3 className="font-bold text-white text-lg">{product.title}</h3>
-                    <p className="text-xs text-gray-400 leading-relaxed max-w-[250px]">{product.description}</p>
+                    <h3 className="font-bold text-[var(--text-primary)] text-lg">{product.title}</h3>
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed max-w-[250px]">{product.description}</p>
                  </div>
                  <div className="text-right">
                     <span className="text-sm font-black text-accent-start">R$ {product.price.toFixed(2)}</span>
                  </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              <div className="p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--border-primary)] space-y-3">
+                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
                     <span>Subtotal</span>
                     <span>R$ {product.price.toFixed(2)}</span>
                  </div>
-                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-emerald-500">
                     <span>Desconto</span>
                     <span>- R$ 0,00</span>
                  </div>
-                 <div className="pt-3 border-t border-white/5 flex justify-between items-center">
-                    <span className="text-xs font-black uppercase text-white">Total</span>
-                    <span className="text-xl font-black text-white italic">R$ {product.price.toFixed(2)}</span>
+                 <div className="pt-3 border-t border-[var(--border-primary)] flex justify-between items-center">
+                    <span className="text-xs font-black uppercase text-[var(--text-primary)]">Total</span>
+                    <span className="text-xl font-black text-[var(--text-primary)] italic">R$ {product.price.toFixed(2)}</span>
                  </div>
               </div>
            </div>
 
-           <div className="space-y-4">
-              <div className="flex items-center gap-3 text-emerald-400">
+           <div className="space-y-4 relative z-10">
+              <div className="flex items-center gap-3 text-emerald-500">
                  <ShieldCheck size={16} />
                  <span className="text-[9px] font-black uppercase tracking-widest">Pagamento 100% Seguro</span>
               </div>
-              <div className="flex items-center gap-3 text-accent-start">
+              <div className="flex items-center gap-3 text-[var(--accent-start)]">
                  <Zap size={16} />
                  <span className="text-[9px] font-black uppercase tracking-widest">Ativação Instantânea via Pix</span>
               </div>
            </div>
         </div>
 
-        <div className="p-6 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 flex gap-4 items-start">
-           <Info size={20} className="text-blue-400 shrink-0" />
-           <p className="text-[10px] text-blue-300 leading-relaxed font-medium">
+        <div className="p-6 rounded-2xl bg-[var(--accent-soft)] border border-[var(--accent-soft)] flex gap-4 items-start shadow-sm">
+           <Info size={20} className="text-[var(--accent-start)] shrink-0" />
+           <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed font-semibold">
               Sua nota fiscal e os detalhes da jornada serão enviados para o seu e-mail cadastrado após a confirmação do pagamento.
            </p>
         </div>
@@ -114,8 +117,8 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
 
       {/* 💳 LADO DIREITO: INTERFACE DE PAGAMENTO */}
       <div className="lg:col-span-7">
-        <div className="p-1 rounded-[3rem] bg-gradient-to-b from-white/10 to-transparent">
-           <div className="bg-[#121212] rounded-[2.9rem] p-6 md:p-10 min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="p-1 rounded-[3rem] bg-gradient-to-b from-[var(--glass-border)] to-transparent">
+           <div className="glass !bg-[var(--bg-primary)] sm:!p-10 !p-6 min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
               
               <AnimatePresence mode="wait">
                  {loading ? (
@@ -124,10 +127,10 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                       className="flex flex-col items-center gap-6 text-center"
                     >
-                       <Loader2 size={40} className="text-accent-start animate-spin" />
+                       <Loader2 size={40} className="text-[var(--accent-start)] animate-spin" />
                        <div className="space-y-2">
-                          <h4 className="text-sm font-bold text-white uppercase tracking-widest">Iniciando Checkout Seguro</h4>
-                          <p className="text-[10px] text-gray-500 font-medium">Conectando com Mercado Pago...</p>
+                          <h4 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-widest">Iniciando Checkout Seguro</h4>
+                          <p className="text-[10px] text-[var(--text-muted)] font-medium">Conectando com Mercado Pago...</p>
                        </div>
                     </motion.div>
                  ) : error ? (
@@ -140,12 +143,12 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
                           <ShieldCheck size={32} />
                        </div>
                        <div className="space-y-2">
-                          <h4 className="text-lg font-bold text-white">Ops! Algo deu errado</h4>
-                          <p className="text-xs text-gray-500">{error}</p>
+                          <h4 className="text-lg font-bold text-[var(--text-primary)]">Ops! Algo deu errado</h4>
+                          <p className="text-xs text-[var(--text-muted)]">{error}</p>
                        </div>
                        <button 
                          onClick={handleInitCheckout}
-                         className="px-8 py-3 bg-white text-black rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+                         className="px-8 py-3 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
                        >
                           Tentar Novamente
                        </button>
@@ -165,7 +168,7 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
               </AnimatePresence>
 
               {/* Decorative Glow */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-accent-start/5 blur-[100px] -z-10" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent-start)]/10 blur-[100px] pointer-events-none -z-10" />
            </div>
         </div>
       </div>

@@ -45,12 +45,12 @@ export default async function CheckoutPage({ params }: { params: Promise<{ slug:
       <div className="flex items-center justify-between">
          <Link 
            href={`/hub/servicos/${slug}`} 
-           className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors flex items-center gap-2 group"
+           className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-2 group"
          >
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
             Voltar para detalhes
          </Link>
-         <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-400">
+         <div className="px-4 py-2 rounded-xl bg-[var(--text-primary)] text-[var(--bg-primary)] border border-[var(--border-primary)] text-[9px] font-black uppercase tracking-widest shadow-sm">
             Ambiente Seguro BPlen
          </div>
       </div>
