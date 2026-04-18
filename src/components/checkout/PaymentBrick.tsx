@@ -16,6 +16,8 @@ interface PaymentBrickProps {
   onError?: (error: any) => void;
 }
 
+import { processPaymentAction } from "@/actions/mp-checkout";
+
 /**
  * BPlen HUB — Payment Brick Wrapper (💳)
  * Integra o Checkout Bricks do Mercado Pago com o design system do HUB.
@@ -42,19 +44,33 @@ export function PaymentBrick({ preferenceId, amount, onReady, onError }: Payment
         customVariables: {
           formBackgroundColor: "transparent",
           baseColor: "#667eea", // BPlen Accent
-          buttonBackgroundColor: "#667eea",
+          buttonBackgroundColor: "#1D1D1F",
           buttonTextColor: "#ffffff",
-          inputBackgroundColor: "rgba(255, 255, 255, 0.05)",
-          inputBorderColor: "rgba(255, 255, 255, 0.1)",
+          inputBackgroundColor: "rgba(0, 0, 0, 0.03)",
+          inputBorderColor: "rgba(0, 0, 0, 0.1)",
         }
       }
     }
   };
 
   const onSubmit = async ({ selectedPaymentMethod, formData }: any) => {
-    // Para Bricks com PreferenceID, o onSubmit é apenas informativo ou para logs,
-    // já que o redirect/processamento é tratado pelo próprio SDK ou Webhook.
-    console.log("🚀 [PaymentBrick] Processando pagamento:", selectedPaymentMethod);
+    // 💳 Checkout Transparente: Enviamos o Payload criptografado do cartão para o backend!
+    return new Promise<void>((resolve, reject) => {
+      processPaymentAction(formData)
+        .then((res) => {
+          if (res.success) {
+            console.log("✅ [PaymentBrick] Cobrança processada no Mercado Pago!");
+            resolve();
+          } else {
+            console.error("❌ [PaymentBrick] Falha no backend:", res.error);
+            reject(new Error(res.error));
+          }
+        })
+        .catch((err) => {
+          console.error("🚨 [PaymentBrick] Exceção estrutural:", err);
+          reject(err);
+        });
+    });
   };
 
   return (

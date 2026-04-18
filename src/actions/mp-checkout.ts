@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth-guards";
 import { Product } from "@/types/products";
 import { PRODUCTS_COLLECTION, USER_ORDERS_COLLECTION } from "@/config/collections";
 import { mpClient } from "@/lib/mercadopago";
-import { Preference } from "mercadopago";
+import { Preference, Payment as MPPayment } from "mercadopago";
 import { validateCouponAction } from "./coupons";
 import { clientEnv } from "@/env";
 
@@ -186,6 +186,44 @@ export async function getCheckoutProductAction(slug: string, idToken?: string) {
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Processamento Efetivo do Pagamento Checkout Transparente
+ * Recebe o token do frontend Brick e realiza a cobrança
+ */
+export async function processPaymentAction(formData: any, idToken?: string) {
+  try {
+    const session = await requireAuth(idToken);
+    
+    // Importante: No caso do Preference ID, nós ainda dependemos da cobrança manual
+    // Injectamos metadata para rastreabilidade do Webhook
+    const payload = {
+      ...formData,
+      metadata: {
+        buyer_uid: session.uid,
+        checkout_origin: "bplen_hub_v3_transparent"
+      }
+    };
+
+    const paymentClient = new MPPayment(mpClient);
+    const payment = await paymentClient.create({ body: payload });
+
+    // O status real de liberação de serviço NÃO DEVE ser amarrado a este retorno síncrono
+    // A soberania do serviço dita que a liberação ocorre via Webhook Assíncrono (route.ts).
+    // Aqui retornamos apenas o OK visual para o Frontend desenhar o escudo verde.
+
+    return { 
+      success: true, 
+      status: payment.status,
+      paymentId: payment.id 
+    };
+
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erro desconhecido de processamento";
+    console.error("❌ [MP Process Payment Error]:", error);
     return { success: false, error: message };
   }
 }
