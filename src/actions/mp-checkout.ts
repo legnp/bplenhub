@@ -158,7 +158,7 @@ export async function createPreferenceAction(
 /**
  * Recupera dados básicos do produto para a UI de Checkout
  */
-export async function getCheckoutProductAction(slug: string, idToken: string) {
+export async function getCheckoutProductAction(slug: string, idToken?: string) {
   try {
     await requireAuth(idToken);
     const db = getAdminDb();

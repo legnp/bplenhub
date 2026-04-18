@@ -3,7 +3,6 @@ import { getCheckoutProductAction } from "@/actions/mp-checkout";
 import { CheckoutFlow } from "@/components/checkout/CheckoutFlow";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { cookies } from "next/headers";
 
 /**
  * BPlen HUB — Página Mestra de Checkout (💳 Soberania de Dados)
@@ -13,12 +12,9 @@ import { cookies } from "next/headers";
 export default async function CheckoutPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  // Obter o token de sessão para validação (Soberania 🛡️)
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("bplen_session")?.value || "";
-
   // Recupera dados do serviço de forma segura no servidor
-  const result = await getCheckoutProductAction(slug, sessionToken);
+  // O session resolver automático da BPlen já cuida da autenticação via cookies de sessão 🛡️
+  const result = await getCheckoutProductAction(slug);
 
   if (!result.success || !result.data) {
     return (
