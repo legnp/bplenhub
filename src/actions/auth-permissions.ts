@@ -119,8 +119,9 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
       services: (currentPerms?.services || {}) as UserServices
     };
 
-  } catch (error: any) {
-    console.error("❌ [Auth Sync] Erro na sincronização de permissões:", error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ [Auth Sync] Erro na sincronização de permissões:", errorMessage);
     return { isAdmin: false, role: "visitor", services: {} };
   }
 }
@@ -156,8 +157,9 @@ export async function fetchUserPermissionsStatus(uid: string): Promise<{ isAdmin
         role: (data?.role || (data?.admin ? "admin" : "member")) as UserRole,
         services: (data?.services || {}) as UserServices
       };
-    } catch (error: any) {
-      console.error("❌ [Auth Status] Falha ao buscar permissões do servidor:", error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("❌ [Auth Status] Falha ao buscar permissões do servidor:", errorMessage);
       return { isAdmin: false, role: "visitor", services: {} };
     }
 }

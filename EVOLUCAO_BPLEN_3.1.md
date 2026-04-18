@@ -99,15 +99,15 @@ Urgente    Fundação    Arquitetura  Qualidade   Features    Otimização
 
 #### Tarefas
 
-- [ ] **C2** — Remover log da PEM em `env.ts` (linha 43-45)
+- [x] **C2** — Remover log da PEM em `env.ts` (linha 43-45)
   - Ação: Substituir por `console.log(\`[PEM] Key loaded: ${cleaned.length} chars\`)`
   - Validação: `npm run build` + verificar logs em Vercel
 
-- [ ] **C9** — Criar `error.tsx` em `/hub` e `/admin`
+- [x] **C9** — Criar `error.tsx` em `/hub` e `/admin`
   - Ação: Arquivo com fallback visual BPlen (mensagem + botão "voltar")
   - Validação: Forçar erro artificial e verificar que a app não fica branca
 
-- [ ] **C5 (preventivo)** — Ativar regra ESLint `@typescript-eslint/no-explicit-any` como `error`
+- [x] **C5 (preventivo)** — Ativar regra ESLint `@typescript-eslint/no-explicit-any` como `error`
   - Ação: Adicionar rule no `eslint.config.mjs`
   - Nota: Usar `// eslint-disable-next-line` nos ~100 existentes por enquanto
   - Validação: `npm run lint` passa; novos `any` são bloqueados
@@ -126,7 +126,7 @@ npm run check  # lint + test + type-check + build — tudo verde
 
 #### Tarefas
 
-- [ ] **C1** — Migrar para Firebase Session Cookies assinados
+- [x] **C1** — Migrar para Firebase Session Cookies assinados
   - Ação:
     1. No login (`use-auth.ts`): obter `idToken` via `user.getIdToken()`
     2. Criar Server Action `createSessionCookie(idToken)` usando `admin.auth().createSessionCookie()`
@@ -134,13 +134,13 @@ npm run check  # lint + test + type-check + build — tudo verde
     4. Alterar `getServerSession` para usar `admin.auth().verifySessionCookie()`
     5. Alterar `middleware.ts` para validar via cookie assinado (ou apenas checar existência, delegando validação profunda ao layout)
   - Validação:
-    - [ ] Login: funciona normalmente
-    - [ ] Logout: cookie é removido
-    - [ ] Cookie forjado: acesso negado (testar com valor aleatório no DevTools)
-    - [ ] Admin: acesso mantido para contas master
-    - [ ] Expiração: sessão expira após período configurado
+    - [x] Login: funciona normalmente
+    - [x] Logout: cookie é removido
+    - [x] Cookie forjado: acesso negado (testar com valor aleatório no DevTools)
+    - [x] Admin: acesso mantido para contas master
+    - [x] Expiração: sessão expira após período configurado
 
-- [ ] **C3** — Configurar Security Headers no `next.config.ts`
+- [x] **C3** — Configurar Security Headers no `next.config.ts`
   - Headers obrigatórios:
     - `X-Frame-Options: DENY`
     - `X-Content-Type-Options: nosniff`
@@ -149,7 +149,7 @@ npm run check  # lint + test + type-check + build — tudo verde
     - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
   - Validação: Verificar headers no DevTools → Network → Response Headers
 
-- [ ] **C10 (básico)** — Rate limiting por UID em ações críticas
+- [x] **C10 (básico)** — Rate limiting por UID em ações críticas
   - Ação: Criar `lib/rate-limit.ts` com timestamp check no Firestore
   - Aplicar em: `bookEventAction`, `submitSurvey`, `checkout`
   - Regra: Máximo 1 chamada a cada 5 segundos por UID por ação
@@ -172,7 +172,7 @@ npm run check  # Build limpo
 
 #### Tarefas
 
-- [ ] **C6-C** — Extrair `lib/drive-sync.ts` (helper genérico)
+- [x] **C6-C** — Extrair `lib/drive-sync.ts` (helper genérico)
   - Ação: Criar função unificada que aceita config:
     ```typescript
     interface DriveSyncConfig {
@@ -186,7 +186,7 @@ npm run check  # Build limpo
   - Migrar as 6 implementações duplicadas em `survey-effects.ts` para usar este helper
   - Validação: Executar uma survey existente (ex: `gestao_tempo`) e verificar que o Drive continua funcionando
 
-- [ ] **C6-B** — Extrair `lib/email-templates/`
+- [x] **C6-B** — Extrair `lib/email-templates/`
   - Ação:
     1. Criar `lib/email-templates/booking-confirmation.ts`
     2. Criar `lib/email-templates/admin-inclusion.ts`
@@ -194,7 +194,7 @@ npm run check  # Build limpo
   - Migrar os 2 templates inline do `calendar.ts` para usar os novos
   - Validação: Fazer um booking e verificar que o email chega formatado corretamente
 
-- [ ] **C6-A** — Decompor `survey-effects.ts` em módulos
+- [x] **C6-A** — Decompor `survey-effects.ts` em módulos
   - Ação: Criar pasta `actions/effects/` com 1 arquivo por survey:
     ```
     actions/effects/welcome.ts
@@ -210,7 +210,7 @@ npm run check  # Build limpo
   - O `handleSurveySideEffects` no `index.ts` vira um switch/map que delega para o módulo correto
   - Validação: Executar **cada** survey existente e verificar persistência Firestore + Drive
 
-- [ ] **C6-A** — Decompor `calendar.ts` em módulos
+- [x] **C6-A** — Decompor `calendar.ts` em módulos
   - Ação:
     ```
     actions/calendar/queries.ts       (fetchCalendarEvents, getEventAttendees)
@@ -222,15 +222,15 @@ npm run check  # Build limpo
     ```
   - Validação: Fazer um booking completo e verificar todo o fluxo (inscrição → email → sheets)
 
-- [ ] **C7** — Desbloquear renderização de páginas públicas
+- [x] **C7** — Desbloquear renderização de páginas públicas
   - Ação: 
     1. Remover `{!loading && children}` do `AuthContext.tsx` → trocar por `{children}`
     2. Mover o loading gate para o `HubShell.tsx` (que já tem o spinner)
     3. Garantir que páginas públicas (Home, Serviços, Agendamento) não usam `useAuthContext`
   - Validação:
-    - [ ] Home pública carrega instantaneamente (sem spinner)
-    - [ ] Hub continua com proteção de loading
-    - [ ] Login/logout funcionam normalmente
+    - [x] Home pública carrega instantaneamente (sem spinner)
+    - [x] Hub continua com proteção de loading
+    - [x] Login/logout funcionam normalmente
 
 #### Critério de Aprovação
 ```powershell
@@ -250,15 +250,15 @@ npm run check  # Build limpo
 
 #### Tarefas
 
-- [ ] **C4-A** — Testes de integração para fluxos críticos
+- [x] **C4-A** — Testes de integração para fluxos críticos
   - Criar com mocks do Admin SDK:
-    - [ ] `__tests__/actions/resolve-identity.test.ts` — todos os fallbacks de matrícula
-    - [ ] `__tests__/actions/auth-guards.test.ts` — requireAdmin, requireAuth, requireMemberAccess
-    - [ ] `__tests__/actions/booking.test.ts` — regras de governança (semana, capacidade, quota)
-    - [ ] `__tests__/actions/drive-sync.test.ts` — helper genérico de Drive sync
+    - [x] `__tests__/actions/resolve-identity.test.ts` — todos os fallbacks de matrícula
+    - [x] `__tests__/actions/auth-guards.test.ts` — requireAdmin, requireAuth, requireMemberAccess
+    - [x] `__tests__/actions/booking.test.ts` — regras de governança (semana, capacidade, quota)
+    - [x] `__tests__/actions/drive-sync.test.ts` — helper genérico de Drive sync
   - Validação: `npm run test` — 100% passando
 
-- [ ] **C5-A** — Eliminação de `any` nas Server Actions (prioridade: dinheiro e identidade)
+- [x] **C5-A** — Eliminação de `any` nas Server Actions (prioridade: dinheiro e identidade)
   - Ordem de prioridade:
     1. `actions/checkout.ts` — envolve pagamento
     2. `actions/auth-permissions.ts` — controla acesso
@@ -267,7 +267,7 @@ npm run check  # Build limpo
     5. Demais actions
   - Validação: `npm run type-check` sem erros + `npm run lint` sem warnings de `any`
 
-- [ ] **C8-A** — Configurar `next/image` com remotePatterns
+- [x] **C8-A** — Configurar `next/image` com remotePatterns
   - Ação:
     1. Adicionar `images.remotePatterns` no `next.config.ts` para domínios Google
     2. Migrar avatar no `HubHeader.tsx` de `<img>` para `<Image>`

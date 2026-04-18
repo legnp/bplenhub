@@ -74,7 +74,7 @@ export async function processServicePurchaseAction(
         member_area_access: true // Toda compra garante acesso à área de membros
       };
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         services: updatedServices,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         lastPurchase: {
@@ -110,8 +110,9 @@ export async function processServicePurchaseAction(
     
     return { success: true, productTitle: product.title };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro interno ao processar contratação.";
     console.error("❌ [Checkout Action Error]:", error);
-    return { success: false, error: error.message || "Erro interno ao processar contratação." };
+    return { success: false, error: errorMessage };
   }
 }

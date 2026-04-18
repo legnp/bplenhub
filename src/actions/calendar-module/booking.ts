@@ -123,9 +123,10 @@ export async function bookEventAction(
     } catch (e) {}
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido no agendamento.";
     console.error("Erro no agendamento:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: errorMessage };
   }
 }
 
@@ -181,9 +182,10 @@ export async function cancelBookingAction(
     } catch (e) {}
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao cancelar agendamento.";
     console.error("Erro ao cancelar agendamento:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: errorMessage };
   }
 }
 
@@ -267,8 +269,9 @@ export async function adminAddAttendeeAction(
     } catch (e) {}
 
     return { success: true };
-  } catch (error: any) {
-    return { success: false, message: error.message };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido na inclusão administrativa.";
+    return { success: false, message: errorMessage };
   }
 }
 
@@ -324,8 +327,9 @@ export async function submitEvaluationAction(
     } catch (registryErr) {}
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao enviar avaliação.";
     console.error("❌ Erro ao enviar avaliação:", error);
-    return { success: false, message: error.message };
+    return { success: false, message: errorMessage };
   }
 }

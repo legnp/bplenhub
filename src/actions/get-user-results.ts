@@ -53,7 +53,7 @@ async function resolveMatricula(userUid: string, email?: string): Promise<string
  * Converte Timestamps do Firestore para strings/números simples
  * para evitar erros de serialização no Next.js (Server -> Client).
  */
-function serializeData(data: any) {
+function serializeData(data: unknown) {
   if (!data) return null;
   
   const serialized = JSON.parse(JSON.stringify(data, (key, value) => {
@@ -106,9 +106,10 @@ export async function getGestaoTempoResult(userUid: string, email?: string) {
 
     console.log(`✅ [GetResults:GestaoTempo] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
     return payload;
-  } catch (error: any) {
-    console.error(`🚨 [GetResults:GestaoTempo] Erro fatal lendo ${path}:`, error.message);
-    throw error; // Propaga para ser capturado pelo Promise.allSettled na UI
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error(`🚨 [GetResults:GestaoTempo] Erro fatal lendo ${path}:`, errorMessage);
+    throw error;
   }
 }
 
@@ -146,8 +147,9 @@ export async function getAprendizadoResult(userUid: string, userEmail: string) {
 
     console.log(`✅ [GetResults:Aprendizado] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
     return payload;
-  } catch (error: any) {
-    console.error(`🚨 [GetResults:Aprendizado] Erro fatal lendo ${path}:`, error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error(`🚨 [GetResults:Aprendizado] Erro fatal lendo ${path}:`, errorMessage);
     throw error;
   }
 }
@@ -186,8 +188,9 @@ export async function getReconhecimentoResult(userUid: string, userEmail: string
 
     console.log(`✅ [GetResults:Reconhecimento] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
     return payload;
-  } catch (error: any) {
-    console.error(`🚨 [GetResults:Reconhecimento] Erro fatal lendo ${path}:`, error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error(`🚨 [GetResults:Reconhecimento] Erro fatal lendo ${path}:`, errorMessage);
     throw error;
   }
 }
@@ -219,8 +222,9 @@ export async function getPreAnaliseComportamentalResult(userUid: string, email?:
 
     console.log(`✅ [GetResults:PreAnalise] Sucesso para ${matricula}. Chaves:`, Object.keys(payload));
     return payload;
-  } catch (error: any) {
-    console.error(`🚨 [GetResults:PreAnalise] Erro fatal lendo ${path}:`, error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error(`🚨 [GetResults:PreAnalise] Erro fatal lendo ${path}:`, errorMessage);
     throw error;
   }
 }
@@ -253,8 +257,9 @@ export async function getDiscResult(userUid: string, email?: string) {
 
     console.log(`✅ [GetResults:DISC] Sucesso para ${matricula}`);
     return payload;
-  } catch (error: any) {
-    console.error(`🚨 [GetResults:DISC] Erro fatal lendo ${path}:`, error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+    console.error(`🚨 [GetResults:DISC] Erro fatal lendo ${path}:`, errorMessage);
     throw error;
   }
 }
