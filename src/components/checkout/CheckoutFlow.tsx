@@ -20,6 +20,7 @@ interface CheckoutFlowProps {
 export function CheckoutFlow({ product }: CheckoutFlowProps) {
   const { user } = useAuthContext();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +33,9 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
       const idToken = await user.getIdToken();
       const result = await createPreferenceAction(product.slug, idToken);
 
-      if (result.success && result.preferenceId) {
+      if (result.success && result.preferenceId && result.orderId) {
         setPreferenceId(result.preferenceId);
+        setOrderId(result.orderId);
       } else {
         setError(result.error || "Falha ao iniciar checkout.");
       }
@@ -162,6 +164,13 @@ export function CheckoutFlow({ product }: CheckoutFlowProps) {
                        <PaymentBrick 
                          preferenceId={preferenceId} 
                          amount={product.price} 
+                         onSuccess={(paymentId) => {
+                           if (orderId) {
+                             window.location.href = `/hub/membro/checkout/success?orderId=${orderId}&payment_id=${paymentId || ''}`;
+                           } else {
+                             window.location.href = `/hub/membro/dashboard`; // Fallback
+                           }
+                         }}
                        />
                     </motion.div>
                  ) : null}

@@ -14,6 +14,7 @@ interface PaymentBrickProps {
   amount: number;
   onReady?: () => void;
   onError?: (error: any) => void;
+  onSuccess?: (paymentId?: string) => void;
 }
 
 import { processPaymentAction } from "@/actions/mp-checkout";
@@ -24,7 +25,7 @@ import { processPaymentAction } from "@/actions/mp-checkout";
  * Gerencia o ciclo de vida do pagamento e callbacks.
  */
 
-export function PaymentBrick({ preferenceId, amount, onReady, onError }: PaymentBrickProps) {
+export function PaymentBrick({ preferenceId, amount, onReady, onError, onSuccess }: PaymentBrickProps) {
   
   const initialization = {
     amount: amount,
@@ -61,6 +62,10 @@ export function PaymentBrick({ preferenceId, amount, onReady, onError }: Payment
           if (res.success) {
             console.log("✅ [PaymentBrick] Cobrança processada no Mercado Pago!");
             resolve();
+            // Dá um tempo de 1.5 segundo para a animação verde do Brick rodar antes do redirect
+            if (onSuccess) {
+              setTimeout(() => onSuccess(res.paymentId?.toString()), 1500);
+            }
           } else {
             console.error("❌ [PaymentBrick] Falha no backend:", res.error);
             reject(new Error(res.error));
