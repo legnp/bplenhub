@@ -78,14 +78,14 @@ export interface AttendeeData {
   email: string;
   phone?: string | null;
   isLead: boolean;
-  timestamp: any;
+  timestamp: string | null;
   
   // Post-event fields
   attendanceStatus?: AttendanceStatus;
   participantFeedback?: string;
   participantTasks?: string;
   participantDocs?: Array<{ url: string; fileId: string; fileName: string; uploadedAt: string }>;
-  attendanceCheckedAt?: any;
+  attendanceCheckedAt?: string | null;
   attendanceCheckedBy?: string;
 
   // 1 to 1 data

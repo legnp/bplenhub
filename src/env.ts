@@ -17,6 +17,7 @@ const clientSchema = z.object({
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1, "Firebase App ID é obrigatório"),
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url("APP_URL deve ser uma URL válida"),
+  NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: z.string().min(1, "Mercado Pago Public Key é obrigatória"),
 });
 
 // ──────────────────────────────
@@ -64,6 +65,7 @@ const serverSchema = z.object({
   GOOGLE_DRIVE_ATAS_ID: z.string().min(1, "Google Drive Atas ID é obrigatório"),
   GOOGLE_CALENDAR_ID: z.string().min(1, "Google Calendar ID é obrigatório"),
   GOOGLE_BOOKING_CALENDAR_ID: z.string().min(1, "Google Booking Calendar ID é obrigatório"),
+  MERCADOPAGO_ACCESS_TOKEN: z.string().min(1, "Mercado Pago Access Token é obrigatório"),
 });
 
 // ──────────────────────────────
@@ -90,9 +92,9 @@ export const clientEnv = validateEnv(clientSchema, {
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY: process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,
 }, "client");
 
 let validatedServerEnv: z.infer<typeof serverSchema> | undefined;
@@ -109,6 +111,7 @@ if (typeof window === "undefined") {
     GOOGLE_DRIVE_ATAS_ID: process.env.GOOGLE_DRIVE_ATAS_ID,
     GOOGLE_CALENDAR_ID: process.env.GOOGLE_CALENDAR_ID,
     GOOGLE_BOOKING_CALENDAR_ID: process.env.GOOGLE_BOOKING_CALENDAR_ID,
+    MERCADOPAGO_ACCESS_TOKEN: process.env.MERCADOPAGO_ACCESS_TOKEN,
   }, "server");
 }
 

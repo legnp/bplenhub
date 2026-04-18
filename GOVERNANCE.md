@@ -12,19 +12,27 @@ Uma tarefa ou funcionalidade é considerada **CONCLUÍDA** apenas quando:
 5. **Arquitetura Hierárquica**: Dados sensíveis de usuários residem em subcoleções privadas (`User/{matricula}/...`).
 6. **Classificação de Ativos**: Toda nova demanda de coleta deve ser classificada como **Survey**, **Form** ou **Hybrid** conforme as definições de `SURVEY_GLOBAL.md` e `FORMS_GLOBAL.md`.
 
-## ⚙️ Rotina de Validação (Pipeline Local)
+## ⚙️ Rotina de Validação e Governança
+ 
+### 1. Comando de Auditoria (Antigravity 🤖)
+Sempre que desejar validar a integridade completa antes de um deploy, utilize o comando-chave para a IA:
+> **"Antigravity, execute o Gate de Soberania 3.1."**
 
+Este comando aciona a auditoria automática de `any`, verificação de cobertura de testes, validação de arquitetura modular e execução do pipeline `npm run check`.
+
+### 2. Pipeline Local (Manual)
 Antes de cada `git push` ou deploy, **DEVE-SE** executar obrigatoriamente:
 
 ```powershell
 npm run check
 ```
 
-Este comando unifica:
-- `lint`: Garante padrões de código.
+O pipeline unifica:
+- `lint`: Garante padrões Zero-Any.
 - `test`: Valida fluxos críticos (Vitest).
 - `type-check`: Valida integridade do TypeScript (`tsc`).
-- `build`: Garante que a aplicação Next.js está pronta para produção.
+- `build`: Garante estabilidade da aplicação Next.js.
+
 
 ## 🔐 Segurança e Arquitetura de Dados
 

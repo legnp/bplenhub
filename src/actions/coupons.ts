@@ -22,7 +22,7 @@ export async function saveCouponAction(coupon: Partial<Coupon>, idToken?: string
 // ...
 // (mantendo a lógica interna)
 
-    const data: any = {
+    const data: Record<string, unknown> = {
       ...coupon,
       code: coupon.code?.toUpperCase().trim(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -37,9 +37,10 @@ export async function saveCouponAction(coupon: Partial<Coupon>, idToken?: string
        await db.collection(COUPONS_COLLECTION).doc(coupon.id).update(data);
        return { success: true };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Erro desconhecido";
     console.error("[SaveCoupon Error]:", err);
-    return { success: false, error: err.message };
+    return { success: false, error: message };
   }
 }
 
@@ -61,8 +62,9 @@ export async function getAdminCouponsList(idToken?: string) {
         });
       })
     };
-  } catch (err: any) {
-    return { success: false, error: err.message };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Erro desconhecido";
+    return { success: false, error: message };
   }
 }
 
@@ -124,7 +126,8 @@ export async function validateCouponAction(
       coupon: { code: coupon.code, type: coupon.type, value: coupon.value } 
     };
 
-  } catch (err: any) {
-    return { valid: false, discountAmount: 0, finalPrice: basePrice, message: err.message };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Erro desconhecido";
+    return { valid: false, discountAmount: 0, finalPrice: basePrice, message };
   }
 }

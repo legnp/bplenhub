@@ -49,7 +49,7 @@ export interface FormSectionConfig {
   logic?: {
     showIf?: {
       fieldId: string;
-      value: any;
+      value: string | number | boolean | null;
     };
   };
   /** @deprecated Use 'title' para conformidade com Forms_Global */
@@ -57,7 +57,10 @@ export interface FormSectionConfig {
 }
 
 /** @deprecated Use 'FormSectionConfig' para conformidade com Forms_Global */
-export interface FormStepConfig extends FormSectionConfig {}
+export interface FormStepConfig extends FormSectionConfig {
+  /** Campo reservado para evitar interface vazia - Mantido para compatibilidade legado */
+  _dummy?: never;
+}
 
 export interface FormWorkflowMeta {
   nextStep?: string; // TODO: Migrar para nextSection
