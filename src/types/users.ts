@@ -42,6 +42,9 @@ export interface AdminUser {
   // 🏗️ Serviços/Entitlements (Acesso Granular)
   services: UserServices;
 
+  // 🌟 Status Profissional BPlen (Curadoria de Networking)
+  isProfessional?: boolean;
+
   // 📝 Metadados Operacionais
   metadata?: {
     disc_link?: string;

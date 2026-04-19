@@ -87,6 +87,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
         role: resolvedRole,
         services: perm.services || {},
         metadata: perm.metadata || {},
+        isProfessional: data.profile?.networking?.isBPlenProfessional || false,
         onboardStatus: data.hasCompletedWelcome ? "completed" : "pending",
         createdAt: createdAtData,
       });
@@ -205,5 +206,33 @@ export async function forceIdentifyUser(matricula: string, targetUid: string, ad
   } catch (err: any) {
     console.error("❌ [forceIdentifyUser] Erro ao vincular manual:", err);
     return { success: false, error: err.message || "Erro desconhecido ao vincular." };
+  }
+}
+
+/**
+ * Ativa ou Desativa o status de Profissional BPlen de um usuário 🛡️🌟
+ */
+export async function toggleProfessionalStatusAction(matricula: string, status: boolean, adminToken?: string) {
+  try {
+    await requireAdmin(adminToken);
+    const db = getAdminDb();
+
+    await db.doc(`User/${matricula}`).set({
+      profile: {
+        networking: {
+          isBPlenProfessional: status,
+          lastProfessionalStatusUpdate: admin.firestore.FieldValue.serverTimestamp()
+        }
+      }
+    }, { merge: true });
+
+    revalidatePath("/admin/users");
+    revalidatePath("/hub/networking");
+    
+    console.log(`✅ [Governance Admin] Status Profissional ${status ? 'ATIVADO' : 'DESATIVADO'} para ${matricula}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("❌ [ToggleProfessional] Erro:", error);
+    return { success: false, error: error.message };
   }
 }

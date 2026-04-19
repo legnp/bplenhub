@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
-import { getAdminUsersList, updateUserPermissions } from "@/actions/users-admin";
+import { getAdminUsersList, updateUserPermissions, toggleProfessionalStatusAction } from "@/actions/users-admin";
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
 import { DiscDevolutivaModal } from "@/components/admin/DiscDevolutivaModal";
@@ -239,6 +239,29 @@ export default function UsersManagementPage() {
       alert(err.message || "Erro ao salvar link DISC.");
     } finally {
       setSavingDisc(false);
+    }
+  };
+
+  const handleToggleProfessional = async (targetMatricula: string, currentStatus: boolean) => {
+    setProcessingUser(targetMatricula);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const res = await toggleProfessionalStatusAction(targetMatricula, !currentStatus, token);
+      
+      if (res.success) {
+        setUsers(prev => prev.map(u => 
+          u.matricula === targetMatricula ? { ...u, isProfessional: !currentStatus } : u
+        ));
+        if (selectedUser?.matricula === targetMatricula) {
+          setSelectedUser(prev => prev ? { ...prev, isProfessional: !currentStatus } : null);
+        }
+      } else {
+        alert(res.error || "Erro ao atualizar status profissional.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Erro crítico na governança profissional.");
+    } finally {
+      setProcessingUser(null);
     }
   };
 
@@ -534,6 +557,25 @@ export default function UsersManagementPage() {
                                     className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.role === 'suspended' ? 'bg-red-500' : 'bg-gray-700'}`}
                                   >
                                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.role === 'suspended' ? 'left-7' : 'left-1'}`} />
+                                  </button>
+                               </div>
+
+                               {/* NOVO: Selo Profissional BPlen 🌟 */}
+                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.isProfessional ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
+                                  <div className="flex items-center gap-3">
+                                     <div className={cn("p-2 rounded-xl", selectedUser.isProfessional ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)]" : "bg-white/5 text-white/20")}>
+                                        <Trophy size={16} />
+                                     </div>
+                                     <div>
+                                        <p className={cn("text-[10px] font-bold uppercase", selectedUser.isProfessional ? "text-[var(--accent-start)]" : "text-[var(--text-primary)]")}>Profissional BPlen</p>
+                                        <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1 font-medium italic">Habilitar curadoria na rede</p>
+                                     </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => handleToggleProfessional(selectedUser.matricula, !!selectedUser.isProfessional)}
+                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.isProfessional ? 'bg-[var(--accent-start)] shadow-lg shadow-[var(--accent-start)]/20' : 'bg-gray-700'}`}
+                                  >
+                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.isProfessional ? 'left-7' : 'left-1'}`} />
                                   </button>
                                </div>
 

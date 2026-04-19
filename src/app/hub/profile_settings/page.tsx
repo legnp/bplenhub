@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserCog, ArrowLeft, Briefcase, Database, ShieldCheck } from "lucide-react";
+import { UserCog, ArrowLeft, Briefcase, Database } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 import { ProfileIdentityTab } from "@/components/hub/ProfileIdentityTab";
+import { ProfileProfessionalTab } from "@/components/hub/ProfileProfessionalTab";
+import { ProfileRegistrationTab } from "@/components/hub/ProfileRegistrationTab";
 
 /**
  * BPlen HUB — Perfil & Configurações ⚙️🧬
@@ -16,7 +18,7 @@ export default function ProfileSettingsPage() {
 
   const tabs = [
     { id: "geral", label: "Geral", icon: UserCog },
-    { id: "talento", label: "Banco de Talento", icon: Briefcase },
+    { id: "talento", label: "Perfil Profissional", icon: Briefcase },
     { id: "dados", label: "Dados Cadastrais", icon: Database },
   ];
 
@@ -76,37 +78,11 @@ export default function ProfileSettingsPage() {
       {/* Conteúdo Dinâmico por Aba */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-[400px]">
         {activeTab === "geral" && <ProfileIdentityTab />}
-        {activeTab === "talento" && (
-           <PlaceholderCard 
-              title="Banco de Talento" 
-              desc="Gerencie suas competências, histórico e visibilidade para recrutadores." 
-           />
-        )}
-        {activeTab === "dados" && (
-           <PlaceholderCard 
-              title="Dados Cadastrais" 
-              desc="Segurança da conta, e-mail de acesso e informações administrativas." 
-           />
-        )}
+        {activeTab === "talento" && <ProfileProfessionalTab />}
+        {activeTab === "dados" && <ProfileRegistrationTab />}
       </div>
 
     </div>
   );
 }
 
-/**
- * Componente Placeholder Temporário
- */
-function PlaceholderCard({ title, desc }: { title: string, desc: string }) {
-  return (
-    <div className="py-20 flex flex-col items-center justify-center border border-dashed border-[var(--border-primary)] rounded-[3rem] bg-[var(--input-bg)]/5">
-      <div className="p-5 rounded-full bg-white/5 mb-6">
-         <UserCog size={40} className="text-[var(--text-muted)] opacity-30 animate-pulse" />
-      </div>
-      <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">{title}</h3>
-      <p className="text-[10px] font-medium text-[var(--text-muted)] mt-2 italic">
-         {desc}
-      </p>
-    </div>
-  );
-}

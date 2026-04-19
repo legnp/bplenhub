@@ -1,54 +1,165 @@
 "use client";
 
-import React from "react";
-import { Users, ArrowLeft, Search } from "lucide-react";
-import Link from "next/link";
+import React, { useState, useEffect, useMemo } from "react";
+import { 
+  Users, 
+  Star, 
+  Handshake, 
+  Loader2, 
+  Network,
+  Rocket,
+  Info
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { NetworkingCard } from "@/components/hub/NetworkingCard";
+import { NetworkingFilters } from "@/components/hub/NetworkingFilters";
+import { getNetworkingDataAction, NetworkingTab } from "@/actions/networking";
 
 /**
- * BPlen HUB — Networking BPlen 🌐🤝
- * Espaço de conexões humanas, visibilidade de membros e embaixadores.
+ * BPlen HUB — Networking Space 🌐🚀✨
+ * Onde conexões se transformam em performance organizacional.
  */
 export default function NetworkingPage() {
+  const [activeTab, setActiveTab] = useState<NetworkingTab>("membros");
+  const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState("Todos");
+  const [serviceFilter, setServiceFilter] = useState("Todos");
+  const [data, setData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Abas Horizontais Estilo Profile 🦴
+  const tabs = [
+    { id: "membros", label: "Networking BPlen", icon: Users },
+    { id: "profissionais", label: "Profissionais BPlen", icon: Star },
+    { id: "parceiros", label: "Parceiros BPlen", icon: Handshake },
+  ];
+
+  // 1. Efeito de Busca Real-time 🛰️
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true);
+      const res = await getNetworkingDataAction(activeTab, search, stageFilter, serviceFilter);
+      if (res.success) {
+        setData(res.data || []);
+      }
+      setIsLoading(false);
+    }
+    
+    const delayDebounceFn = setTimeout(() => {
+      load();
+    }, 400); // Debounce de 400ms para performance soberana
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [activeTab, search, stageFilter, serviceFilter]);
+
+  // Ramos de Atuação Únicos (Derivados dos Dados de Parceiros)
+  const availableServices = useMemo(() => {
+    if (activeTab !== "parceiros") return [];
+    return Array.from(new Set(data.map((p: any) => p.serviceType))).filter(Boolean) as string[];
+  }, [data, activeTab]);
+
   return (
-    <div className="p-6 md:p-10 space-y-10 animate-fade-in max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto space-y-12 pb-24 animate-in fade-in duration-1000">
       
-      {/* Header da Página */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-4">
-          <Link 
-            href="/hub/membro"
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--accent-start)] hover:opacity-70 transition-all"
-          >
-            <ArrowLeft size={14} />
-            Voltar ao Dashboard
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="p-4 bg-[var(--accent-soft)] rounded-3xl text-[var(--accent-start)]">
-              <Users size={32} />
-            </div>
-            <div className="space-y-1">
-              <h1 className="text-3xl font-black tracking-tighter text-[var(--text-primary)]">
-                Networking BPlen
-              </h1>
-              <p className="text-[12px] font-medium text-[var(--text-muted)] opacity-70 uppercase tracking-[0.1em]">
-                Conecte-se com membros e embaixadores do ecossistema
-              </p>
-            </div>
-          </div>
+      {/* 🔮 Hero Section & Tabs */}
+      <div className="space-y-10 px-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+           <div className="space-y-2">
+              <div className="flex items-center gap-3 text-[var(--accent-start)]">
+                 <Network size={20} />
+                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Conexões Soberanas</span>
+              </div>
+              <h1 className="text-3xl font-black tracking-tighter text-white">Ecossistema BPlen</h1>
+           </div>
+           
+           {/* Navigation Tabs */}
+           <div className="flex p-2 bg-white/5 border border-white/10 rounded-[2.5rem] glass">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                        setActiveTab(tab.id as NetworkingTab);
+                        setSearch("");
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 px-6 py-3 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap",
+                      isActive 
+                        ? "bg-white text-black shadow-xl scale-105" 
+                        : "text-white/40 hover:text-white"
+                    )}
+                  >
+                    <Icon size={14} className={cn(isActive && "animate-pulse")} />
+                    {tab.label}
+                  </button>
+                )
+              })}
+           </div>
+        </div>
+
+        {/* 🔍 Centro de Filtros */}
+        <div className="bg-white/5 border border-white/10 rounded-[3.5rem] p-8 glass space-y-6">
+           <NetworkingFilters 
+              tab={activeTab}
+              search={search}
+              setSearch={setSearch}
+              stageFilter={stageFilter}
+              setStageFilter={setStageFilter}
+              serviceFilter={serviceFilter}
+              setServiceFilter={setServiceFilter}
+              availableServices={availableServices}
+           />
         </div>
       </div>
 
-      {/* Placeholder de Busca (Simulado para Visualização) */}
-      <div className="glass p-8 flex flex-col items-center justify-center border border-[var(--border-primary)] rounded-[3rem] bg-white/5">
-        <div className="w-16 h-16 bg-[var(--accent-start)]/10 text-[var(--accent-start)] rounded-full flex items-center justify-center mb-8">
-           <Search size={28} />
-        </div>
-        <div className="text-center space-y-3">
-          <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Motor de Conexões em Configuração</h3>
-          <p className="text-[10px] font-medium text-[var(--text-muted)] max-w-[400px] leading-relaxed mx-auto">
-             Em breve você poderá buscar por profissionais, embaixadores e membros, filtrando por área de atuação, etapa da jornada e muito mais.
-          </p>
-        </div>
+      {/* 🚀 Grid de Resultados */}
+      <div className="px-4">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4 animate-pulse">
+             <Loader2 size={40} className="text-[var(--accent-start)] animate-spin" />
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Mapeando conexões estratégicas...</p>
+          </div>
+        ) : data.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+             {data.map((item, idx) => (
+                <div key={item.id} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 50}ms` }}>
+                   <NetworkingCard 
+                      type={activeTab === "parceiros" ? "partner" : "member"}
+                      data={item}
+                   />
+                </div>
+             ))}
+          </div>
+        ) : (
+          <div className="py-32 flex flex-col items-center justify-center text-center space-y-6 bg-white/5 border border-dashed border-white/10 rounded-[4rem]">
+             <div className="p-6 bg-white/5 rounded-full text-white/20">
+                <Rocket size={48} />
+             </div>
+             <div className="space-y-2">
+                <h3 className="text-xl font-black text-white">Nenhum resultado encontrado</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 max-w-xs mx-auto">
+                   Tente ajustar seus filtros ou termos de busca para encontrar novas conexões.
+                </p>
+             </div>
+          </div>
+        )}
+      </div>
+
+      {/* 💡 Banner Informativo */}
+      <div className="px-4">
+         <div className="p-10 bg-gradient-to-br from-[var(--accent-start)]/20 to-transparent border border-[var(--accent-start)]/20 rounded-[4rem] glass flex flex-col md:flex-row items-center gap-10">
+            <div className="p-6 bg-[var(--accent-start)] rounded-[2.5rem] text-white shadow-2xl shadow-[var(--accent-start)]/20">
+               <Info size={40} />
+            </div>
+            <div className="space-y-3 text-center md:text-left flex-1">
+               <h4 className="text-lg font-black text-white tracking-tight uppercase">Soberania & Visibilidade</h4>
+               <p className="text-sm text-white/60 leading-relaxed max-w-2xl">
+                  Seu perfil só aparece no networking se a visibilidade estiver habilitada nas configurações. No BPlen HUB, você tem autonomia total sobre quem pode visualizar seu Pitch e hashtags profissionais.
+               </p>
+            </div>
+         </div>
       </div>
 
     </div>
