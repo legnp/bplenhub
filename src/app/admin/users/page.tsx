@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AdminUser, UserRole, UserServices } from "@/types/users";
+import { cn } from "@/lib/utils";
 import { getAdminUsersList, updateUserPermissions, toggleProfessionalStatusAction } from "@/actions/users-admin";
 import { auth } from "@/lib/firebase";
 import { useAuthContext } from "@/context/AuthContext";
