@@ -9,23 +9,18 @@ import { useState } from "react";
 import { UpsellServiceModal } from "./UpsellServiceModal";
 import { getProductBySlug } from "@/actions/products";
 import { Product } from "@/types/products";
+import { StageTelemetry } from "@/hooks/useJourney";
 
 interface JourneyNavProps {
   stages: JourneyStep[];
   currentStepId: string;
   stepStatusMap: Record<string, StepStatus>;
-  getStageTelemetry?: (stepId: string) => {
-    status: string;
-    percentage: number;
-    hasAccess: boolean;
-    isNext: boolean;
-    substepsLabel: string;
-  };
+  getStageTelemetry?: (stepId: string) => StageTelemetry;
   onSelectStep?: (stepId: string) => void;
 }
 
 // Mapeamento de Ícones Vibrantes e Cores Premium (Alinhado ao Apple IOS Pro) ✨🧬
-const STAGE_THEMES: Record<string, { icon: React.ComponentType<any>, color: string, gradient: string }> = {
+const STAGE_THEMES: Record<string, { icon: React.ComponentType<unknown>, color: string, gradient: string }> = {
   "primeiros_passos": { 
     icon: LucideIcons.Rocket, 
     color: "#EC4899", 
@@ -188,7 +183,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             // 🧬 Resolução Dinâmica de Ícone (String -> Componente) Rigorosa 🛡️
             const iconName = stage.icon as keyof typeof LucideIcons;
             const IconComponent = (stage.icon && LucideIcons[iconName]) 
-              ? LucideIcons[iconName] as React.ComponentType<any>
+              ? LucideIcons[iconName] as React.ComponentType<unknown>
               : theme.icon;
 
             // Lógica de Cores do Farol (Beacons) Rigorosa — BPlen Mapping 🚥
@@ -281,7 +276,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
 
                 {/* BOTÃO DO STEP (ÍCONE VIBRANTE) 🚀✨ */}
                 <WrapperComponent
-                  {...(wrapperProps as any)}
+                  {...(wrapperProps as React.ComponentPropsWithoutRef<typeof Link> & React.HTMLAttributes<HTMLDivElement>)}
                   className={cn(
                     "relative w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500",
                     "glass border overflow-visible cursor-pointer",
