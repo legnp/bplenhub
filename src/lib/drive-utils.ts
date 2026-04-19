@@ -160,7 +160,7 @@ export async function uploadFileToDrive(
   parentFolderId: string,
   fileName: string,
   mimeType: string,
-  body: drive_v3.Params$Resource$Files$Create["media"]["body"]
+  body: string | Buffer | Uint8Array | import("stream").Readable
 ): Promise<{ id: string; webViewLink: string }> {
   const file = await drive.files.create({
     supportsAllDrives: true,
