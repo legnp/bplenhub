@@ -80,8 +80,10 @@ export async function POST(req: NextRequest) {
 
       console.log(`✅ [Webhook:MP] Ordem ${orderId} APROVADA e Serviço Ativado.`);
 
-      // 📧 Disparos Assíncronos de E-mail (Fire-and-Forget)
-      const userObj = { email: userEmail, name: "" }; // Webhook não tem session pro nome
+      // 📧 Disparos Assíncronos de E-mail (Personalizados 🧬)
+      const { resolveUserNickname } = await import("@/lib/user-identity");
+      const nickname = await resolveUserNickname(userId);
+      const userObj = { email: userEmail, name: nickname };
       const orderObj = { orderId, productTitle, finalPrice };
 
       // Passamos a promessa adiante mas não seguramos o Webhook. Mercado Pago exige resposta rápida!

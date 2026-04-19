@@ -218,19 +218,26 @@ export async function processPaymentAction(formData: any, orderId: string, idTok
     const paymentClient = new MPPayment(mpClient);
     const payment = await paymentClient.create({ body: payload });
 
-    // 📧 Disparo do E-mail 1: "Compra Solicitada"
-    // Buscamos o produto para ter os detalhes no e-mail (ou deixamos genérico se não quisermos onerar). 
-    // Como a action processPaymentAction já é assíncrona, e o form só enviou formData.
-    // Melhor extrair o valor da transação e description do próprio formData.
-    const productTitle = payload.description || "Serviços BPlen HUB";
-    const finalPrice = payload.transaction_amount || 0;
+    // 📧 Disparo do E-mail 1: "Compra Solicitada" (Personalizado & Inteligente 🧠🧬)
+    // Só enviamos se o status NÃO for final (aprovação/recusa imediata)
+    const pendingStatuses = ["pending", "in_process", "in_mediation", "authorized"];
+    
+    if (pendingStatuses.includes(payment.status || "")) {
+      const { resolveUserNickname } = await import("@/lib/user-identity");
+      const nickname = await resolveUserNickname(session.uid);
 
-    // Disparo Fire-and-Forget (não segura o fluxo de retorno)
-    // OBS: session possui uid e email, mas não nome. Passamos nome vazio ou pegamos de session se disponível.
-    sendOrderRequestedEmail(
-      { email: session.email || "", name: "" },
-      { orderId, productTitle, finalPrice }
-    );
+      const productTitle = payload.description || "Serviços BPlen HUB";
+      const finalPrice = payload.transaction_amount || 0;
+
+      // Disparo Fire-and-Forget
+      sendOrderRequestedEmail(
+        { email: session.email || "", name: nickname },
+        { orderId, productTitle, finalPrice }
+      );
+      console.log(`📡 [MP-Checkout] E-mail de Solicitação enviado para ${session.email} (Status: ${payment.status})`);
+    } else {
+      console.log(`📡 [MP-Checkout] E-mail de Solicitação suprimido para ${session.email} (Status final: ${payment.status})`);
+    }
 
     // O status real de liberação de serviço NÃO DEVE ser amarrado a este retorno síncrono
     // A soberania do serviço dita que a liberação ocorre via Webhook Assíncrono (route.ts).
