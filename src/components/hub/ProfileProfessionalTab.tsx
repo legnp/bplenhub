@@ -127,7 +127,7 @@ export function ProfileProfessionalTab() {
       
       {/* 🛡️ Mural de Privacidade Interna */}
       <div className="p-8 border border-blue-500/20 bg-blue-500/5 rounded-[3rem] glass flex flex-col md:flex-row items-center gap-6">
-        <div className="p-4 bg-white/5 rounded-3xl text-blue-400">
+        <div className="p-4 bg-[var(--input-bg)] rounded-3xl text-blue-400">
            <ShieldCheck size={32} />
         </div>
         <div className="space-y-1 text-center md:text-left">
@@ -158,7 +158,7 @@ export function ProfileProfessionalTab() {
             ) : (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="px-8 py-3 glass text-[var(--text-primary)] border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all flex items-center gap-2"
+                className="px-8 py-3 glass text-[var(--text-primary)] border border-[var(--border-primary)] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--input-bg)] transition-all flex items-center gap-2"
               >
                 <Edit3 size={14} />
                 Habilitar Edição
@@ -182,7 +182,7 @@ export function ProfileProfessionalTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* 🧱 Seção 1: Configuração de Networking (Destaque Visual) */}
-        <div className="p-10 border border-white/10 bg-white/5 rounded-[3.5rem] glass space-y-8 relative overflow-hidden">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8 relative overflow-hidden">
            <div className="absolute top-0 right-0 p-8 opacity-5">
               <Globe size={80} />
            </div>
@@ -193,10 +193,10 @@ export function ProfileProfessionalTab() {
               <div className="flex flex-col gap-6">
                 {/* Toggles Globais */}
                 <div className="flex flex-col gap-4">
-                   <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                   <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/40 rounded-2xl border border-[var(--border-primary)]">
                       <div className="space-y-1">
-                         <span className="text-[10px] font-black uppercase text-white/90">Visibilidade na Rede</span>
-                         <p className="text-[9px] text-white/40 italic">Aparecer para outros membros nas buscas</p>
+                         <span className="text-[10px] font-black uppercase text-[var(--text-primary)]">Visibilidade na Rede</span>
+                         <p className="text-[9px] text-[var(--text-muted)] italic">Aparecer para outros membros nas buscas</p>
                       </div>
                       <input 
                         type="checkbox" 
@@ -207,10 +207,10 @@ export function ProfileProfessionalTab() {
                       />
                    </div>
 
-                   <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                   <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)]/40 rounded-2xl border border-[var(--border-primary)]">
                       <div className="space-y-1">
-                         <span className="text-[10px] font-black uppercase text-white/90">Banco de Talentos</span>
-                         <p className="text-[9px] text-white/40 italic">Participar de indicações institucionais</p>
+                         <span className="text-[10px] font-black uppercase text-[var(--text-primary)]">Banco de Talentos</span>
+                         <p className="text-[9px] text-[var(--text-muted)] italic">Participar de indicações institucionais</p>
                       </div>
                       <input 
                         type="checkbox" 
@@ -230,7 +230,7 @@ export function ProfileProfessionalTab() {
                      disabled={!isEditing}
                      value={data.sales_pitch}
                      onChange={(e) => updateField('sales_pitch', e.target.value)}
-                     className="w-full bg-black/20 border border-white/10 rounded-2xl p-6 text-xs text-white/80 placeholder:italic focus:border-[var(--accent-start)]/50 focus:outline-none transition-all disabled:opacity-40"
+                     className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl p-6 text-xs text-[var(--text-primary)] placeholder:italic focus:border-[var(--accent-start)]/50 focus:outline-none transition-all disabled:opacity-40"
                      placeholder="Conte sua proposta de valor em poucas palavras..."
                    />
                 </div>
@@ -241,14 +241,14 @@ export function ProfileProfessionalTab() {
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {data.hashtags.map((tag, idx) => (
                         <div key={idx} className="relative group">
-                           <Hash size={12} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-[var(--accent-start)] transition-colors" />
+                           <Hash size={12} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent-start)] transition-colors" />
                            <input 
                               type="text"
                               disabled={!isEditing}
                               placeholder={`Tag ${idx + 1}`}
                               value={tag}
                               onChange={(e) => updateHashtag(idx, e.target.value)}
-                              className="w-full bg-black/20 border border-white/5 rounded-xl pl-10 pr-4 py-3 text-[11px] text-white/90 focus:border-[var(--accent-start)]/30 outline-none transition-all disabled:opacity-40 uppercase font-black"
+                              className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl pl-10 pr-4 py-3 text-[11px] text-[var(--text-primary)] focus:border-[var(--accent-start)]/30 outline-none transition-all disabled:opacity-40 uppercase font-black"
                            />
                         </div>
                       ))}
@@ -259,10 +259,10 @@ export function ProfileProfessionalTab() {
         </div>
 
         {/* 📱 Seção 2: Matriz de Interação (Contatos) */}
-        <div className="p-10 border border-white/10 bg-black/10 rounded-[3.5rem] glass space-y-8">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--bg-primary)]/10 rounded-[3.5rem] glass space-y-8">
            <div className="space-y-4">
               <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-muted)]">Matriz de Interação</h3>
-              <p className="text-[10px] text-white/40 italic">Preencha seus canais e escolha o que mostrar na rede.</p>
+              <p className="text-[10px] text-[var(--text-muted)] italic">Preencha seus canais e escolha o que mostrar na rede.</p>
               
               <div className="space-y-3 pt-4">
                  {(Object.keys(data.contacts) as Array<keyof ProfessionalProfileData['contacts']>).map((key) => {
@@ -285,7 +285,7 @@ export function ProfileProfessionalTab() {
                    return (
                      <div key={key} className="flex flex-col md:flex-row gap-3">
                         <div className="flex-1 relative">
-                           <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/5 rounded-lg text-white/40">
+                           <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-[var(--input-bg)] rounded-lg text-[var(--text-muted)]">
                               <Icon size={12} />
                            </div>
                            <input 
@@ -294,7 +294,7 @@ export function ProfileProfessionalTab() {
                               placeholder={label}
                               value={item.value}
                               onChange={(e) => updateContact(key, 'value', e.target.value)}
-                              className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-xs text-white/80 focus:border-white/20 outline-none transition-all disabled:opacity-30"
+                              className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl pl-12 pr-4 py-4 text-xs text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none transition-all disabled:opacity-30"
                            />
                         </div>
                         <button 
@@ -304,7 +304,7 @@ export function ProfileProfessionalTab() {
                              "px-4 py-4 rounded-2xl border transition-all flex items-center justify-center gap-3 w-full md:w-40",
                              item.isPublic 
                               ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
-                              : "bg-white/5 border-white/5 text-white/20 grayscale"
+                              : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] grayscale"
                            )}
                         >
                            {item.isPublic ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -318,11 +318,11 @@ export function ProfileProfessionalTab() {
         </div>
 
         {/* 💼 Seção 3: Carreira e Remuneração (Internal Only) */}
-        <div className="p-10 border border-white/10 bg-white/5 rounded-[3.5rem] glass space-y-8 col-span-1 lg:col-span-2">
-           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/5">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8 col-span-1 lg:col-span-2">
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[var(--border-primary)]">
               <div className="space-y-1">
                  <h3 className="text-sm font-black uppercase tracking-widest text-[var(--accent-start)]">Regime e Remuneração (Internal)</h3>
-                 <p className="text-[10px] text-white/40 italic">Estes dados alimentam a inteligência da BPlen e seu status no Banco de Talentos.</p>
+                 <p className="text-[10px] text-[var(--text-muted)] italic">Estes dados alimentam a inteligência da BPlen e seu status no Banco de Talentos.</p>
               </div>
               <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-blue-400 flex items-center gap-2">
                  <ShieldCheck size={16} />
@@ -345,7 +345,7 @@ export function ProfileProfessionalTab() {
                            "px-6 py-4 rounded-2xl border text-[11px] font-bold text-left transition-all",
                            data.regime_choice === opt 
                             ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white" 
-                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                            : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--accent-soft)]"
                          )}
                       >
                          {opt}
@@ -379,8 +379,8 @@ export function ProfileProfessionalTab() {
                            className={cn(
                              "px-4 py-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all",
                              isActive 
-                              ? "bg-white text-black border-white" 
-                              : "bg-white/5 border-white/5 text-white/30 hover:opacity-100"
+                              ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]" 
+                              : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] hover:opacity-100"
                            )}
                         >
                            {ben}
@@ -393,13 +393,13 @@ export function ProfileProfessionalTab() {
         </div>
 
         {/* 📂 Seção 4: Ativos e Visibilidade de Arquivos */}
-        <div className="p-10 border border-white/10 bg-black/20 rounded-[3.5rem] glass space-y-8 col-span-1 lg:col-span-2">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8 col-span-1 lg:col-span-2">
            <div className="space-y-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-muted)]">Documentos e Ativos</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Currículo */}
-                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 flex flex-col gap-6">
+                <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                          <FileText size={20} className="text-[var(--accent-start)]" />
@@ -417,18 +417,18 @@ export function ProfileProfessionalTab() {
                          Visível Network
                       </button>
                    </div>
-                   <div className="p-6 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-[10px] text-white/40 italic">
+                   <div className="p-6 border border-dashed border-[var(--border-primary)] rounded-2xl flex flex-col items-center justify-center text-[10px] text-[var(--text-muted)] italic">
                       {data.cv_upload ? "Arquivo Carregado (Soberano)" : "Nenhum arquivo anexado"}
-                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-white opacity-20">* Upload disponível via Forms Engine</p>
+                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-[var(--text-primary)] opacity-20">* Upload disponível via Forms Engine</p>
                    </div>
                 </div>
 
                 {/* Portfólio */}
-                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 flex flex-col gap-6">
+                <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                          <Briefcase size={20} className="text-[var(--accent-start)]" />
-                         <span className="text-[11px] font-black uppercase tracking-tighter">Portfólio / Projetos</span>
+                         <span className="text-[11px] font-black uppercase tracking-tighter text-[var(--text-primary)]">Portfólio / Projetos</span>
                       </div>
                       <button 
                          disabled={!isEditing}
@@ -442,9 +442,9 @@ export function ProfileProfessionalTab() {
                          Visível Network
                       </button>
                    </div>
-                   <div className="p-6 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-[10px] text-white/40 italic">
+                   <div className="p-6 border border-dashed border-[var(--border-primary)] rounded-2xl flex flex-col items-center justify-center text-[10px] text-[var(--text-muted)] italic">
                       {data.portfolio_upload ? "Arquivo Carregado (Soberano)" : "Nenhum arquivo anexado"}
-                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-white opacity-20">* Upload disponível via Forms Engine</p>
+                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-[var(--text-primary)] opacity-20">* Upload disponível via Forms Engine</p>
                    </div>
                 </div>
               </div>

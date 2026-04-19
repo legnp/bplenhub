@@ -36,7 +36,7 @@ export function NetworkingFilters({
       
       {/* 🔍 Busca Instantânea */}
       <div className="relative flex-1 w-full">
-         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20">
+         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
             <Search size={18} />
          </div>
          <input 
@@ -44,33 +44,33 @@ export function NetworkingFilters({
            value={search}
            onChange={(e) => setSearch(e.target.value)}
            placeholder={isPartnerTab ? "Buscar parceiros, serviços ou termos..." : "Buscar nomes, pitch ou #hashtags..."}
-           className="w-full bg-white/5 border border-white/10 rounded-[2rem] pl-14 pr-8 py-4 text-sm text-white focus:border-[var(--accent-start)] outline-none transition-all glass"
+           className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2rem] pl-14 pr-8 py-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-start)] outline-none transition-all glass"
          />
       </div>
 
       {/* 🧭 Filtro Contextual */}
       <div className="flex items-center gap-4 w-full lg:w-auto">
-         <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-white/40 glass">
+         <div className="p-4 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl text-[var(--text-muted)] glass">
             <Filter size={18} />
          </div>
 
          {isPartnerTab ? (
            // Filtro de Ramos (Parceiros)
-           <select 
-             value={serviceFilter}
-             onChange={(e) => setServiceFilter(e.target.value)}
-             className="flex-1 lg:w-64 bg-white/5 border border-white/10 rounded-[2rem] px-6 py-4 text-xs font-black uppercase tracking-widest text-white outline-none glass appearance-none cursor-pointer hover:bg-white/10 transition-all"
-           >
-              <option value="Todos">Todos os Ramos</option>
-              {availableServices.map(s => <option key={s} value={s}>{s}</option>)}
+            <select 
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+              className="flex-1 lg:w-64 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2rem] px-6 py-4 text-xs font-black uppercase tracking-widest text-[var(--text-primary)] outline-none glass appearance-none cursor-pointer hover:bg-[var(--accent-soft)] transition-all"
+            >
+              <option value="Todos" className="bg-[var(--bg-primary)]">Todos os Ramos</option>
+              {availableServices.map(s => <option key={s} value={s} className="bg-[var(--bg-primary)]">{s}</option>)}
            </select>
          ) : (
            // Filtro de Jornada (Membros)
-           <select 
-             value={stageFilter}
-             onChange={(e) => setStageFilter(e.target.value)}
-             className="flex-1 lg:w-64 bg-white/5 border border-white/10 rounded-[2rem] px-6 py-4 text-xs font-black uppercase tracking-widest text-white outline-none glass appearance-none cursor-pointer hover:bg-white/10 transition-all"
-           >
+            <select 
+              value={stageFilter}
+              onChange={(e) => setStageFilter(e.target.value)}
+              className="flex-1 lg:w-64 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2rem] px-6 py-4 text-xs font-black uppercase tracking-widest text-[var(--text-primary)] outline-none glass appearance-none cursor-pointer hover:bg-[var(--accent-soft)] transition-all"
+            >
               <option value="Todos">Todos os Estágios</option>
               {JOURNEY_STAGES.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
            </select>

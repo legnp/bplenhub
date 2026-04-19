@@ -146,7 +146,7 @@ export function ProfileRegistrationTab() {
             ) : (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="px-8 py-3 glass text-[var(--text-primary)] border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all flex items-center gap-2"
+                className="px-8 py-3 glass text-[var(--text-primary)] border border-[var(--border-primary)] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--input-bg)] transition-all flex items-center gap-2"
               >
                 <Edit3 size={14} />
                 Habilitar Edição
@@ -167,32 +167,32 @@ export function ProfileRegistrationTab() {
       )}
 
       {/* 🏢 Seção 1: Identificação BPlen (Read-Only) */}
-      <div className="p-10 border border-white/10 bg-black/10 rounded-[3.5rem] glass space-y-8">
+      <div className="p-10 border border-[var(--border-primary)] bg-[var(--glass-bg)] rounded-[3.5rem] glass space-y-8">
          <div className="flex items-center gap-4 text-[var(--accent-start)]">
             <ShieldCheck size={24} />
             <h3 className="text-sm font-black uppercase tracking-widest">Identificação da Conta</h3>
          </div>
          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-2 opacity-60">
+            <div className="space-y-2 opacity-80">
                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]"><Lock size={10} /> Matrícula</label>
-               <InputGlass value={data.matricula} readOnly className="bg-black/20" />
+               <InputGlass value={data.matricula} readOnly className="bg-[var(--bg-primary)]/40 border-[var(--border-primary)]" />
             </div>
-            <div className="space-y-2 opacity-60">
+            <div className="space-y-2 opacity-80">
                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]"><Lock size={10} /> E-mail de Conexão</label>
-               <InputGlass value={data.email} readOnly className="bg-black/20" />
+               <InputGlass value={data.email} readOnly className="bg-[var(--bg-primary)]/40 border-[var(--border-primary)]" />
             </div>
-            <div className="space-y-2 opacity-60">
+            <div className="space-y-2 opacity-80">
                <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]"><Lock size={10} /> Nome de Usuário</label>
-               <InputGlass value={data.user_name} readOnly className="bg-black/20" />
+               <InputGlass value={data.user_name} readOnly className="bg-[var(--bg-primary)]/40 border-[var(--border-primary)]" />
             </div>
          </div>
-         <p className="text-[9px] text-white/20 italic">* Dados de identificação protegidos. Para alterá-los, entre em contato com o suporte institucional.</p>
+         <p className="text-[9px] text-[var(--text-muted)] italic">* Dados de identificação protegidos. Para alterá-los, entre em contato com o suporte institucional.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* 👤 Seção 2: Dados Pessoais */}
-        <div className="p-10 border border-white/10 bg-white/5 rounded-[3.5rem] glass space-y-8">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8">
            <div className="flex items-center gap-4 text-[var(--text-primary)]">
               <User size={20} />
               <h3 className="text-sm font-black uppercase tracking-widest">Dados Pessoais</h3>
@@ -240,7 +240,7 @@ export function ProfileRegistrationTab() {
         </div>
 
         {/* 📍 Seção 3: Endereço Residencial */}
-        <div className="p-10 border border-white/10 bg-white/5 rounded-[3.5rem] glass space-y-8">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8">
            <div className="flex items-center gap-4 text-[var(--text-primary)]">
               <MapPin size={20} />
               <h3 className="text-sm font-black uppercase tracking-widest">Endereço Residencial</h3>
@@ -304,7 +304,7 @@ export function ProfileRegistrationTab() {
         </div>
 
         {/* 🧾 Seção 4: Dados de Faturamento */}
-        <div className="p-10 border border-white/10 bg-black/5 rounded-[3.5rem] glass space-y-10 col-span-1 lg:col-span-2">
+        <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-10 col-span-1 lg:col-span-2">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-4 text-[var(--text-primary)]">
                  <CreditCard size={20} />

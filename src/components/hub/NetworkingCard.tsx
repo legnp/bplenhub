@@ -36,7 +36,7 @@ export function NetworkingCard({ type, data }: Props) {
   const serviceType = isMember ? null : partner.serviceType;
 
   return (
-    <div className="group relative p-6 bg-white/5 border border-white/10 rounded-[3rem] glass hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
+    <div className="group relative p-6 bg-[var(--glass-bg)] border border-[var(--border-primary)] rounded-[3rem] glass hover:bg-[var(--input-bg)] hover:border-[var(--accent-start)]/30 transition-all duration-500 overflow-hidden">
       
       {/* 🔮 Efeito de Brilho Hover */}
       <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-[var(--accent-start)]/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none" />
@@ -49,7 +49,7 @@ export function NetworkingCard({ type, data }: Props) {
             {photo ? (
               <img src={photo} alt={name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/10 bg-white/5">
+              <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)] bg-[var(--input-bg)]">
                 <Briefcase size={32} />
               </div>
             )}
@@ -65,7 +65,7 @@ export function NetworkingCard({ type, data }: Props) {
 
         {/* 📝 Dados Principais */}
         <div className="space-y-1">
-          <h3 className="font-black text-white tracking-tight leading-tight transition-all truncate max-w-[200px]">
+          <h3 className="font-black text-[var(--text-primary)] tracking-tight leading-tight transition-all truncate max-w-[200px]">
             {name}
           </h3>
           {serviceType && (
@@ -76,21 +76,21 @@ export function NetworkingCard({ type, data }: Props) {
         </div>
 
         {/* 💬 Sales Pitch */}
-        <p className="text-[11px] text-white/50 line-clamp-2 italic leading-relaxed h-[36px]">
+        <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 italic leading-relaxed h-[36px]">
           "{pitch || "Transformando potencial em performance no ecossistema BPlen."}"
         </p>
 
         {/* #️⃣ Hashtags */}
         <div className="flex flex-wrap justify-center gap-2 h-[20px] overflow-hidden">
            {tags.slice(0, 3).map((tag, i) => (
-             <span key={i} className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">
+             <span key={i} className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
                 #{tag.replace("#", "")}
              </span>
            ))}
         </div>
 
         {/* 🔗 Interaction Bar */}
-        <div className="pt-4 border-t border-white/5 flex items-center justify-center gap-3 w-full">
+        <div className="pt-4 border-t border-[var(--border-primary)] flex items-center justify-center gap-3 w-full">
            {/* WhatsApp/Contact */}
            {isMember && member.contacts?.whatsapp?.visible && (
              <a href={`https://wa.me/${member.contacts.whatsapp.value}`} target="_blank" className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all">
@@ -106,18 +106,18 @@ export function NetworkingCard({ type, data }: Props) {
 
            {/* Site / Portfolio */}
            {isMember && member.portfolioVisible && member.portfolioUrl && (
-             <a href={member.portfolioUrl} target="_blank" className="p-3 bg-white/10 text-white/60 rounded-2xl hover:bg-white/20 transition-all">
+             <a href={member.portfolioUrl} target="_blank" className="p-3 bg-[var(--social-bg)] text-[var(--text-secondary)] rounded-2xl hover:bg-[var(--accent-soft)] transition-all">
                 <FileText size={14} />
              </a>
            )}
 
            {!isMember && partner.socials?.site && (
-             <a href={partner.socials.site} target="_blank" className="p-3 bg-white/10 text-white/60 rounded-2xl hover:bg-white/20 transition-all">
+             <a href={partner.socials.site} target="_blank" className="p-3 bg-[var(--social-bg)] text-[var(--text-secondary)] rounded-2xl hover:bg-[var(--accent-soft)] transition-all">
                 <Globe size={14} />
              </a>
            )}
 
-           <button className="p-3 bg-white/5 text-white/20 rounded-2xl hover:bg-white/10 hover:text-white transition-all ml-auto">
+           <button className="p-3 bg-[var(--input-bg)] text-[var(--text-muted)] rounded-2xl hover:bg-[var(--accent-soft)] hover:text-[var(--accent-start)] transition-all ml-auto">
               <ExternalLink size={12} />
            </button>
         </div>
@@ -131,7 +131,7 @@ function renderSocialLink(url: string | null | undefined, icon: React.ReactNode)
   if (!url) return null;
   const finalUrl = url.startsWith('http') ? url : `https://instagram.com/${url.replace('@', '')}`;
   return (
-    <a href={finalUrl} target="_blank" className="p-3 bg-white/5 text-white/40 rounded-2xl hover:bg-white/10 hover:text-white transition-all">
+    <a href={finalUrl} target="_blank" className="p-3 bg-[var(--social-bg)] text-[var(--text-secondary)] rounded-2xl hover:bg-[var(--accent-soft)] hover:text-[var(--accent-start)] transition-all">
        {icon}
     </a>
   );

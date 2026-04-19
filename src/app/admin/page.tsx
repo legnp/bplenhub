@@ -138,6 +138,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Gestão Social", icon: Globe, href: "/admin/social" },
+            { label: "Gestão de Parceiros", icon: Handshake, href: "/admin/partners" },
             { label: "Novo Portfólio", icon: Briefcase, href: "/admin/portfolio" },
             { label: "Ver Formulários", icon: FileText, href: "/admin/forms" },
             { label: "Ajustar Agenda", icon: Calendar, href: "/admin/agenda" },

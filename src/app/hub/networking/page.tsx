@@ -67,13 +67,13 @@ export default function NetworkingPage() {
            <div className="space-y-2">
               <div className="flex items-center gap-3 text-[var(--accent-start)]">
                  <Network size={20} />
-                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Conexões Soberanas</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Conexões Soberanas</span>
               </div>
-              <h1 className="text-3xl font-black tracking-tighter text-white">Ecossistema BPlen</h1>
+              <h1 className="text-3xl font-black tracking-tighter text-[var(--text-primary)]">Ecossistema BPlen</h1>
            </div>
            
            {/* Navigation Tabs */}
-           <div className="flex p-2 bg-white/5 border border-white/10 rounded-[2.5rem] glass">
+           <div className="flex p-2 bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[2.5rem] glass">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -87,8 +87,8 @@ export default function NetworkingPage() {
                     className={cn(
                       "flex items-center gap-3 px-6 py-3 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap",
                       isActive 
-                        ? "bg-white text-black shadow-xl scale-105" 
-                        : "text-white/40 hover:text-white"
+                        ? "bg-[var(--accent-start)] text-white shadow-xl scale-105" 
+                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     )}
                   >
                     <Icon size={14} className={cn(isActive && "animate-pulse")} />
@@ -100,7 +100,7 @@ export default function NetworkingPage() {
         </div>
 
         {/* 🔍 Centro de Filtros */}
-        <div className="bg-white/5 border border-white/10 rounded-[3.5rem] p-8 glass space-y-6">
+        <div className="bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-[3.5rem] p-8 glass space-y-6">
            <NetworkingFilters 
               tab={activeTab}
               search={search}
@@ -119,7 +119,7 @@ export default function NetworkingPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 animate-pulse">
              <Loader2 size={40} className="text-[var(--accent-start)] animate-spin" />
-             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Mapeando conexões estratégicas...</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Mapeando conexões estratégicas...</p>
           </div>
         ) : data.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -133,13 +133,13 @@ export default function NetworkingPage() {
              ))}
           </div>
         ) : (
-          <div className="py-32 flex flex-col items-center justify-center text-center space-y-6 bg-white/5 border border-dashed border-white/10 rounded-[4rem]">
-             <div className="p-6 bg-white/5 rounded-full text-white/20">
+          <div className="py-32 flex flex-col items-center justify-center text-center space-y-6 bg-[var(--input-bg)] border border-dashed border-[var(--border-primary)] rounded-[4rem]">
+             <div className="p-6 bg-[var(--input-bg)] rounded-full text-[var(--text-muted)]">
                 <Rocket size={48} />
              </div>
              <div className="space-y-2">
-                <h3 className="text-xl font-black text-white">Nenhum resultado encontrado</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/30 max-w-xs mx-auto">
+                <h3 className="text-xl font-black text-[var(--text-primary)]">Nenhum resultado encontrado</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] max-w-xs mx-auto">
                    Tente ajustar seus filtros ou termos de busca para encontrar novas conexões.
                 </p>
              </div>
@@ -154,8 +154,8 @@ export default function NetworkingPage() {
                <Info size={40} />
             </div>
             <div className="space-y-3 text-center md:text-left flex-1">
-               <h4 className="text-lg font-black text-white tracking-tight uppercase">Soberania & Visibilidade</h4>
-               <p className="text-sm text-white/60 leading-relaxed max-w-2xl">
+               <h4 className="text-lg font-black text-[var(--text-primary)] tracking-tight uppercase">Soberania & Visibilidade</h4>
+               <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-2xl">
                   Seu perfil só aparece no networking se a visibilidade estiver habilitada nas configurações. No BPlen HUB, você tem autonomia total sobre quem pode visualizar seu Pitch e hashtags profissionais.
                </p>
             </div>

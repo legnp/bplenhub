@@ -91,14 +91,14 @@ export default function AdminPartnersPage() {
     <div className="p-8 space-y-10 animate-in fade-in duration-700">
       
       {/* 🏆 Header */}
-      <div className="flex justify-between items-center bg-white/5 p-8 rounded-[2.5rem] glass border border-white/10">
+      <div className="flex justify-between items-center bg-[var(--input-bg)] p-8 rounded-[2.5rem] glass border border-[var(--border-primary)]">
          <div className="flex items-center gap-6">
             <div className="p-4 bg-[var(--accent-start)]/10 rounded-3xl text-[var(--accent-start)]">
                <Briefcase size={32} />
             </div>
             <div className="space-y-1">
-               <h1 className="text-2xl font-black tracking-tighter text-white">Gestão de Parceiros</h1>
-               <p className="text-[10px] uppercase font-black tracking-[0.2em] text-white/40">Ecosistema Estratégico BPlen</p>
+               <h1 className="text-2xl font-black tracking-tighter text-[var(--text-primary)]">Gestão de Parceiros</h1>
+               <p className="text-[10px] uppercase font-black tracking-[0.2em] text-[var(--text-muted)]">Ecosistema Estratégico BPlen</p>
             </div>
          </div>
          <button 
@@ -106,7 +106,7 @@ export default function AdminPartnersPage() {
              setEditingPartner({ isActive: true, socials: {}, keywords: [] });
              setShowModal(true);
            }}
-           className="px-8 py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+           className="px-8 py-4 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
          >
            <Plus size={14} />
            Novo Parceiro
@@ -123,32 +123,32 @@ export default function AdminPartnersPage() {
            {partners.map(partner => (
              <div key={partner.id} className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] glass hover:border-white/20 transition-all group">
                 <div className="flex items-center gap-4">
-                   <div className="w-16 h-16 rounded-2xl bg-black/40 overflow-hidden flex-shrink-0 border border-white/10">
+                   <div className="w-16 h-16 rounded-2xl bg-[var(--input-bg)] overflow-hidden flex-shrink-0 border border-[var(--border-primary)]">
                       {partner.photoUrl ? (
                          <img src={partner.photoUrl} alt={partner.name} className="w-full h-full object-cover" />
                       ) : (
-                         <div className="w-full h-full flex items-center justify-center text-white/20">
+                         <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                             <Camera size={20} />
                          </div>
                       )}
                    </div>
                    <div className="flex-1 min-w-0">
-                      <h3 className="font-black text-white truncate">{partner.name}</h3>
+                      <h3 className="font-black text-[var(--text-primary)] truncate">{partner.name}</h3>
                       <span className="text-[9px] font-black uppercase tracking-widest text-[var(--accent-start)] bg-[var(--accent-start)]/10 px-2 py-0.5 rounded-md">
                          {partner.serviceType}
                       </span>
                    </div>
                 </div>
                 
-                <p className="mt-4 text-[11px] text-white/50 line-clamp-2 leading-relaxed italic">
+                <p className="mt-4 text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed italic">
                    {partner.description}
                 </p>
 
-                <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center">
+                <div className="mt-6 pt-6 border-t border-[var(--border-primary)] flex justify-between items-center">
                    <div className="flex gap-2">
-                      {partner.socials?.instagram && <Instagram size={14} className="text-white/20" />}
-                      {partner.socials?.linkedin && <Linkedin size={14} className="text-white/20" />}
-                      {partner.socials?.site && <Globe size={14} className="text-white/20" />}
+                      {partner.socials?.instagram && <Instagram size={14} className="text-[var(--text-muted)]" />}
+                      {partner.socials?.linkedin && <Linkedin size={14} className="text-[var(--text-muted)]" />}
+                      {partner.socials?.site && <Globe size={14} className="text-[var(--text-muted)]" />}
                    </div>
                    <div className="flex gap-2">
                       <button 
@@ -156,7 +156,7 @@ export default function AdminPartnersPage() {
                           setEditingPartner(partner);
                           setShowModal(true);
                         }}
-                        className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white/40 hover:text-white transition-all"
+                        className="p-3 bg-[var(--input-bg)] hover:bg-[var(--accent-soft)] rounded-xl text-[var(--text-muted)] hover:text-[var(--accent-start)] transition-all"
                       >
                          <Save size={14} />
                       </button>
@@ -175,31 +175,31 @@ export default function AdminPartnersPage() {
 
       {/* 🎭 Modal de Cadastro */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-           <div className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 space-y-8 relative overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+           <div className="w-full max-w-2xl bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-[3rem] p-10 space-y-8 relative overflow-y-auto max-h-[90vh] shadow-2xl">
               <button 
                 onClick={() => setShowModal(false)}
-                className="absolute top-8 right-8 text-white/20 hover:text-white transition-all"
+                className="absolute top-8 right-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
               >
                  <X size={24} />
               </button>
 
               <div className="space-y-1">
-                 <h2 className="text-xl font-black text-white tracking-tighter">
+                 <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter">
                     {editingPartner?.id ? "Editar Parceiro" : "Novo Parceiro Soberano"}
                  </h2>
-                 <p className="text-[10px] font-black uppercase text-white/20 tracking-widest italic">Preencha os ativos para o ecossistema</p>
+                 <p className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-widest italic">Preencha os ativos para o ecossistema</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  {/* Foto Upload */}
                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Logo ou Foto Principal</label>
-                    <label className="flex flex-col items-center justify-center w-full aspect-square bg-white/5 border-2 border-dashed border-white/10 rounded-3xl cursor-pointer hover:bg-white/10 transition-all overflow-hidden relative group">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Logo ou Foto Principal</label>
+                    <label className="flex flex-col items-center justify-center w-full aspect-square bg-[var(--input-bg)] border-2 border-dashed border-[var(--border-primary)] rounded-3xl cursor-pointer hover:bg-[var(--accent-soft)] transition-all overflow-hidden relative group">
                        {(base64Image || editingPartner?.photoUrl) ? (
                          <img src={base64Image || editingPartner?.photoUrl} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="Preview" />
                        ) : (
-                         <div className="flex flex-col items-center text-white/20">
+                         <div className="flex flex-col items-center text-[var(--text-muted)]">
                             <Plus size={32} />
                             <span className="text-[9px] font-black uppercase mt-2">Upload WebP</span>
                          </div>
@@ -214,32 +214,32 @@ export default function AdminPartnersPage() {
                  {/* Dados Básicos */}
                  <div className="space-y-6">
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Nome Estratégico</label>
+                       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Nome Estratégico</label>
                        <input 
                          type="text"
                          value={editingPartner?.name || ""}
                          onChange={(e) => setEditingPartner({ ...editingPartner, name: e.target.value })}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs text-white focus:border-[var(--accent-start)] outline-none transition-all"
+                         className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl px-6 py-4 text-xs text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none transition-all"
                          placeholder="Ex: Consultoria BPlen"
                        />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Ramo de Atuação</label>
+                       <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Ramo de Atuação</label>
                        <select 
                          value={editingPartner?.serviceType || ""}
                          onChange={(e) => setEditingPartner({ ...editingPartner, serviceType: e.target.value })}
-                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs text-white focus:border-[var(--accent-start)] outline-none transition-all"
+                         className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl px-6 py-4 text-xs text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none transition-all"
                        >
-                          <option value="">Selecione um Ramo</option>
-                          {initialRamos.map(r => <option key={r} value={r}>{r}</option>)}
-                          <option value="Outro">Outro (Especifique abaixo)</option>
+                          <option value="" className="bg-[var(--bg-primary)]">Selecione um Ramo</option>
+                          {initialRamos.map(r => <option key={r} value={r} className="bg-[var(--bg-primary)]">{r}</option>)}
+                          <option value="Outro" className="bg-[var(--bg-primary)]">Outro (Especifique abaixo)</option>
                        </select>
                     </div>
                     {editingPartner?.serviceType === "Outro" && (
                        <input 
                         type="text"
                         placeholder="Novo Ramo..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs text-white focus:border-[var(--accent-start)] outline-none transition-all mt-2"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl px-6 py-4 text-xs text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none transition-all mt-2"
                         onBlur={(e) => setEditingPartner({ ...editingPartner, serviceType: e.target.value })}
                        />
                     )}
@@ -247,45 +247,45 @@ export default function AdminPartnersPage() {
               </div>
 
               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-white/40">Descrição de Serviços (Max 200 chars)</label>
+                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Descrição de Serviços (Max 200 chars)</label>
                  <textarea 
                    rows={3}
                    value={editingPartner?.description || ""}
                    onChange={(e) => setEditingPartner({ ...editingPartner, description: e.target.value })}
-                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs text-white focus:border-[var(--accent-start)] outline-none transition-all resize-none"
+                   className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl px-6 py-4 text-xs text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none transition-all resize-none"
                    placeholder="Descreva o que o parceiro oferece para o ecossistema..."
                  />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2"><Instagram size={10} /> Instagram</label>
-                    <input 
-                      type="text"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none"
-                      value={editingPartner?.socials?.instagram || ""}
-                      onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, instagram: e.target.value } })}
-                    />
-                 </div>
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2"><Linkedin size={10} /> LinkedIn</label>
-                    <input 
-                      type="text"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none"
-                      value={editingPartner?.socials?.linkedin || ""}
-                      onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, linkedin: e.target.value } })}
-                    />
-                 </div>
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2"><Globe size={10} /> Site Oficial</label>
-                    <input 
-                      type="text"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none"
-                      value={editingPartner?.socials?.site || ""}
-                      onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, site: e.target.value } })}
-                    />
-                 </div>
-              </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2"><Instagram size={10} /> Instagram</label>
+                     <input 
+                       type="text"
+                       className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[10px] text-[var(--text-primary)] outline-none"
+                       value={editingPartner?.socials?.instagram || ""}
+                       onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, instagram: e.target.value } })}
+                     />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2"><Linkedin size={10} /> LinkedIn</label>
+                     <input 
+                       type="text"
+                       className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[10px] text-[var(--text-primary)] outline-none"
+                       value={editingPartner?.socials?.linkedin || ""}
+                       onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, linkedin: e.target.value } })}
+                     />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2"><Globe size={10} /> Site Oficial</label>
+                     <input 
+                       type="text"
+                       className="w-full bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-xl px-4 py-3 text-[10px] text-[var(--text-primary)] outline-none"
+                       value={editingPartner?.socials?.site || ""}
+                       onChange={(e) => setEditingPartner({ ...editingPartner, socials: { ...editingPartner?.socials, site: e.target.value } })}
+                     />
+                  </div>
+               </div>
 
               <div className="pt-8 border-t border-white/5 flex gap-4">
                  <button 

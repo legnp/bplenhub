@@ -384,12 +384,12 @@ export default function UsersManagementPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-8 py-10 bg-white/5 opacity-50 italic text-[10px] uppercase font-bold tracking-widest">Sincronizando governança...</td>
+                    <td colSpan={5} className="px-8 py-10 bg-[var(--input-bg)]/40 opacity-50 italic text-[10px] uppercase font-bold tracking-widest">Sincronizando governança...</td>
                   </tr>
                 ))
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.matricula} className={`hover:bg-white/[0.02] transition-colors group ${user.role === 'suspended' ? 'opacity-60 grayscale' : ''}`}>
+                  <tr key={user.matricula} className={`hover:bg-[var(--accent-soft)]/10 transition-colors group ${user.role === 'suspended' ? 'opacity-60 grayscale' : ''}`}>
                     {/* Identidade */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
@@ -466,7 +466,7 @@ export default function UsersManagementPage() {
                     <td className="px-8 py-6 text-right">
                        <button 
                          onClick={() => { setSelectedUser(user); setActiveTab("services"); }}
-                         className="p-3 rounded-xl bg-black text-white hover:bg-[var(--accent-start)] transition-all shadow-lg shadow-black/10 flex items-center gap-2 ml-auto"
+                         className="p-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90 transition-all shadow-lg shadow-black/10 flex items-center gap-2 ml-auto"
                        >
                           <Settings size={14} />
                           <span className="text-[9px] font-bold uppercase tracking-widest">Configurações</span>
@@ -518,7 +518,7 @@ export default function UsersManagementPage() {
                         ))}
                       </div>
                    </div>
-                   <button onClick={() => setSelectedUser(null)} className="p-3 rounded-2xl hover:bg-white/10 transition-all text-gray-500">
+                   <button onClick={() => setSelectedUser(null)} className="p-3 rounded-2xl hover:bg-[var(--input-bg)] transition-all text-[var(--text-muted)]">
                       <X size={20} />
                    </button>
                 </div>
@@ -534,14 +534,14 @@ export default function UsersManagementPage() {
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                {/* Role: Administrativo */}
-                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'admin' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
+                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.role === 'admin' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-[var(--input-bg)] border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
                                   <div>
                                      <p className="text-[10px] font-bold uppercase text-[var(--text-primary)]">Modo Administrativo</p>
                                      <p className="text-[8px] text-[var(--text-muted)] uppercase mt-1">Gestão Completa do Hub</p>
                                   </div>
                                   <button 
                                     onClick={() => handleUpdateRole(selectedUser.matricula, selectedUser.role === 'admin' ? 'member' : 'admin')}
-                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.role === 'admin' ? 'bg-emerald-500' : 'bg-gray-700'}`}
+                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.role === 'admin' ? 'bg-emerald-500' : 'bg-[var(--text-muted)]'}`}
                                   >
                                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.role === 'admin' ? 'left-7' : 'left-1'}`} />
                                   </button>
@@ -562,9 +562,9 @@ export default function UsersManagementPage() {
                                </div>
 
                                {/* NOVO: Selo Profissional BPlen 🌟 */}
-                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.isProfessional ? 'bg-[var(--accent-start)]/5 border-[var(--accent-start)]/20' : 'bg-white/5 border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
+                               <div className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between ${selectedUser.isProfessional ? 'bg-[var(--accent-start)]/10 border-[var(--accent-start)]/30 shadow-lg shadow-[var(--accent-start)]/5' : 'bg-[var(--input-bg)] border-[var(--border-primary)] opacity-40 hover:opacity-100'}`}>
                                   <div className="flex items-center gap-3">
-                                     <div className={cn("p-2 rounded-xl", selectedUser.isProfessional ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)]" : "bg-white/5 text-white/20")}>
+                                     <div className={cn("p-2 rounded-xl", selectedUser.isProfessional ? "bg-[var(--accent-start)]/10 text-[var(--accent-start)]" : "bg-[var(--bg-primary)]/40 text-[var(--text-muted)]")}>
                                         <Trophy size={16} />
                                      </div>
                                      <div>
@@ -574,7 +574,7 @@ export default function UsersManagementPage() {
                                   </div>
                                   <button 
                                     onClick={() => handleToggleProfessional(selectedUser.matricula, !!selectedUser.isProfessional)}
-                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.isProfessional ? 'bg-[var(--accent-start)] shadow-lg shadow-[var(--accent-start)]/20' : 'bg-gray-700'}`}
+                                    className={`w-12 h-6 rounded-full relative transition-all ${selectedUser.isProfessional ? 'bg-[var(--accent-start)] shadow-lg shadow-[var(--accent-start)]/20' : 'bg-[var(--text-muted)]'}`}
                                   >
                                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedUser.isProfessional ? 'left-7' : 'left-1'}`} />
                                   </button>
@@ -631,7 +631,7 @@ export default function UsersManagementPage() {
                                          </div>
 
                                          {isActive && (
-                                            <div className="pt-3 border-t border-[var(--border-primary)]/30 flex items-center justify-between">
+                                            <div className="pt-3 border-t border-[var(--border-primary)] flex items-center justify-between">
                                                <div className="flex items-center gap-2">
                                                   <CreditCard size={12} className="text-[var(--accent-start)]" />
                                                   <label className="text-[8px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Créditos Disponíveis</label>
@@ -644,7 +644,7 @@ export default function UsersManagementPage() {
                                                      const val = parseInt(e.target.value) || 0;
                                                      setEditingQuotas(prev => ({ ...prev, [key]: val }));
                                                   }}
-                                                  className="w-16 bg-white/5 border border-[var(--border-primary)] rounded-lg p-2 text-[10px] text-center font-black focus:border-[var(--accent-start)] outline-none"
+                                                  className="w-16 bg-[var(--bg-primary)]/40 border border-[var(--border-primary)] rounded-lg p-2 text-[10px] text-center font-black text-[var(--text-primary)] focus:border-[var(--accent-start)] outline-none"
                                                />
                                             </div>
                                          )}
@@ -720,7 +720,7 @@ export default function UsersManagementPage() {
                                   placeholder="https://vrs.com.br/disc/resultado/..."
                                   value={discLinkInput}
                                   onChange={(e) => setDiscLinkInput(e.target.value)}
-                                  className="bg-black/5 border border-blue-500/20 rounded-2xl px-5 py-3.5 text-[10px] font-mono flex-1 text-[var(--text-primary)] focus:border-blue-500/50 outline-none transition-all placeholder:opacity-30"
+                                  className="bg-[var(--input-bg)] border border-[var(--border-primary)] rounded-2xl px-5 py-3.5 text-[10px] font-mono flex-1 text-[var(--text-primary)] focus:border-[var(--accent-start)]/50 outline-none transition-all placeholder:opacity-30"
                                />
                                <button 
                                   onClick={handleSaveDiscLink}

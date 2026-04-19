@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   Zap,
   Globe,
-  Ticket
+  Ticket,
+  Handshake
 } from "lucide-react";
 import { HubHeader } from "@/components/hub/HubHeader";
 import { BPlenLogo } from "@/components/shared/BPlenLogo";
@@ -62,6 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           <div className="pt-4 pb-2 px-4 text-[8px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] opacity-40">Conteúdo & Vendas</div>
           <NavLink href="/admin/products" icon={<Zap size={18} />}>PORTFÓLIO</NavLink>
+          <NavLink href="/admin/partners" icon={<Handshake size={18} />}>GESTÃO DE PARCEIROS</NavLink>
           <NavLink href="/admin/marketing" icon={<Ticket size={18} />}>CUPONS E OFERTAS</NavLink>
           <NavLink href="/admin/social" icon={<Globe size={18} />}>MEDIA E EDITORIAL</NavLink>
           
