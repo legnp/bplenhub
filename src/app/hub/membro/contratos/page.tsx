@@ -67,6 +67,7 @@ export default async function ContratosPage() {
   // Traz a trilha financeira do membro.
   const result = await getUserOrdersAction();
   const orders = result.data || [];
+  const error = result.error;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -97,7 +98,21 @@ export default async function ContratosPage() {
 
       {/* Grid de Orders */}
       <div className="space-y-6">
-        {orders.length === 0 ? (
+        {error ? (
+          <div className="glass p-16 text-center space-y-4 border-red-500/20 bg-red-500/5">
+             <AlertCircle size={48} className="mx-auto text-red-500 opacity-80" />
+             <h3 className="text-lg font-black text-red-600 uppercase tracking-widest">Falha na Sincronização</h3>
+             <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
+               Houve um problema técnico ao recuperar seu histórico financeiro. {error}
+             </p>
+             <Link 
+               href="/hub/membro/contratos" 
+               className="inline-block mt-4 px-8 py-3 glass text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-[var(--text-primary)] hover:text-[var(--bg-primary)] transition-all"
+             >
+               Tentar Novamente
+             </Link>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="glass p-16 text-center space-y-4">
              <ScrollText size={48} className="mx-auto text-[var(--text-muted)] opacity-50" />
              <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-widest">Nenhum Contrato Ativo</h3>

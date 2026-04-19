@@ -1,6 +1,7 @@
 "use client";
 
 import { StepStatus, JourneyStep } from "@/types/journey";
+import { Product } from "@/types/products";
 import { motion, AnimatePresence } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { LucideIcon } from "lucide-react";
@@ -9,8 +10,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { UpsellServiceModal } from "./UpsellServiceModal";
 import { getProductBySlug } from "@/actions/products";
-import { Product } from "@/types/products";
 import { StageTelemetry } from "@/hooks/useJourney";
+import { SequenceLockModal } from "./SequenceLockModal";
 
 interface JourneyNavProps {
   stages: JourneyStep[];
@@ -103,6 +104,10 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
   const [upsellLoading, setUpsellLoading] = useState(false);
   const [upsellModalOpen, setUpsellModalOpen] = useState(false);
 
+  // Sequence Lock State 🔒
+  const [sequenceLockModalOpen, setSequenceLockModalOpen] = useState(false);
+  const [prevStageTitle, setPrevStageTitle] = useState("");
+
   const currentStepIndex = stages.findIndex(s => s.id === currentStepId);
 
   // Manipulador de Clique Inteligente (Governança + Upsell + Sequência 🛡️✨)
@@ -122,9 +127,13 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
       return;
     }
 
-    // 2. Segunda Prioridade: Tem acesso, mas a sequência está travada metologicamente 🔒
+    // 2. Segunda Prioridade: Tem acesso, mas a sequência está travada metodologicamente 🔒
     if (isSequenceLocked) {
-       alert(`🔒 Etapa Bloqueada: Você precisa completar 100% da etapa anterior antes de iniciar esta fase. A metodologia BPlen exige a conclusão linear para garantir resultados reais.`);
+       const stageIndex = stages.findIndex(s => s.id === stage.id);
+       if (stageIndex > 0) {
+          setPrevStageTitle(stages[stageIndex - 1].title);
+          setSequenceLockModalOpen(true);
+       }
        return;
     }
 
@@ -435,6 +444,13 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
         onClose={() => setUpsellModalOpen(false)}
         product={upsellProduct}
         loading={upsellLoading}
+      />
+
+      {/* Modal de Soberania Metodológica (Trava de Sequência) 🛡️ */}
+      <SequenceLockModal 
+        isOpen={sequenceLockModalOpen}
+        onClose={() => setSequenceLockModalOpen(false)}
+        prevStageTitle={prevStageTitle}
       />
     </div>
   );

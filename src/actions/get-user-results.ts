@@ -7,7 +7,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
  * Este helper garante que o usuário sempre encontre sua matrícula, 
  * mesmo que o mapeamento inicial tenha falhado.
  */
-async function resolveMatricula(userUid: string, email?: string): Promise<string | null> {
+export async function resolveMatricula(userUid: string, email?: string): Promise<string | null> {
   const db = getAdminDb();
   console.log(`🔍 [GetResults:resolveMatricula] Resolvendo para UID: ${userUid}, Email: ${email}`);
   

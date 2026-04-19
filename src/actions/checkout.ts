@@ -1,10 +1,11 @@
 "use server";
 
-import admin, { getAdminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { requireAuth } from "@/lib/auth-guards";
 import { Product } from "@/types/products";
 import { PRODUCTS_COLLECTION } from "@/config/collections";
 import { revalidatePath } from "next/cache";
+import { grantServiceEntitlement } from "@/lib/checkout";
 
 /**
  * BPlen HUB — Lógica de Checkout e Provisionamento 💳🧬
@@ -55,52 +56,12 @@ export async function processServicePurchaseAction(
        }
     }
 
-    const finalPrice = Math.max(0, product.price - appliedDiscount);
-    const userRef = db.collection("User_Permissions").doc(session.uid);
-
-    // 🏛️ 3. Transação de Provisionamento (Segurança Atômica)
-    await db.runTransaction(async (transaction) => {
-      const userDoc = await transaction.get(userRef);
-      
-      const currentServices = userDoc.exists 
-        ? (userDoc.data()?.services || {}) 
-        : {};
-
-      // Ativando o serviço (Entitlement via ID ou Slug)
-      const updatedServices = {
-        ...currentServices,
-        [productId]: true,
-        [productSlug]: true, // Redundância para garantir compatibilidade de rotas
-        member_area_access: true // Toda compra garante acesso à área de membros
-      };
-
-      const updateData: Record<string, unknown> = {
-        services: updatedServices,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastPurchase: {
-          productTitle: product.title,
-          productSlug: product.slug,
-          purchasedAt: admin.firestore.FieldValue.serverTimestamp()
-        }
-      };
-
-      // Se o usuário era apenas visitante, promovemos para membro
-      if (!userDoc.exists || userDoc.data()?.role === "visitor") {
-        updateData.role = "member";
-      }
-
-      if (userDoc.exists) {
-        transaction.update(userRef, updateData);
-      } else {
-        transaction.set(userRef, {
-          matricula: session.uid.slice(0, 8).toUpperCase(), // Matricula provisória baseada em UID
-          email: session.email,
-          name: session.email?.split("@")[0] || "Membro BPlen",
-          role: "member",
-          onboardStatus: "pending",
-          ...updateData
-        });
-      }
+    // 🏛️ 3. Ativação Soberana (via Matrícula 🛡️)
+    await grantServiceEntitlement({
+      uid: session.uid,
+      productId: product.id || productSnap.docs[0].id,
+      productSlug: product.slug,
+      productTitle: product.title
     });
 
     console.log(`✅ [Checkout] Serviço ${product.title} ativado para ${session.email}`);

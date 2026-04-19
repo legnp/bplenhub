@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Product } from "@/types/products";
@@ -20,6 +21,14 @@ interface UpsellServiceModalProps {
  * Design: Glassmorphism v3.1 / Apple Pro
  */
 export function UpsellServiceModal({ isOpen, onClose, product, loading }: UpsellServiceModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   if (!isOpen && !loading) return null;
 
   const audienceMap: Record<string, string> = {
@@ -32,10 +41,10 @@ export function UpsellServiceModal({ isOpen, onClose, product, loading }: Upsell
   const audienceSlug = audienceMap[idAudience] || 'pessoas';
   const redirectUrl = `/servicos/${audienceSlug}/${product?.slug}`;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-6">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6">
           {/* Backdrop Eéreo */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -100,6 +109,9 @@ export function UpsellServiceModal({ isOpen, onClose, product, loading }: Upsell
                 {/* Conteúdo do Card */}
                 <div className="p-10 pt-4 space-y-8">
                   <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-500/80">
+                      Você ainda não contratou esse serviço
+                    </p>
                     <h3 className="text-2xl font-black text-[var(--text-primary)] tracking-tight italic">
                       {product.title}
                     </h3>
@@ -145,6 +157,7 @@ export function UpsellServiceModal({ isOpen, onClose, product, loading }: Upsell
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -94,6 +94,33 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
     let isAdmin = false;
     let currentPerms = permSnap.exists ? permSnap.data() : null;
 
+    // 🩹 AUTO-HEALING: Migração de Dados Órfãos (Soberania 3.1 🛡️)
+    // Se não houver dados na subcoleção soberana, verificamos na raiz legada.
+    const rootPermRef = getAdminDb().collection("User_Permissions").doc(uid);
+    const rootPermSnap = await rootPermRef.get();
+
+    if (rootPermSnap.exists && (!currentPerms || !currentPerms.services || Object.keys(currentPerms.services).length === 0)) {
+      console.warn(`🩹 [Auth:Healing] Dados herdados encontrados na ROOT para UID: ${uid}. Migrando para Matrícula: ${matricula}...`);
+      const rootData = rootPermSnap.data();
+      
+      const healingData = {
+        role: rootData?.role || "member",
+        services: rootData?.services || {},
+        onboardStatus: rootData?.onboardStatus || "pending",
+        healedAt: admin.firestore.FieldValue.serverTimestamp(),
+        healingOrigin: "LEGACY_ROOT_MIGRATION"
+      };
+
+      await permissionsRef.set(healingData, { merge: true });
+      
+      // Marcar raiz como migrada para evitar loops ou confusão futura
+      await rootPermRef.update({ migratedToSubcollection: true, migratedAt: admin.firestore.FieldValue.serverTimestamp() });
+      
+      // Atualizar estado local para o retorno da função
+      currentPerms = { ...currentPerms, ...healingData };
+      console.log(`✅ [Auth:Healing] Migração soberana concluída com sucesso para ${email}`);
+    }
+
     if (currentPerms) {
       isAdmin = currentPerms.admin === true;
     }
