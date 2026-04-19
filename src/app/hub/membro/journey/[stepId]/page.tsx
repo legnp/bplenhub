@@ -24,7 +24,7 @@ export default function StepJourneyPage() {
   const { user } = useAuthContext();
 
   // Progress Logic
-  const { stages, progress, loading, updateSubStep, getStepStatus } = useJourney(user?.uid || "guest");
+  const { stages, progress, loading, updateSubStep, getStepStatus, getStageTelemetry } = useJourney(user?.uid || "guest");
 
   // Local state for current substep view
   const [currentSubStepId, setCurrentSubStepId] = useState<string>("");
@@ -35,8 +35,13 @@ export default function StepJourneyPage() {
     if (stepConfig && !currentSubStepId) {
       // Logic from user feedback: linear, but flexible.
       // Default to first incomplete substep or simply the first one if everything completed.
-      const firstIncomplete = stepConfig.substeps.find(ss => !progress?.steps[stepId]?.completedSubSteps.includes(ss.id));
-      setCurrentSubStepId(firstIncomplete?.id || stepConfig.substeps[0].id);
+      const firstIncomplete = stepConfig.substeps?.find(ss => !progress?.steps[stepId]?.completedSubSteps.includes(ss.id));
+      const firstId = firstIncomplete?.id || stepConfig.substeps?.[0]?.id;
+      
+      if (firstId) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCurrentSubStepId(firstId);
+      }
     }
   }, [stepConfig, currentSubStepId, progress, stepId]);
 
@@ -107,11 +112,14 @@ export default function StepJourneyPage() {
 
   if (!stepConfig) return null;
 
-  const currentSubStep = stepConfig.substeps.find(ss => ss.id === currentSubStepId) || stepConfig.substeps[0];
+  const currentSubStep = (stepConfig.substeps && stepConfig.substeps.length > 0)
+    ? (stepConfig.substeps.find(ss => ss.id === currentSubStepId) || stepConfig.substeps[0])
+    : null;
+
   const stepStatus = getStepStatus(stepId);
   
   // 🔒 Governança de Sequência Rígida (Soberania Metodológica 🛡️)
-  const telemetry = progress ? useJourney(user?.uid || "").getStageTelemetry(stepId) : null;
+  const telemetry = progress ? getStageTelemetry(stepId) : null;
   const isLockedBySequence = telemetry?.hasAccess && telemetry?.isSequenceLocked;
 
   if (isLockedBySequence) {
@@ -139,6 +147,8 @@ export default function StepJourneyPage() {
       </div>
     );
   }
+
+  if (!currentSubStep) return <AtmosphericLoading />;
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pt-5 pb-8 px-4">
