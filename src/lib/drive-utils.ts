@@ -160,7 +160,7 @@ export async function uploadFileToDrive(
   parentFolderId: string,
   fileName: string,
   mimeType: string,
-  body: any
+  body: drive_v3.Params$Resource$Files$Create["media"]["body"]
 ): Promise<{ id: string; webViewLink: string }> {
   const file = await drive.files.create({
     supportsAllDrives: true,
@@ -200,8 +200,9 @@ export async function makeFilePublic(
         type: "anyone",
       },
     });
-  } catch (err: any) {
-    console.error(`⚠️ [Drive:Permissions] Falha ao tornar arquivo público (${fileId}):`, err.message);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error(`⚠️ [Drive:Permissions] Falha ao tornar arquivo público (${fileId}):`, errorMessage);
   }
 }
 

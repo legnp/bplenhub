@@ -43,7 +43,7 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
   }
 
   // Fallback: E-mail
-  let userEmail = (responses.email as string) || "";
+  const userEmail = (responses.email as string) || "";
   if (userEmail) {
     const normalizedEmail = userEmail.trim().toLowerCase();
     const userByEmailSnap = await db.collection("User").where("email", "==", normalizedEmail).limit(1).get();
@@ -59,7 +59,7 @@ export async function resolveUserIdentity(surveyId: string, responses: Record<st
     return await db.runTransaction(async (transaction) => {
       const counterRef = db.doc("_internal/counters/user/global");
       const counterSnap = await transaction.get(counterRef);
-      let count = (counterSnap.data()?.count || 0) + 1;
+      const count = (counterSnap.data()?.count || 0) + 1;
       transaction.set(counterRef, { count, lastUpdated: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       const seq = count.toString().padStart(3, "0");
       const userTypeRaw = (responses.userType as string) || "PF";
@@ -81,7 +81,7 @@ export async function getUserMetadata(userUid: string) {
   try {
     const db = getAdminDb();
     const authMapSnap = await db.doc(`_AuthMap/${userUid}`).get();
-    let matricula = authMapSnap.data()?.matricula;
+    const matricula = authMapSnap.data()?.matricula;
     if (!matricula) return {};
     const accessSnap = await db.doc(`User/${matricula}/User_Permissions/access`).get();
     return accessSnap.data()?.metadata || {};

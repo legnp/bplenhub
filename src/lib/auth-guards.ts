@@ -63,12 +63,14 @@ export async function requireMemberAccess(idToken?: string): Promise<Session> {
      throw new AuthorizationError("Acesso Negado: Sua assinatura bPlen foi suspensa. Verifique sua situação financeira ou termos de uso.");
   }
 
-  // Governança: Admin tem acesso irrestrito, ou membro com entitlement específico
-  const hasAccess = session.isAdmin || session.services?.member_area_access === true;
+  // 🚨 Governança Soberana v3.1: Acesso Granular
+  // No BPlen HUB, privilégio administrativo não herda acesso à experiência de membro.
+  // Isso permite que gestores testem o bloqueio e gerenciem acessos de forma isolada.
+  const hasAccess = session.services?.member_area_access === true;
 
   if (!hasAccess) {
     console.error(`❌ [Authorization] Acesso À ÁREA DE MEMBRO negado para o UID: ${session.uid}`);
-    throw new AuthorizationError("Seu plano atual não inclui acesso a esta área restrita.");
+    throw new AuthorizationError("Seu plano atual não inclui acesso a esta área restrita ou o acesso foi revogado pela administração.");
   }
 
   console.log(`✅ [Authorization] Acesso à Área de Membro autorizado para: ${session.email}`);

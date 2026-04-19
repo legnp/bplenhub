@@ -89,7 +89,7 @@ export async function getGestaoTempoResult(userUid: string, email?: string) {
       return null;
     }
     
-    let rawData = res.data() || {};
+    const rawData = res.data() || {};
     
     // Normalização básica de schema
     let scores = rawData.scores;
@@ -130,7 +130,7 @@ export async function getAprendizadoResult(userUid: string, userEmail: string) {
       return null;
     }
     
-    let rawData = res.data() || {};
+    const rawData = res.data() || {};
     
     // Normalização básica de schema
     let scores = rawData.scores;
@@ -171,7 +171,7 @@ export async function getReconhecimentoResult(userUid: string, userEmail: string
       return null;
     }
     
-    let rawData = res.data() || {};
+    const rawData = res.data() || {};
     
     // Normalização básica de schema
     let scores = rawData.scores;

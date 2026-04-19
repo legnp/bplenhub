@@ -6,6 +6,9 @@ import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
+import { UpsellServiceModal } from "./UpsellServiceModal";
+import { getProductBySlug } from "@/actions/products";
+import { Product } from "@/types/products";
 
 interface JourneyNavProps {
   stages: JourneyStep[];
@@ -22,7 +25,7 @@ interface JourneyNavProps {
 }
 
 // Mapeamento de Ícones Vibrantes e Cores Premium (Alinhado ao Apple IOS Pro) ✨🧬
-const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string }> = {
+const STAGE_THEMES: Record<string, { icon: React.ComponentType<any>, color: string, gradient: string }> = {
   "primeiros_passos": { 
     icon: LucideIcons.Rocket, 
     color: "#EC4899", 
@@ -98,7 +101,41 @@ const STAGE_THEMES: Record<string, { icon: any, color: string, gradient: string 
 export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelemetry, onSelectStep }: JourneyNavProps) {
   const [hoveredStep, setHoveredStep] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState<string | null>(null);
+  
+  // Upsell State 🧬
+  const [upsellProduct, setUpsellProduct] = useState<Product | null>(null);
+  const [upsellLoading, setUpsellLoading] = useState(false);
+  const [upsellModalOpen, setUpsellModalOpen] = useState(false);
+
   const currentStepIndex = stages.findIndex(s => s.id === currentStepId);
+
+  // Manipulador de Clique Inteligente (Governança + Upsell + Sequência 🛡️✨)
+  const handleStageClick = async (stage: JourneyStep, hasAccess: boolean, isSequenceLocked: boolean) => {
+    // 1. Prioridade: Se não tem acesso nenhum -> Upsell
+    if (!hasAccess) {
+      setUpsellModalOpen(true);
+      setUpsellLoading(true);
+      try {
+        const product = await getProductBySlug(stage.id);
+        setUpsellProduct(product);
+      } catch (err) {
+        console.error("Erro ao carregar produto de upsell:", err);
+      } finally {
+        setUpsellLoading(false);
+      }
+      return;
+    }
+
+    // 2. Segunda Prioridade: Tem acesso, mas a sequência está travada metologicamente 🔒
+    if (isSequenceLocked) {
+       alert(`🔒 Etapa Bloqueada: Você precisa completar 100% da etapa anterior antes de iniciar esta fase. A metodologia BPlen exige a conclusão linear para garantir resultados reais.`);
+       return;
+    }
+
+    if (onSelectStep) {
+       onSelectStep(stage.id);
+    }
+  };
 
   return (
     <div className="w-full py-[5px] px-4 overflow-visible">
@@ -125,10 +162,12 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
               percentage: 0,
               hasAccess: true,
               isNext: false,
+              isSequenceLocked: false,
               substepsLabel: "0/0"
             };
 
             const isCurrent = stage.id === currentStepId;
+            const isBlockedBySequence = telemetry.hasAccess && telemetry.isSequenceLocked;
             
             // 🔍 Resolução Inteligente de Tema (ID -> Ordem -> Fallback)
             const THEME_ORDER_MAP: Record<number, string> = {
@@ -146,9 +185,10 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
               || STAGE_THEMES[THEME_ORDER_MAP[stage.order]]
               || { icon: LucideIcons.Circle, color: "#94A3B8", gradient: "from-slate-400 to-slate-500" };
             
-            // 🧬 Resolução Dinâmica de Ícone (String -> Componente)
-            const IconComponent = (stage.icon && (LucideIcons as any)[stage.icon]) 
-              ? (LucideIcons as any)[stage.icon] 
+            // 🧬 Resolução Dinâmica de Ícone (String -> Componente) Rigorosa 🛡️
+            const iconName = stage.icon as keyof typeof LucideIcons;
+            const IconComponent = (stage.icon && LucideIcons[iconName]) 
+              ? LucideIcons[iconName] as React.ComponentType<any>
               : theme.icon;
 
             // Lógica de Cores do Farol (Beacons) Rigorosa — BPlen Mapping 🚥
@@ -164,7 +204,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                 // 🟡 Amarelo: Foco atual (Em progresso)
                 beaconColor = "bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.8)]";
                 beaconStatus = "Foco Atual";
-            } else if (telemetry.hasAccess && telemetry.isNext) {
+            } else if (telemetry.hasAccess && !telemetry.isSequenceLocked && telemetry.isNext) {
                 // 🔵 Azul: O horizonte (Próximo liberado)
                 beaconColor = "bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)]";
                 beaconStatus = "Próximo Passo";
@@ -172,15 +212,21 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                 // 💗 Rosa BPlen: Aguardando liberação administrativa
                 beaconColor = "bg-[#ff2c8d] shadow-[0_0_15px_rgba(255,44,141,0.8)] animate-pulse";
                 beaconStatus = "Bloqueado Admin";
+            } else if (isBlockedBySequence) {
+                beaconColor = "bg-amber-100/40 border-amber-400/30";
+                beaconStatus = "Aguardando Fase Anterior";
             }
 
-            const Wrapper = onSelectStep ? "div" : Link;
-            const wrapperProps = onSelectStep 
-              ? { onClick: () => onSelectStep(stage.id), role: "button" } 
+            // Governança de Wrapper (Híbrido Link/Upsell/Sequence 🧬)
+            const isBlocked = !telemetry.hasAccess;
+            const WrapperComponent = (onSelectStep || isBlocked || isBlockedBySequence) ? "div" : Link;
+            
+            const wrapperProps = onSelectStep || isBlocked || isBlockedBySequence
+              ? { onClick: () => handleStageClick(stage, telemetry.hasAccess, telemetry.isSequenceLocked), role: "button" } 
               : { href: (stage.id === 'PRIMEIROS_PASSOS' || stage.id === 'primeiros_passos' || stage.order === 0) 
                   ? "/hub/primeiros_passos" 
                   : `/hub/membro/journey/${stage.id}` 
-                };
+                } as React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
 
             return (
               <div 
@@ -199,7 +245,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                       className="absolute -top-24 z-50 min-w-[160px] px-5 py-4 rounded-[1.5rem] bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] pointer-events-none"
                     >
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90 mb-2">
-                        {beaconStatus}
+                        {isBlocked ? "Conteúdo Exclusivo" : isBlockedBySequence ? "Aguardando Fase Anterior" : beaconStatus}
                       </p>
                       
                       <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
@@ -234,14 +280,16 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                 </div>
 
                 {/* BOTÃO DO STEP (ÍCONE VIBRANTE) 🚀✨ */}
-                <Wrapper
+                <WrapperComponent
                   {...(wrapperProps as any)}
                   className={cn(
                     "relative w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500",
                     "glass border overflow-visible cursor-pointer",
                     isCurrent 
                       ? "border-white/40 bg-white/20 shadow-xl scale-110" 
-                      : "border-transparent bg-white/5 hover:bg-white/10 hover:border-white/10"
+                      : isBlocked || isBlockedBySequence
+                        ? "border-transparent bg-white/5 opacity-80 filter grayscale-[0.5] hover:grayscale-0 hover:scale-105"
+                        : "border-transparent bg-white/5 hover:bg-white/10 hover:border-white/10 hover:scale-105"
                   )}
                 >
                   <motion.div
@@ -255,15 +303,19 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                       }
                     }}
                   >
+                    {isBlocked ? (
+                       <LucideIcons.Lock size={18} className="text-[var(--text-muted)] opacity-60 absolute -top-1 -right-1 z-20 group-hover:text-[var(--accent-start)] transition-colors" />
+                    ) : null}
+
                     <IconComponent 
                       className="w-[25px] h-[25px] transition-all duration-500" 
                       style={{ 
-                        color: theme.color,
+                        color: isBlocked || isBlockedBySequence ? "var(--text-muted)" : theme.color,
                         filter: isCurrent 
                             ? `drop-shadow(0 0 12px ${theme.color}60)` 
-                            : telemetry.status === 'completed' 
+                            : !(isBlocked || isBlockedBySequence)
                                 ? 'grayscale(0) opacity(1)' 
-                                : 'grayscale(0.6) opacity(0.5)',
+                                : 'grayscale(1) opacity(0.5)',
                       }}
                     />
                   </motion.div>
@@ -276,7 +328,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
                         style={{ backgroundColor: theme.color }}
                     />
                   )}
-                </Wrapper>
+                </WrapperComponent>
 
                 {/* NOME DA ETAPA (TOKEN TEXT PRIMARY) */}
                 <div className="mt-5 text-center px-2 hidden lg:block">
@@ -380,6 +432,14 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             </div>
          )}
       </AnimatePresence>
+
+      {/* Modal de Upsell Contextual ✨🧬 */}
+      <UpsellServiceModal 
+        isOpen={upsellModalOpen}
+        onClose={() => setUpsellModalOpen(false)}
+        product={upsellProduct}
+        loading={upsellLoading}
+      />
     </div>
   );
 }

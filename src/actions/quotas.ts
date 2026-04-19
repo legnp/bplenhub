@@ -106,7 +106,7 @@ export async function consumeQuotaAction(uid: string, eventTypeId: string) {
       if (!doc.exists) throw new Error("Membro não possui carteira de cotas.");
 
       const wallet = doc.data() as MemberQuotaWallet;
-      let quotas = wallet.quotas || {};
+      const quotas = wallet.quotas || {};
       
       // Normalização: mentoria_1to1 -> 1-to-1
       let targetKey = eventTypeId;

@@ -71,7 +71,7 @@ export async function getAdminUsersList(adminToken?: string): Promise<{ success:
       const nickname = data.User_Nickname || "";
 
       // Normalização de Papel (Role)
-      let resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
+      const resolvedRole: UserRole = perm.role || (perm.admin ? "admin" : "member");
 
       // SERIALIZAÇÃO SEGURA: Governança de Datas 🛡️
       const createdAtData = toISOSafe(data.createdAt) || undefined;

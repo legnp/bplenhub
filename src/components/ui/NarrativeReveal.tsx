@@ -44,7 +44,7 @@ export function NarrativeReveal({
     // Resetar estado quando o texto mudar
     setVisibleChars(0);
     
-    let current = 0;
+    const current = 0;
     const totalChars = rawTextForCounting.length;
 
     const startAnimation = () => {

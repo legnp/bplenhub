@@ -4,6 +4,15 @@ import { getJourneyStagesAction, getJourneyProgressAction, updateJourneySubStepA
 import { getMemberQuotasAction } from "@/actions/quotas";
 import { MemberQuotaWallet } from "@/types/entitlements";
 
+export interface StageTelemetry {
+  status: string;
+  percentage: number;
+  hasAccess: boolean;
+  isNext: boolean;
+  isSequenceLocked: boolean;
+  substepsLabel: string;
+}
+
 /**
  * BPlen HUB — useJourney 🧬🛡️
  * Logic hook for member journey progress and access control.
@@ -82,7 +91,7 @@ export function useJourney(uid: string) {
   /**
    * Retorna os dados analíticos de uma etapa (Telemetria Real)
    */
-  const getStageTelemetry = (stepId: string) => {
+  const getStageTelemetry = (stepId: string): StageTelemetry => {
     const stage = stages.find(s => s.id === stepId);
     const stepProgress = progress?.steps[stepId];
     
@@ -99,11 +108,21 @@ export function useJourney(uid: string) {
     const thisStepIndex = stages.findIndex(s => s.id === stepId);
     const isNext = thisStepIndex === currentStepIndex + 1;
 
+    // 🔒 Trava de Sequência BPlen (Metodologia Linear)
+    // Uma etapa só pode ser ACESSADA se a anterior estiver 'completed'.
+    let isSequenceLocked = false;
+    if (thisStepIndex > 0) {
+       const prevStageId = stages[thisStepIndex - 1].id;
+       const prevStepProgress = progress?.steps[prevStageId];
+       isSequenceLocked = prevStepProgress?.status !== "completed";
+    }
+
     return {
       status: stepProgress?.status || "locked",
       percentage,
       hasAccess: hasQuota || stage?.order === 0 || stepId === 'onboarding', // Step 0 e Onboarding sempre liberados
       isNext,
+      isSequenceLocked, // 🧬 Nova flag de governança metodológica
       substepsLabel: `${completedCount}/${totalSubsteps}`
     };
   };

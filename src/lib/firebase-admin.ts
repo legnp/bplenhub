@@ -36,8 +36,9 @@ function initializeAdmin() {
 
     console.log(`✅ [Firebase Admin] Instância inicializada: ${serverEnv.FIREBASE_PROJECT_ID}`);
     return app;
-  } catch (error: any) {
-    console.error("❌ [Firebase Admin] Erro Crítico:", error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ [Firebase Admin] Erro Crítico:", errorMessage);
     return null;
   }
 }

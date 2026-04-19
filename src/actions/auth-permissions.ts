@@ -29,7 +29,7 @@ export async function syncUserPermissionsOnLogin(uid: string, email: string | nu
 
     // 1. Determina a Matrícula via UID Mapping (ou Autocorreção via Email) 🛡️
     const uidMapRef = getAdminDb().collection("_AuthMap").doc(uid);
-    let uidMapSnap = await uidMapRef.get();
+    const uidMapSnap = await uidMapRef.get();
 
     let matricula = "";
     if (uidMapSnap.exists) {

@@ -109,6 +109,36 @@ export default function StepJourneyPage() {
 
   const currentSubStep = stepConfig.substeps.find(ss => ss.id === currentSubStepId) || stepConfig.substeps[0];
   const stepStatus = getStepStatus(stepId);
+  
+  // 🔒 Governança de Sequência Rígida (Soberania Metodológica 🛡️)
+  const telemetry = progress ? useJourney(user?.uid || "").getStageTelemetry(stepId) : null;
+  const isLockedBySequence = telemetry?.hasAccess && telemetry?.isSequenceLocked;
+
+  if (isLockedBySequence) {
+    const prevStageIdx = stages.findIndex(s => s.id === stepId) - 1;
+    const prevStage = stages[prevStageIdx];
+
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="w-24 h-24 rounded-[2.5rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 relative">
+           <Loader2 size={40} className="animate-spin opacity-20 absolute" />
+           <ArrowLeft size={32} className="relative z-10" />
+        </div>
+        <div className="space-y-3 max-w-md">
+          <h2 className="text-2xl font-black tracking-tight text-[var(--text-primary)]">Fase em Espera Metodológica</h2>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            Para garantir a eficácia do seu desenvolvimento, a etapa <strong>{stepConfig.title}</strong> só será liberada após a conclusão 100% da fase anterior <strong>({prevStage?.title})</strong>.
+          </p>
+        </div>
+        <Link 
+          href={prevStage ? `/hub/membro/journey/${prevStage.id}` : "/hub/membro"}
+          className="px-8 py-4 rounded-2xl bg-[var(--accent-start)] text-white font-black text-[11px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-pink-500/20"
+        >
+          Voltar para {prevStage?.title || "Início"}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pt-5 pb-8 px-4">
