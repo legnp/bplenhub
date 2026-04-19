@@ -3,6 +3,7 @@
 import { StepStatus, JourneyStep } from "@/types/journey";
 import { motion, AnimatePresence } from "framer-motion";
 import * as LucideIcons from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
@@ -20,7 +21,7 @@ interface JourneyNavProps {
 }
 
 // Mapeamento de Ícones Vibrantes e Cores Premium (Alinhado ao Apple IOS Pro) ✨🧬
-const STAGE_THEMES: Record<string, { icon: React.ComponentType<unknown>, color: string, gradient: string }> = {
+const STAGE_THEMES: Record<string, { icon: LucideIcon, color: string, gradient: string }> = {
   "primeiros_passos": { 
     icon: LucideIcons.Rocket, 
     color: "#EC4899", 
@@ -183,7 +184,7 @@ export function JourneyNav({ stages, currentStepId, stepStatusMap, getStageTelem
             // 🧬 Resolução Dinâmica de Ícone (String -> Componente) Rigorosa 🛡️
             const iconName = stage.icon as keyof typeof LucideIcons;
             const IconComponent = (stage.icon && LucideIcons[iconName]) 
-              ? LucideIcons[iconName] as React.ComponentType<unknown>
+              ? LucideIcons[iconName] as LucideIcon
               : theme.icon;
 
             // Lógica de Cores do Farol (Beacons) Rigorosa — BPlen Mapping 🚥
