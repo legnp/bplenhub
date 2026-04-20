@@ -15,12 +15,17 @@ export interface ContactItem {
   isPublic: boolean;
 }
 
+export interface FileUploadData {
+  url: string;
+  fileName: string;
+}
+
 export interface ProfessionalProfileData {
   // Dados Internos (Survey Sync)
   regime_choice?: string;
-  beneficios_pacote?: string[];
-  cv_upload?: any;
-  portfolio_upload?: any;
+  beneficios_pacote?: Record<string, any>; // Rich BenefitData format from BenefitsPackage
+  cv_upload?: FileUploadData | null;
+  portfolio_upload?: FileUploadData | null;
   linkedin_url?: string;
   instagram_url?: string;
   web_url?: string;
@@ -44,6 +49,9 @@ export interface ProfessionalProfileData {
     discord: ContactItem;
     site: ContactItem;
   };
+
+  // Matrícula (para FileField uploads)
+  matricula?: string;
 }
 
 /**
@@ -68,11 +76,29 @@ export async function getProfessionalProfileAction(idToken?: string) {
 
     const defaultContact = { value: "", isPublic: false };
 
-    // 3. Consolidar Objeto de Resposta
+    // 3. Migração transparente de beneficios_pacote 🛡️
+    // Formato legado (survey antiga): string[] ex: ["Salário", "Comissão"]
+    // Formato rico (BenefitsPackage): Record<string, BenefitData> ex: { "Salário": { enabled: true, value: "5000", currency: "BRL" } }
+    let beneficiosData: Record<string, any> = {};
+    const rawBeneficios = surveyData?.beneficios_pacote;
+    
+    if (rawBeneficios) {
+      if (Array.isArray(rawBeneficios)) {
+        // Formato legado: converter string[] → Record com enabled:true
+        rawBeneficios.forEach((name: string) => {
+          beneficiosData[name] = { enabled: true };
+        });
+      } else if (typeof rawBeneficios === 'object') {
+        // Formato rico: usar diretamente
+        beneficiosData = rawBeneficios;
+      }
+    }
+
+    // 4. Consolidar Objeto de Resposta
     const profile: ProfessionalProfileData = {
       // Dados da Survey (Fallbacks)
       regime_choice: surveyData?.regime_choice || "",
-      beneficios_pacote: surveyData?.beneficios_pacote || [],
+      beneficios_pacote: beneficiosData,
       cv_upload: surveyData?.cv_upload || null,
       portfolio_upload: surveyData?.portfolio_upload || null,
       linkedin_url: surveyData?.linkedin_url || "",
@@ -97,7 +123,8 @@ export async function getProfessionalProfileAction(idToken?: string) {
         tiktok: netData?.contacts?.tiktok || defaultContact,
         discord: netData?.contacts?.discord || defaultContact,
         site: netData?.contacts?.site || { value: surveyData?.web_url || "", isPublic: false },
-      }
+      },
+      matricula,
     };
 
     return { success: true, data: profile, matricula };
@@ -138,7 +165,9 @@ export async function updateProfessionalProfileAction(data: ProfessionalProfileD
     const surveyRef = db.doc(`User/${matricula}/results/check_in`);
     batch.set(surveyRef, {
       regime_choice: data.regime_choice,
-      beneficios_pacote: data.beneficios_pacote,
+      beneficios_pacote: data.beneficios_pacote, // Salva no formato rico Record<string, BenefitData>
+      cv_upload: data.cv_upload || null,
+      portfolio_upload: data.portfolio_upload || null,
       linkedin_url: data.linkedin_url,
       instagram_url: data.instagram_url,
       web_url: data.web_url,
@@ -146,6 +175,26 @@ export async function updateProfessionalProfileAction(data: ProfessionalProfileD
       comentarios_carreira: data.comentarios_carreira,
       banco_talentos: data.participation_talent_bank ? "Sim, quero fazer parte" : "Não, obrigado",
       syncWithProfileAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    // 3. Denormalizar dados no documento principal do User 🛰️
+    // Necessário para que a query de Networking consiga filtrar por networking_visibility
+    // Firestore NÃO suporta queries em subcoleções via campo do documento pai
+    const userRef = db.doc(`User/${matricula}`);
+    batch.set(userRef, {
+      profile: {
+        networking: {
+          networking_visibility: data.networking_visibility,
+          cv_networking_visibility: data.cv_networking_visibility,
+          portfolio_networking_visibility: data.portfolio_networking_visibility,
+          sales_pitch: data.sales_pitch,
+          hashtags: data.hashtags,
+          contacts: data.contacts,
+          participation_talent_bank: data.participation_talent_bank,
+        }
+      },
+      // Atualiza photo das URLs de CV/Portfolio no nível raiz para acesso rápido
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
     await batch.commit();

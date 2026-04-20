@@ -41,16 +41,18 @@ export async function getNetworkingDataAction(
     
     // 1. ABA: PARCEIROS 🤝
     if (tab === "parceiros") {
-      let partnerQuery = db.collection("Partners").where("isActive", "==", true);
-      
+      // Busca simples sem compound queries (evita necessidade de índice)
+      const snapshot = await db.collection("Partners").get();
+      let results = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as PartnerData))
+        .filter(p => p.isActive === true); // Filtra client-side
+
+      // Filtro de ramo de atuação
       if (serviceFilter && serviceFilter !== "Todos") {
-        partnerQuery = partnerQuery.where("serviceType", "==", serviceFilter);
+        results = results.filter(p => p.serviceType === serviceFilter);
       }
 
-      const snapshot = await partnerQuery.get();
-      let results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PartnerData));
-
-      // Filtro de consulta (Client-side like matching simplificado no server)
+      // Filtro de consulta (busca por texto)
       if (query) {
         const q = query.toLowerCase();
         results = results.filter(p => 
@@ -65,34 +67,36 @@ export async function getNetworkingDataAction(
     }
 
     // 2. ABAS: MEMBROS OU PROFISSIONAIS 🧬
-    // Buscamos usuários que habilitaram a visibilidade no networking
-    let userQuery = db.collection("User")
-      .where("profile.networking.networking_visibility", "==", true);
+    // Busca simples + filtro client-side (evita compound queries e índices no Firestore)
+    const snapshot = await db.collection("User").get();
+    
+    let users = snapshot.docs
+      .map(doc => {
+        const d = doc.data();
+        const netProfile = d.profile?.networking || {};
+        
+        // Apenas usuários com visibilidade habilitada
+        if (!netProfile.networking_visibility) return null;
+        
+        // Filtro de profissionais
+        if (tab === "profissionais" && !netProfile.isBPlenProfessional) return null;
 
-    if (tab === "profissionais") {
-      userQuery = userQuery.where("profile.networking.isBPlenProfessional", "==", true);
-    }
-
-    const snapshot = await userQuery.get();
-    let users = snapshot.docs.map(doc => {
-      const d = doc.data();
-      // Resolver Estágio da Jornada via subcoleção progress (simplificado para exibição)
-      // Em uma versão real, o estágio seria denormalizado no Doc principal para performance
-      return {
-        id: doc.id,
-        name: d.profile?.fullName || d.nickname || "Membro BPlen",
-        photoUrl: d.photoUrl || "",
-        pitch: d.profile?.networking?.sales_pitch || "",
-        hashtags: d.profile?.networking?.hashtags || [],
-        journeyStageId: d.User_JourneyMap?.current_stage || "onboarding",
-        isProfessional: d.profile?.networking?.isBPlenProfessional || false,
-        contacts: d.profile?.networking?.contacts || {},
-        cvVisible: d.profile?.networking?.cv_networking_visibility || false,
-        portfolioVisible: d.profile?.networking?.portfolio_networking_visibility || false,
-        cvUrl: d.profile?.address?.cv_url || "",
-        portfolioUrl: d.profile?.address?.portfolio_url || ""
-      } as NetworkingMember;
-    });
+        return {
+          id: doc.id,
+          name: d.profile?.fullName || d.Authentication_Name || d.User_Nickname || d.nickname || "Membro BPlen",
+          photoUrl: d.photoUrl || d.profile?.photoUrl || "",
+          pitch: netProfile.sales_pitch || "",
+          hashtags: netProfile.hashtags || [],
+          journeyStageId: d.User_JourneyMap?.current_stage || "onboarding",
+          isProfessional: netProfile.isBPlenProfessional || false,
+          contacts: netProfile.contacts || {},
+          cvVisible: netProfile.cv_networking_visibility || false,
+          portfolioVisible: netProfile.portfolio_networking_visibility || false,
+          cvUrl: d.profile?.address?.cv_url || "",
+          portfolioUrl: d.profile?.address?.portfolio_url || ""
+        } as NetworkingMember;
+      })
+      .filter(Boolean) as NetworkingMember[];
 
     // Filtros de Busca e Estágio
     if (stageFilter && stageFilter !== "Todos") {
@@ -111,7 +115,7 @@ export async function getNetworkingDataAction(
     return { success: true, type: "members", data: users };
 
   } catch (error: any) {
-    console.error("❌ [NetworkingAction] Erro:", error);
-    return { success: false, error: error.message };
+    console.error("❌ [NetworkingAction] Erro:", error?.message || error);
+    return { success: false, error: error.message, data: [] };
   }
 }

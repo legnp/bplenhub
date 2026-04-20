@@ -21,7 +21,8 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  LucideIcon
+  LucideIcon,
+  Link2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -31,6 +32,11 @@ import {
   ContactItem
 } from "@/actions/profile-professional";
 import { useAuthContext } from "@/context/AuthContext";
+import { BenefitsPackage } from "@/components/forms/SurveyFields/BenefitsPackage";
+import { FileField } from "@/components/forms/SurveyFields/FileField";
+import { InputGlass } from "@/components/ui/InputGlass";
+import { TextareaGlass } from "@/components/ui/TextareaGlass";
+
 
 /**
  * BPlen HUB — ProfileProfessionalTab 🧬🏛️
@@ -330,126 +336,173 @@ export function ProfileProfessionalTab() {
               </div>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              
-              {/* Regime de Trabalho */}
-              <div className="space-y-4">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Regime Atual</label>
-                 <div className="flex flex-col gap-2">
-                   {["CLT", "PJ", "Trabalho informal", "Não estou empregado"].map((opt) => (
-                      <button 
-                         key={opt}
-                         disabled={!isEditing}
-                         onClick={() => updateField('regime_choice', opt)}
-                         className={cn(
-                           "px-6 py-4 rounded-2xl border text-[11px] font-bold text-left transition-all",
-                           data.regime_choice === opt 
-                            ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white" 
-                            : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--accent-soft)]"
-                         )}
-                      >
-                         {opt}
-                      </button>
-                   ))}
-                 </div>
+           {/* Regime de Trabalho */}
+           <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Regime Atual</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {["CLT", "PJ", "Trabalho informal", "Não estou empregado"].map((opt) => (
+                   <button 
+                      key={opt}
+                      disabled={!isEditing}
+                      onClick={() => updateField('regime_choice', opt)}
+                      className={cn(
+                        "px-6 py-4 rounded-2xl border text-[11px] font-bold text-left transition-all flex-1",
+                        data.regime_choice === opt 
+                         ? "bg-[var(--accent-start)] border-[var(--accent-start)] text-white" 
+                         : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--accent-soft)]"
+                      )}
+                   >
+                      {opt}
+                   </button>
+                ))}
               </div>
+           </div>
 
-              {/* Pacote de Benefícios (Multi) */}
-              <div className="space-y-4 lg:col-span-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Pacote e Benefícios</label>
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {[
-                      "Salário", "Comissão", "Bônus", "PLR", "Previdência Privada", "VR/VA Flex", 
-                      "VR", "VA", "VT", "Vale Combustível", "Estacionamento", 
-                      "Seguro Médico", "Seguro Odontológico", "Seguro de Vida", 
-                      "Dayoff", "Home Office", "Expectativa Salarial"
-                    ].map((ben) => {
-                      const isActive = data.beneficios_pacote?.includes(ben);
-                      return (
-                        <button 
-                           key={ben}
-                           disabled={!isEditing}
-                           onClick={() => {
-                             const current = data.beneficios_pacote || [];
-                             const next = isActive 
-                                ? current.filter(c => c !== ben) 
-                                : [...current, ben];
-                             updateField('beneficios_pacote', next);
-                           }}
-                           className={cn(
-                             "px-4 py-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all",
-                             isActive 
-                              ? "bg-[var(--text-primary)] text-[var(--bg-primary)] border-[var(--text-primary)]" 
-                              : "bg-[var(--input-bg)] border-[var(--border-primary)] text-[var(--text-muted)] hover:opacity-100"
-                           )}
-                        >
-                           {ben}
-                        </button>
-                      );
-                    })}
-                 </div>
-              </div>
+           {/* Pacote de Benefícios — Componente Rico da Survey */}
+           <div className={cn("space-y-4", !isEditing && "opacity-60 pointer-events-none")}>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Pacote e Benefícios</label>
+              <BenefitsPackage
+                options={[
+                  "Salário", "Comissão", "Bônus", "PLR", "Previdência Privada", "VR/VA Flex", 
+                  "VR", "VA", "VT", "Vale Combustível", "Estacionamento", 
+                  "Seguro Médico", "Seguro Odontológico", "Seguro de Vida", 
+                  "Dayoff", "Home Office", "Expectativa Salarial"
+                ]}
+                value={(data.beneficios_pacote as Record<string, any>) || {}}
+                onChange={(val) => updateField('beneficios_pacote', val)}
+              />
            </div>
         </div>
 
-        {/* 📂 Seção 4: Ativos e Visibilidade de Arquivos */}
+        {/* 📂 Seção 4: Carreira Profissional — Documentos, Links e Ativos */}
         <div className="p-10 border border-[var(--border-primary)] bg-[var(--input-bg)] rounded-[3.5rem] glass space-y-8 col-span-1 lg:col-span-2">
-           <div className="space-y-6">
-              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-muted)]">Documentos e Ativos</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Currículo */}
-                <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <FileText size={20} className="text-[var(--accent-start)]" />
-                         <span className="text-[11px] font-black uppercase tracking-tighter">Currículo (PDF)</span>
-                      </div>
-                      <button 
-                         disabled={!isEditing}
-                         onClick={() => updateField('cv_networking_visibility', !data.cv_networking_visibility)}
-                         className={cn(
-                            "px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                            data.cv_networking_visibility ? "bg-emerald-500 text-white" : "bg-white/10 text-white/30"
-                         )}
-                      >
-                         {data.cv_networking_visibility ? <Eye size={10} /> : <EyeOff size={10} />}
-                         Visível Network
-                      </button>
+           <div className="space-y-1 pb-6 border-b border-[var(--border-primary)]">
+              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--accent-start)]">Carreira Profissional</h3>
+              <p className="text-[10px] text-[var(--text-muted)] italic">Anexe seus documentos e compartilhe seus canais profissionais.</p>
+           </div>
+           
+           {/* Upload de Documentos */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             {/* Currículo */}
+             <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <FileText size={20} className="text-[var(--accent-start)]" />
+                      <span className="text-[11px] font-black uppercase tracking-tighter text-[var(--text-primary)]">Currículo (PDF)</span>
                    </div>
-                   <div className="p-6 border border-dashed border-[var(--border-primary)] rounded-2xl flex flex-col items-center justify-center text-[10px] text-[var(--text-muted)] italic">
-                      {data.cv_upload ? "Arquivo Carregado (Soberano)" : "Nenhum arquivo anexado"}
-                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-[var(--text-primary)] opacity-20">* Upload disponível via Forms Engine</p>
-                   </div>
+                   <button 
+                      disabled={!isEditing}
+                      onClick={() => updateField('cv_networking_visibility', !data.cv_networking_visibility)}
+                      className={cn(
+                         "px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                         data.cv_networking_visibility 
+                           ? "bg-emerald-500 text-white" 
+                           : "bg-[var(--input-bg)] border border-[var(--border-primary)] text-[var(--text-muted)]"
+                      )}
+                   >
+                      {data.cv_networking_visibility ? <Eye size={10} /> : <EyeOff size={10} />}
+                      Visível Network
+                   </button>
                 </div>
+                <div className={cn(!isEditing && "opacity-60 pointer-events-none")}>
+                  <FileField
+                    id="cv_upload"
+                    label="Currículo / Resumo Profissional"
+                    type="CV"
+                    matricula={data.matricula || ""}
+                    value={data.cv_upload || null}
+                    maxSizeMB={5}
+                    onChange={(val) => updateField('cv_upload', val)}
+                  />
+                </div>
+             </div>
 
-                {/* Portfólio */}
-                <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <Briefcase size={20} className="text-[var(--accent-start)]" />
-                         <span className="text-[11px] font-black uppercase tracking-tighter text-[var(--text-primary)]">Portfólio / Projetos</span>
-                      </div>
-                      <button 
-                         disabled={!isEditing}
-                         onClick={() => updateField('portfolio_networking_visibility', !data.portfolio_networking_visibility)}
-                         className={cn(
-                            "px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                            data.portfolio_networking_visibility ? "bg-emerald-500 text-white" : "bg-white/10 text-white/30"
-                         )}
-                      >
-                         {data.portfolio_networking_visibility ? <Eye size={10} /> : <EyeOff size={10} />}
-                         Visível Network
-                      </button>
+             {/* Portfólio */}
+             <div className="p-8 bg-[var(--bg-primary)]/40 rounded-[2.5rem] border border-[var(--border-primary)] flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <Briefcase size={20} className="text-[var(--accent-start)]" />
+                      <span className="text-[11px] font-black uppercase tracking-tighter text-[var(--text-primary)]">Portfólio / Projetos</span>
                    </div>
-                   <div className="p-6 border border-dashed border-[var(--border-primary)] rounded-2xl flex flex-col items-center justify-center text-[10px] text-[var(--text-muted)] italic">
-                      {data.portfolio_upload ? "Arquivo Carregado (Soberano)" : "Nenhum arquivo anexado"}
-                      <p className="mt-2 text-[8px] uppercase font-black not-italic text-[var(--text-primary)] opacity-20">* Upload disponível via Forms Engine</p>
-                   </div>
+                   <button 
+                      disabled={!isEditing}
+                      onClick={() => updateField('portfolio_networking_visibility', !data.portfolio_networking_visibility)}
+                      className={cn(
+                         "px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                         data.portfolio_networking_visibility 
+                           ? "bg-emerald-500 text-white" 
+                           : "bg-[var(--input-bg)] border border-[var(--border-primary)] text-[var(--text-muted)]"
+                      )}
+                   >
+                      {data.portfolio_networking_visibility ? <Eye size={10} /> : <EyeOff size={10} />}
+                      Visível Network
+                   </button>
                 </div>
+                <div className={cn(!isEditing && "opacity-60 pointer-events-none")}>
+                  <FileField
+                    id="portfolio_upload"
+                    label="Apresentação de Portfólio"
+                    type="Portfolio"
+                    matricula={data.matricula || ""}
+                    value={data.portfolio_upload || null}
+                    maxSizeMB={20}
+                    onChange={(val) => updateField('portfolio_upload', val)}
+                  />
+                </div>
+             </div>
+           </div>
+
+           {/* Links Profissionais */}
+           <div className="space-y-4 pt-4">
+              <div className="flex items-center gap-2">
+                 <Link2 size={16} className="text-[var(--accent-start)]" />
+                 <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Links Profissionais</label>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputGlass
+                  label="LinkedIn (URL)"
+                  placeholder="linkedin.com/in/seu-perfil"
+                  value={data.linkedin_url || ""}
+                  onChange={(e) => updateField('linkedin_url', e.target.value)}
+                  disabled={!isEditing}
+                />
+                <InputGlass
+                  label="Instagram (URL)"
+                  placeholder="@seunome"
+                  value={data.instagram_url || ""}
+                  onChange={(e) => updateField('instagram_url', e.target.value)}
+                  disabled={!isEditing}
+                />
+                <InputGlass
+                  label="Página Web Profissional"
+                  placeholder="www.seusite.com.br"
+                  value={data.web_url || ""}
+                  onChange={(e) => updateField('web_url', e.target.value)}
+                  disabled={!isEditing}
+                />
+                <InputGlass
+                  label="Página de Portfólio (Behance, GitHub, etc)"
+                  placeholder="behance.net/seu-perfil"
+                  value={data.portfolio_url || ""}
+                  onChange={(e) => updateField('portfolio_url', e.target.value)}
+                  disabled={!isEditing}
+                />
               </div>
            </div>
+
+           {/* Comentários sobre Carreira */}
+           <div className="space-y-2">
+              <TextareaGlass
+                label="Comentários sobre sua carreira profissional"
+                placeholder="Fale um pouco mais sobre sua trajetória..."
+                value={data.comentarios_carreira || ""}
+                onChange={(e) => updateField('comentarios_carreira', e.target.value)}
+                rows={4}
+                disabled={!isEditing}
+              />
+           </div>
         </div>
+
 
       </div>
     </div>

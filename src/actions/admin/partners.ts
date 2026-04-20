@@ -36,16 +36,23 @@ export interface PartnerData {
 export async function getPartnersAction(): Promise<PartnerData[]> {
   try {
     const db = getAdminDb();
-    const snapshot = await db.collection("Partners")
-      .orderBy("createdAt", "desc")
-      .get();
+    const snapshot = await db.collection("Partners").get();
 
-    return snapshot.docs.map(doc => ({
+    const partners = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as PartnerData[];
-  } catch (error) {
-    console.error("❌ [GetPartners] Erro:", error);
+
+    // Ordenação client-side (evita necessidade de índice no Firestore)
+    partners.sort((a, b) => {
+      const dateA = a.createdAt?.toDate?.() || a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(0);
+      const dateB = b.createdAt?.toDate?.() || b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(0);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return partners;
+  } catch (error: any) {
+    console.error("❌ [GetPartners] Erro:", error?.message || error);
     return [];
   }
 }
@@ -92,8 +99,11 @@ export async function upsertPartnerAction(data: PartnerData, base64Image?: strin
     const partnerId = data.id || db.collection("Partners").doc().id;
     const partnerRef = db.collection("Partners").doc(partnerId);
 
+    // Excluímos 'id' do body para não salvar o campo 'id' dentro do documento
+    const { id: _excludeId, ...dataWithoutId } = data;
+
     const finalData = {
-      ...data,
+      ...dataWithoutId,
       photoUrl,
       photoDriveId,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
