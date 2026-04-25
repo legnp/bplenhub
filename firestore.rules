@@ -52,6 +52,25 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // 🏷️ [Marketing] Produtos e Cupons
+    match /products/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /marketing_coupons/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 🥡 [Pedidos] Histórico de Compras
+    match /User_Orders/{orderId} {
+      allow read: if request.auth != null && (
+        // O usuário só lê se a matrícula no pedido for a dele
+        resource.data.matricula == get(/databases/$(database)/documents/_AuthMap/$(request.auth.uid)).data.matricula
+      );
+      allow write: if false;
+    }
+
     // ⚙️ [Fallback] Bloqueio preventivo para novas coleções não documentadas
     match /{document=**} {
       allow read, write: if false;
