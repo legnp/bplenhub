@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "Acompanhe sua evolução, resultados e próximos passos na sua jornada de desenvolvimento BPlen.",
 };
 
+export const dynamic = "force-dynamic";
+
 /**
  * BPlen HUB — Área de Membro (Soberania do Servidor 🛡️)
  * O acesso é validado no servidor antes de enviar qualquer JS para o navegador.

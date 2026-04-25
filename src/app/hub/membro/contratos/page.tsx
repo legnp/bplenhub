@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Trilha Financeira e Acessos BPlen HUB",
 };
 
+export const dynamic = "force-dynamic";
+
 /**
  * 🏷️ BPlen Tag Experience (Mapeamento Humano de Status)
  */
